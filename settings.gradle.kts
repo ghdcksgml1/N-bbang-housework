@@ -1,6 +1,9 @@
 rootProject.name = "heachi"
 
-include("heachi-admin")
+include(
+    "heachi-admin",
+    "heachi-support:logging"
+)
 
 pluginManagement {
     val kotlinVersion: String by settings
