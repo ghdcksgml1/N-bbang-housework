@@ -2,7 +2,9 @@ rootProject.name = "heachi"
 
 include(
     "heachi-admin",
-    "heachi-support:logging"
+    "heachi-notify",
+    "heachi-support:logging",
+    "heachi-support:common"
 )
 
 pluginManagement {

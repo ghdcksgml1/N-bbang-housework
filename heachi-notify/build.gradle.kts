@@ -11,8 +11,9 @@ dependencies {
     implementation(project(":heachi-support:logging"))
     implementation(project(":heachi-support:common"))
 
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    testImplementation("io.projectreactor:reactor-test")
 }
 
 allOpen {
