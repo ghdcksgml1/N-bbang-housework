@@ -2,8 +2,10 @@ package com.heachi.common.response;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class JsonResult<T> {
     private Integer resCode;
     private T resObj;
@@ -43,5 +45,14 @@ public class JsonResult<T> {
                 .resCode(JsonResultType.FAIL.getCode())
                 .resMsg(resMsg)
                 .build();
+    }
+
+    @Override
+    public String toString() {
+        return "JsonResult{" +
+                "resCode=" + resCode +
+                ", resObj=" + resObj +
+                ", resMsg='" + resMsg + '\'' +
+                '}';
     }
 }
