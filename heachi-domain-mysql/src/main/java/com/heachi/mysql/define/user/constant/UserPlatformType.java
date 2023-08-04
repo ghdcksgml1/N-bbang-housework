@@ -1,4 +1,4 @@
-package com.heachi.mysql.define.user;
+package com.heachi.mysql.define.user.constant;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
