@@ -1,0 +1,10 @@
+rootProject.name = "heachi"
+
+include(
+    "heachi-core:auth-api",
+    "heachi-domain-mongo",
+    "heachi-domain-mysql",
+    "heachi-notify",
+    "heachi-support:common",
+    "heachi-support:logging"
+)

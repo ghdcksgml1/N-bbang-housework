@@ -1,0 +1,11 @@
+dependencies {
+    // 내부 모듈
+    implementation project(':heachi-support:common')
+
+    implementation "org.springframework.boot:spring-boot-starter-data-mongodb-reactive"
+    implementation "org.springframework.boot:spring-boot-starter-webflux"
+    testImplementation "io.projectreactor:reactor-test"
+}
+
+bootJar.enabled = false
+jar.enabled = true
