@@ -1,4 +1,4 @@
-package com.heachi.auth.config;
+package com.heachi.auth.config.querydsl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

@@ -15,7 +15,7 @@ public class HelloController {
     private final HelloRepository helloRepository;
     private final HelloQueryRepository helloQueryRepository;
 
-    @GetMapping("/")
+    @GetMapping("/auth/")
     public Hello hello() {
         Hello hi = Hello.builder()
                 .hello("hi")
