@@ -6,6 +6,18 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web
     implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation
+    api 'org.springframework.boot:spring-boot-starter-security' // Spring Security
+
+    // jwt 라이브러리 추가
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    testCompileOnly project(':heachi-support:common')
+    testCompileOnly project(':heachi-support:logging')
+    testCompileOnly project(':heachi-domain-mysql')
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
 }
 
 bootJar.enabled = true
