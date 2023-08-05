@@ -52,7 +52,13 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        String username = extractUsername(token);
+        Claims claims = extractAllClaims(token);
+
+        if (!claims.containsKey("role")) return false;
+        if (!claims.containsKey("name")) return false;
+        if (!claims.containsKey("profileImageUrl")) return false;
+
+        String username = claims.getSubject();
 
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
