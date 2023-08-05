@@ -89,13 +89,19 @@ class SecurityConfigTest extends TestConfig {
 
         User user = User.builder()
                 .name("김민수")
-                .email("kimminsu@dankook.ac.kr")
                 .role(UserRole.USER)
+                .email("kimminsu@dankook.ac.kr")
+                .profileImageUrl("https://google.com")
                 .build();
         User savedUser = userRepository.save(user);
 
+        HashMap<String, String> map = new HashMap<>();
+        map.put("role", savedUser.getRole().name());
+        map.put("name", savedUser.getName());
+        map.put("profileImageUrl", savedUser.getProfileImageUrl());
+
         // when
-        String token = jwtService.generateToken(savedUser);
+        String token = jwtService.generateToken(map, savedUser);
         mockMvc.perform(
                         get(uri)
                                 .header("Authorization", "Bearer " + token)
