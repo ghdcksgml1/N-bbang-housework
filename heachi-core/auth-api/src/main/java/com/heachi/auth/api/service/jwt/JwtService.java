@@ -37,6 +37,10 @@ public class JwtService {
         return generateToken(new HashMap<>(), userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
     }
 
+    public String generateToken(Map<String, String> extraClaims, UserDetails userDetails) {
+        return generateToken(extraClaims, userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
+    }
+
     public String generateToken(Map<String, String> extraClaims, UserDetails userDetails, Date expiredTime) {
         return Jwts.builder()
                 .setClaims(extraClaims)
@@ -61,7 +65,7 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSignInkey())
                 .build()
