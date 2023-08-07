@@ -1,15 +1,12 @@
 package com.heachi.auth.api.controller.auth;
 
 import com.heachi.admin.common.response.JsonResult;
-import com.heachi.auth.api.controller.auth.request.AuthLoginRequest;
 import com.heachi.auth.api.controller.auth.request.AuthRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
+import com.heachi.mysql.define.user.constant.UserPlatformType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -17,17 +14,18 @@ import java.util.Map;
 @RestController
 public class AuthController {
 
-    @PostMapping("/login")
-    public JsonResult<AuthServiceLoginResponse> login(@RequestBody AuthLoginRequest request) {
+    @PostMapping("/{platformType}/login")
+    public JsonResult<AuthServiceLoginResponse> login(
+            @PathVariable("platformType") UserPlatformType platformType,
+            @RequestParam("code") String code) {
 
         return JsonResult.successOf("AuthServiceLoginResponse");
     }
 
-    @PostMapping("/register")
+    @PostMapping("/{platformType}/register")
     public JsonResult<?> register(
-            @RequestParam("code") String code,
-            @RequestBody AuthRegisterRequest request
-    ) {
+            @PathVariable("platformType") UserPlatformType platformType,
+            @RequestBody AuthRegisterRequest request) {
         return JsonResult.successOf();
     }
 }
