@@ -1,12 +1,15 @@
 package com.heachi.mongo.define.notify;
 
 import com.heachi.mongo.define.notify.constant.NotifyType;
+import lombok.Builder;
+import lombok.Getter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Getter
 @Document(collection = "notify")
 public class Notify {
     @Id
@@ -21,4 +24,18 @@ public class Notify {
     private LocalDateTime createdTime = LocalDateTime.now();            // 알림 발생 시간
     private Map<String, LocalDateTime> checkedTime = new HashMap<>();   // 알림 확인 시간
     private Set<String> checked = new HashSet<>();                      // 알림을 확인했는지 안했는지
+
+    @Builder
+    private Notify(String sendUserId, List<String> receiveUserIds, NotifyType type, String message, String generatedUrl
+            , String url, LocalDateTime createdTime, Map<String, LocalDateTime> checkedTime, Set<String> checked) {
+        this.sendUserId = sendUserId;
+        this.receiveUserIds = receiveUserIds;
+        this.type = type;
+        this.message = message;
+        this.generatedUrl = generatedUrl;
+        this.url = url;
+        this.createdTime = createdTime;
+        this.checkedTime = checkedTime;
+        this.checked = checked;
+    }
 }
