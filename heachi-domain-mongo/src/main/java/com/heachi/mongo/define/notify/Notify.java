@@ -38,4 +38,8 @@ public class Notify {
         this.checkedTime = checkedTime;
         this.checked = checked;
     }
+
+    public void receiverUserCheckedNotify() {
+
+    }
 }
