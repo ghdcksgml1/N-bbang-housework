@@ -43,3 +43,6 @@ out/
 /src/main/java/com/proceed/swhackathon/test/
 
 /src/main/resources/ssl/
+
+### MongoDB Log ###
+/heachi-domain-mongo/mongodb/
