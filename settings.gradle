@@ -6,5 +6,6 @@ include(
     "heachi-domain-mysql",
     "heachi-notify",
     "heachi-support:common",
-    "heachi-support:logging"
+    "heachi-support:logging",
+    "heachi-support:external-clients"
 )

@@ -1,0 +1,9 @@
+bootJar.enabled = false
+jar.enabled = true
+
+dependencies {
+    // Reflections 라이브러리
+    implementation group: 'org.reflections', name: 'reflections', version: '0.10.2'
+
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+}
