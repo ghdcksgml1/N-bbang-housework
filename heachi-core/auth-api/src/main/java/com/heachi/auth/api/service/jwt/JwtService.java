@@ -37,6 +37,10 @@ public class JwtService {
         return generateToken(new HashMap<>(), userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
     }
 
+    public String generateToken(Map<String, String> extraClaims, UserDetails userDetails) {
+        return generateToken(extraClaims, userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
+    }
+
     public String generateToken(Map<String, String> extraClaims, UserDetails userDetails, Date expiredTime) {
         return Jwts.builder()
                 .setClaims(extraClaims)
@@ -48,7 +52,13 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        String username = extractUsername(token);
+        Claims claims = extractAllClaims(token);
+
+        if (!claims.containsKey("role")) return false;
+        if (!claims.containsKey("name")) return false;
+        if (!claims.containsKey("profileImageUrl")) return false;
+
+        String username = claims.getSubject();
 
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
@@ -61,7 +71,7 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSignInkey())
                 .build()

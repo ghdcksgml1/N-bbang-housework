@@ -1,8 +1,9 @@
 dependencies {
     // 내부 모듈
+    implementation project(':heachi-domain-mongo')
     implementation project(':heachi-support:common')
+    implementation project(':heachi-support:logging')
 
-    implementation "org.springframework.boot:spring-boot-starter-data-mongodb-reactive"
     implementation "org.springframework.boot:spring-boot-starter-webflux"
     testImplementation "io.projectreactor:reactor-test"
 }

@@ -25,10 +25,14 @@ public class SecurityConfig {
                 .csrf((csrf) -> csrf.disable())
                 .authorizeHttpRequests((authorizeHttpRequests) ->
                         authorizeHttpRequests
-                                .requestMatchers("/auth/login", "/auth/register").permitAll()
-                                .anyRequest().hasAnyAuthority("USER", "CHEMIST", "CENTER"));
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.authenticationProvider(authenticationProvider)
+                                .requestMatchers("/auth/**").permitAll()
+                                .anyRequest().hasAnyAuthority("USER", "CHEMIST", "CENTER")
+                )
+                .sessionManagement((sessionManagement) ->
+                        sessionManagement
+                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
