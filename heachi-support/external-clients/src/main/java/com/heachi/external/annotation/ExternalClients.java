@@ -1,5 +1,9 @@
 package com.heachi.external.annotation;
 
+import org.springframework.core.annotation.AliasFor;
+import org.springframework.http.MediaType;
+import org.springframework.web.service.annotation.HttpExchange;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -24,8 +28,11 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@HttpExchange
 public @interface ExternalClients {
 
     String baseUrl() default "http://localhost:8080";
 
+    @AliasFor(annotation = HttpExchange.class, attribute = "accept")
+    String accept() default MediaType.APPLICATION_JSON_VALUE;
 }
