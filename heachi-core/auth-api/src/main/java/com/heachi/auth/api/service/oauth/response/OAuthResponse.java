@@ -4,9 +4,11 @@ import com.heachi.mysql.define.user.constant.UserPlatformType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
 @NoArgsConstructor
+@ToString
 public class OAuthResponse {
     private String platformId;
     private UserPlatformType platformType;

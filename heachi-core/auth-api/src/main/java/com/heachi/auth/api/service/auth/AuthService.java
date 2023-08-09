@@ -24,12 +24,12 @@ public class AuthService {
 
     public AuthServiceLoginResponse login(UserPlatformType platformType, String code) {
         OAuthResponse loginResponse = oAuthService.login(platformType, code);
+        log.info(">>>> {}님이 로그인하셨습니다.", loginResponse.getName());
 
         return null;
     }
 
     public AuthServiceLoginResponse register(UserPlatformType platformType, AuthServiceRegisterRequest request) {
-        OAuthResponse registerResponse = oAuthService.register(platformType, OAuthRegisterRequest.of(request));
 
         return null;
     }
