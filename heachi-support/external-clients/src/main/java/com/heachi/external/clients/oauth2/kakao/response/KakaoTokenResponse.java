@@ -9,4 +9,8 @@ import lombok.ToString;
 @ToString
 public class KakaoTokenResponse {
     private String access_token;
+
+    public KakaoTokenResponse(String access_token) {
+        this.access_token = access_token;
+    }
 }
