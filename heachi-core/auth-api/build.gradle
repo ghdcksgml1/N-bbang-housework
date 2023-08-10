@@ -2,6 +2,7 @@ dependencies {
     // 내부 모듈
     implementation project(':heachi-support:common')
     implementation project(':heachi-support:logging')
+    implementation project(':heachi-support:external-clients')
     implementation project(':heachi-domain-mysql')
 
     implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web

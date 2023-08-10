@@ -21,6 +21,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 
+import static com.heachi.mysql.define.user.constant.UserPlatformType.KAKAO;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -183,5 +184,39 @@ class AuthServiceTest extends TestConfig {
                 () -> assertThat(claims3.get("name")).isEqualTo("김민금"),
                 () -> assertThat(claims3.get("profileImageUrl")).isEqualTo("google.com")
         );
+    }
+
+    @Test
+    @DisplayName("기존 사용자의 정보가 바뀌면 수정되어야한다. (별명, 프로필 사진)")
+    void loginUpdateUserInfoWhenUserInfoChanged() {
+        // given
+        UserPlatformType platformType = KAKAO;
+        User user = User.builder()
+                .platformId("12345")
+                .platformType(platformType)
+                .email("kms@kakao.com")
+                .name("김민수")
+                .profileImageUrl("google.co.kr")
+                .role(UserRole.USER)
+                .build();
+        userRepository.save(user);
+        OAuthResponse oAuthResponse = OAuthResponse.builder()
+                .platformId("12345")
+                .platformType(platformType)
+                .email("kms@kakao.com")
+                .name("김민수짱")
+                .profileImageUrl("google.com")
+                .build();
+        when(oAuthService.login(any(UserPlatformType.class), any(String.class))).thenReturn(oAuthResponse);
+
+        // when
+        authService.login(platformType, "123344");
+        User findUser = userRepository.findByEmail("kms@kakao.com").get();
+
+        // then
+        assertAll(() -> {
+            assertThat(findUser.getName()).isEqualTo("김민수짱");
+            assertThat(findUser.getProfileImageUrl()).isEqualTo("google.com");
+        });
     }
 }
