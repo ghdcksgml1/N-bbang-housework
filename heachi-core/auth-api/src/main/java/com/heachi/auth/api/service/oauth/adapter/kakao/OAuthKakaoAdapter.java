@@ -1,14 +1,13 @@
 package com.heachi.auth.api.service.oauth.adapter.kakao;
 
+import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.auth.api.service.oauth.adapter.OAuthAdapter;
-import com.heachi.auth.api.service.oauth.builder.KakaoURLBuilder;
-import com.heachi.auth.api.service.oauth.request.OAuthRegisterRequest;
 import com.heachi.auth.api.service.oauth.response.OAuthResponse;
 import com.heachi.external.clients.oauth2.kakao.KakaoProfileClients;
 import com.heachi.external.clients.oauth2.kakao.KakaoTokenClients;
 import com.heachi.external.clients.oauth2.kakao.response.KakaoProfileResponse;
 import com.heachi.external.clients.oauth2.kakao.response.KakaoTokenResponse;
-import com.heachi.mysql.define.user.constant.UserPlatformType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,22 +24,30 @@ public class OAuthKakaoAdapter implements OAuthAdapter {
 
     @Override
     public String getToken(String tokenURL) {
-        KakaoTokenResponse token = kakaoTokenClients.getToken(URI.create(tokenURL));
+        try {
+            KakaoTokenResponse token = kakaoTokenClients.getToken(URI.create(tokenURL));
 
-        return token.getAccess_token();
+            return token.getAccess_token();
+        } catch (RuntimeException e) {
+            throw new OAuthException(ExceptionMessage.OAUTH_INVALID_TOKEN_URL);
+        }
     }
 
     @Override
     public OAuthResponse getProfile(String accessToken) {
-        KakaoProfileResponse profile = kakaoProfileClients.getProfile("Bearer " + accessToken);
-        OAuthResponse oAuthResponse = OAuthResponse.builder()
-                .platformId(profile.getId().toString())
-                .platformType(KAKAO)
-                .email(profile.getKakao_account().getEmail())
-                .name(profile.getKakao_account().getProfile().getNickname())
-                .profileImageUrl(profile.getKakao_account().getProfile().getThumbnail_image_url())
-                .build();
+        try {
+            KakaoProfileResponse profile = kakaoProfileClients.getProfile("Bearer " + accessToken);
+            OAuthResponse oAuthResponse = OAuthResponse.builder()
+                    .platformId(profile.getId().toString())
+                    .platformType(KAKAO)
+                    .email(profile.getKakao_account().getEmail())
+                    .name(profile.getKakao_account().getProfile().getNickname())
+                    .profileImageUrl(profile.getKakao_account().getProfile().getThumbnail_image_url())
+                    .build();
 
-        return oAuthResponse;
+            return oAuthResponse;
+        } catch (RuntimeException e) {
+            throw new OAuthException(ExceptionMessage.OAUTH_INVALID_ACCESS_TOKEN);
+        }
     }
 }
