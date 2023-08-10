@@ -1,7 +1,8 @@
 package com.heachi.auth.config.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.heachi.admin.common.exception.jwt.JwtExceptionMsg;
+import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.jwt.JwtException;
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.auth.api.service.jwt.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -20,7 +21,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -73,26 +73,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (ExpiredJwtException e){
             logger.error("Could not set user authentication in security context {}" , e);
-            jwtExceptionHandler(response, JwtExceptionMsg.JWT_TOKEN_EXPIRED);
+            jwtExceptionHandler(response, ExceptionMessage.JWT_TOKEN_EXPIRED);
         }catch (UnsupportedJwtException e){
             logger.error("Could not set user authentication in security context {}" , e);
-            jwtExceptionHandler(response, JwtExceptionMsg.JWT_UNSUPPORTED);
+            jwtExceptionHandler(response, ExceptionMessage.JWT_UNSUPPORTED);
         }catch (MalformedJwtException e){
             logger.error("Could not set user authentication in security context {}" , e);
-            jwtExceptionHandler(response, JwtExceptionMsg.JWT_MALFORMED);
+            jwtExceptionHandler(response, ExceptionMessage.JWT_MALFORMED);
         }catch (SignatureException e){
             logger.error("Could not set user authentication in security context {}" , e);
-            jwtExceptionHandler(response, JwtExceptionMsg.JWT_SIGNATURE);
+            jwtExceptionHandler(response, ExceptionMessage.JWT_SIGNATURE);
         }catch (IllegalArgumentException e){
             logger.error("Could not set user authentication in security context {}" , e);
-            jwtExceptionHandler(response, JwtExceptionMsg.JWT_ILLEGAL_ARGUMENT);
+            jwtExceptionHandler(response, ExceptionMessage.JWT_ILLEGAL_ARGUMENT);
         }
     }
 
-    private void jwtExceptionHandler(HttpServletResponse response, String message) throws IOException {
+    private void jwtExceptionHandler(HttpServletResponse response, ExceptionMessage message) throws IOException {
         response.setStatus(HttpStatus.BAD_REQUEST.value());
         response.setCharacterEncoding("utf-8");
         response.setCharacterEncoding(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(objectMapper.writeValueAsString(JsonResult.failOf(message)));
+        response.getWriter().write(objectMapper.writeValueAsString(JsonResult.failOf(message.getText())));
     }
 }

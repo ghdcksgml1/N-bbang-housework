@@ -1,10 +1,11 @@
-package com.heachi.admin.common.exception.jwt;
+package com.heachi.admin.common.exception.oauth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.HeachiException;
-public class JwtException extends HeachiException {
 
-    public JwtException(ExceptionMessage message) {
+public class OAuthException extends HeachiException {
+
+    public OAuthException(ExceptionMessage message) {
         super(message.getText());
     }
 }

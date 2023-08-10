@@ -25,6 +25,7 @@ public class ExternalClientsPostProcessor implements BeanFactoryPostProcessor, E
 
         for (Class<?> clazz : ref.getTypesAnnotatedWith(ExternalClients.class)) {
             ExternalClients annotation = clazz.getAnnotation(ExternalClients.class);
+            
             String baseUrl = environment.getProperty(annotation.baseUrl());
             baseUrl = (baseUrl != null) ? baseUrl : annotation.baseUrl();
 
