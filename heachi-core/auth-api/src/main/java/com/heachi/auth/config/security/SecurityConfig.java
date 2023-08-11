@@ -25,7 +25,11 @@ public class SecurityConfig {
                 .csrf((csrf) -> csrf.disable())
                 .authorizeHttpRequests((authorizeHttpRequests) ->
                         authorizeHttpRequests
+                                // UnAuth Area
                                 .requestMatchers("/auth/**").permitAll()
+                                // Swagger 3.0
+                                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                                // Others
                                 .anyRequest().hasAnyAuthority("USER", "CHEMIST", "CENTER")
                 )
                 .sessionManagement((sessionManagement) ->
