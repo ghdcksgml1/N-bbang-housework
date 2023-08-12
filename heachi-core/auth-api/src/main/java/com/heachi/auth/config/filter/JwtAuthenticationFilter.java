@@ -90,7 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void jwtExceptionHandler(HttpServletResponse response, ExceptionMessage message) throws IOException {
-        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        response.setStatus(HttpStatus.OK.value());
         response.setCharacterEncoding("utf-8");
         response.setCharacterEncoding(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write(objectMapper.writeValueAsString(JsonResult.failOf(message.getText())));
