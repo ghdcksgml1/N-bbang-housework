@@ -81,6 +81,7 @@ class AuthControllerTest extends TestConfig {
                         get("/auth/KAKAO/login")
                 )
                 // then
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(400));
     }
 }

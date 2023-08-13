@@ -8,5 +8,5 @@ dependencies {
     testImplementation "io.projectreactor:reactor-test"
 }
 
-bootJar.enabled = false
-jar.enabled = true
+bootJar.enabled = true
+jar.enabled = false
