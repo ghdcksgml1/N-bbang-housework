@@ -6,7 +6,7 @@ public interface OAuthURLBuilder {
     String authorize(String state);
 
     // 토큰 발급 요청
-    String token(String code);
+    String token(String code, String state);
 
     // 프로필 요청
     String profile();

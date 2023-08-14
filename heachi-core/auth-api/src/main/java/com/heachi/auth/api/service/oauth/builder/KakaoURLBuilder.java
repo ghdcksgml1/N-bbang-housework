@@ -28,7 +28,7 @@ public class KakaoURLBuilder implements OAuthURLBuilder {
 
     // "https://kauth.kakao.com/oauth/token"
     @Override
-    public String token(String code) {
+    public String token(String code, String state) {
         return tokenUri
                 + "?grant_type=authorization_code"
                 + "&client_id=" + clientId

@@ -32,8 +32,9 @@ public class AuthController {
     @GetMapping("/{platformType}/login")
     public JsonResult<String> login(
             @PathVariable("platformType") UserPlatformType platformType,
-            @RequestParam("code") String code) {
-        authService.login(platformType, code);
+            @RequestParam("code") String code,
+            HttpServletRequest request) {
+        authService.login(platformType, code, request.getSession().getId());
 
         return JsonResult.successOf("AuthServiceLoginResponse");
     }

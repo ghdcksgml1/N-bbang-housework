@@ -25,13 +25,13 @@ public class NaverURLBuilder implements OAuthURLBuilder {
     }
 
     // https://nid.naver.com/oauth2.0/token
-    public String token(String code) {
+    public String token(String code, String state) {
         return tokenUri
                 + "?grant_type=authorization_code"
                 + "&client_id=" + clientId
                 + "&client_secret=" + clientSecret
-                + "&code=" + code;
-                // + "&state=" + state;
+                + "&code=" + code
+                + "&state=" + state;
     }
 
     @Override
