@@ -1,6 +1,3 @@
-dependencies {
-    api "io.sentry:sentry-logback:6.25.2"
-}
 
 bootJar.enabled = false
 jar.enabled = true

@@ -8,13 +8,14 @@ plugins {
 }
 
 ext {
+    projectGroup = project.findProperty("projectGroup")
     buildVersion = project.findProperty("applicationVersion")
     dockerUsername = project.findProperty("DOCKER_USERNAME")
     dockerPassword = project.findProperty("DOCKER_PASSWORD")
 }
 
 allprojects {
-    group = "com.heachi"
+    group = projectGroup
     version = buildVersion
 
     java {
@@ -30,12 +31,6 @@ subprojects {
     apply plugin: "java-library"
     apply plugin: "org.springframework.boot"
     apply plugin: "io.spring.dependency-management"
-
-    dependencyManagement {
-        imports {
-            mavenBom "org.springframework.cloud:spring-cloud-dependencies:2022.0.4"
-        }
-    }
 
     configurations {
         compileOnly {
