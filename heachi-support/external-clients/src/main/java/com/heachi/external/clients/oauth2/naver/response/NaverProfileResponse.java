@@ -18,5 +18,6 @@ public class NaverProfileResponse {
         private String id;
         private String email;
         private String nickname;
+        private String profile_image;
     }
 }
