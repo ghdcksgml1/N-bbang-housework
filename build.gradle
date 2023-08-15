@@ -2,11 +2,20 @@ plugins {
     id 'java-library'
     id 'org.springframework.boot' version '3.1.2'
     id 'io.spring.dependency-management' version '1.1.2'
+
+    // jib
+    id 'com.google.cloud.tools.jib' version '3.3.2' apply false
+}
+
+ext {
+    buildVersion = project.findProperty("applicationVersion")
+    dockerUsername = project.findProperty("DOCKER_USERNAME")
+    dockerPassword = project.findProperty("DOCKER_PASSWORD")
 }
 
 allprojects {
     group = "com.heachi"
-    version = "0.0.1"
+    version = buildVersion
 
     java {
         sourceCompatibility = '17'
@@ -34,36 +43,14 @@ subprojects {
         }
     }
 
+
     dependencies {
         // lombok 설정
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
     }
-}
 
-task copyJar(type: Copy) {
-    // 최상위 디렉토리 빌드파일에 libs 디렉토리 생성
-    mkdir "$buildDir/libs"
-
-    def buildVersion = project.findProperty("applicationVersion")
-    println "BuildVersion is $buildVersion"
-
-    into file("$buildDir/libs")
-
-    // heachi-auth 서버
-    from(file("heachi-core/auth-api/build/libs/auth-api-0.0.1.jar")) {
-        rename {
-            "heachi-auth-" + buildVersion + ".jar"
-        }
-    }
-
-    // heachi-notify 서버
-    from(file("heachi-notify/build/libs/heachi-notify-0.0.1.jar")) {
-        rename {
-            "heachi-notify-" + buildVersion + ".jar"
-        }
-    }
 }
 
 bootJar.enabled = false
