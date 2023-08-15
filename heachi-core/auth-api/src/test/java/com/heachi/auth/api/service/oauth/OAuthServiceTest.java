@@ -3,6 +3,7 @@ package com.heachi.auth.api.service.oauth;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.auth.TestConfig;
 import com.heachi.auth.api.service.oauth.adapter.kakao.OAuthKakaoAdapter;
+import com.heachi.auth.api.service.oauth.adapter.naver.OAuthNaverAdapter;
 import com.heachi.auth.api.service.oauth.builder.KakaoURLBuilder;
 import com.heachi.auth.api.service.oauth.builder.NaverURLBuilder;
 import com.heachi.auth.api.service.oauth.response.OAuthResponse;
@@ -25,6 +26,9 @@ class OAuthServiceTest extends TestConfig {
 
     @MockBean
     private OAuthKakaoAdapter oAuthKakaoAdapter;
+
+    @MockBean
+    private OAuthNaverAdapter oAuthNaverAdapter;
 
     @Autowired
     private OAuthService oAuthService;
@@ -93,6 +97,52 @@ class OAuthServiceTest extends TestConfig {
         when(oAuthKakaoAdapter.getToken(any(String.class))).thenThrow(OAuthException.class);
         assertThatThrownBy(() -> oAuthService.login(platformType, code, state))
                 // then
+                .isInstanceOf(OAuthException.class);
+    }
+
+    @Test
+    @DisplayName("네이버 로그인에 성공하면 OAuthResponse 객체를 반환한다.")
+    void naverLoginSuccessThenReturnOAuthResponse() {
+        //given
+        UserPlatformType platformType = NAVER;
+        String code = "SuccessCode";
+        String state = "state";
+
+        OAuthResponse oAuthResponse = OAuthResponse.builder()
+                .platformId("123")
+                .platformType(platformType)
+                .email("hgd@naver.com")
+                .name("홍길동")
+                .profileImageUrl("naver.com")
+                .build();
+
+        when(oAuthNaverAdapter.getToken(any(String.class)))
+                .thenReturn("goodToken");
+        when(oAuthNaverAdapter.getProfile(any(String.class)))
+                .thenReturn(oAuthResponse);
+
+        // when
+        OAuthResponse profile = oAuthService.login(platformType, code, state);
+
+        // then
+        assertThat(profile)
+                .extracting("platformId", "platformType", "email", "name", "profileImageUrl")
+                .contains("123", NAVER, "hgd@naver.com", "홍길동", "naver.com");
+    }
+
+    @Test
+    @DisplayName("네이버 로그인에 실패하면 OAuthException을 반환한다.")
+    void naverLoginFailThrowsOAuthException() {
+        // given
+        UserPlatformType platformType = NAVER;
+        String code = "DeniedCode";
+        String state = "state";
+
+        when(oAuthNaverAdapter.getToken(any(String.class)))
+                .thenThrow(OAuthException.class);
+
+        // when
+        assertThatThrownBy(() -> oAuthService.login(platformType, code, state))
                 .isInstanceOf(OAuthException.class);
     }
 }
