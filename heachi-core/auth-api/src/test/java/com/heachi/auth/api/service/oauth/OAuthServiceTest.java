@@ -58,6 +58,7 @@ class OAuthServiceTest extends TestConfig {
         // given
         UserPlatformType platformType = KAKAO;
         String code = "SuccessCode";
+        String state = "SuccessState";
         OAuthResponse oAuthResponse = OAuthResponse.builder()
                 .platformId("12345")
                 .platformType(platformType)
@@ -71,7 +72,7 @@ class OAuthServiceTest extends TestConfig {
         when(oAuthKakaoAdapter.getProfile(any(String.class))).thenReturn(oAuthResponse);
 
         // when
-        OAuthResponse profile = oAuthService.login(platformType, code);
+        OAuthResponse profile = oAuthService.login(platformType, code, state);
 
         // then
         assertThat(profile)
@@ -85,11 +86,12 @@ class OAuthServiceTest extends TestConfig {
         // given
         UserPlatformType platformType = KAKAO;
         String code = "DeniedCode";
+        String state = "DeniedState";
 
 
         // when
         when(oAuthKakaoAdapter.getToken(any(String.class))).thenThrow(OAuthException.class);
-        assertThatThrownBy(() -> oAuthService.login(platformType, code))
+        assertThatThrownBy(() -> oAuthService.login(platformType, code, state))
                 // then
                 .isInstanceOf(OAuthException.class);
     }

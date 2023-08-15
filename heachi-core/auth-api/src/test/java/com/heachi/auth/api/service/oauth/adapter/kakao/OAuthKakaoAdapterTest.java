@@ -53,7 +53,7 @@ class OAuthKakaoAdapterTest extends TestConfig {
     @DisplayName("카카오 토큰 API에 요청 중 예외가 발생하면, Adapter에서 OAuthException으로 예외 처리를 한다.")
     void kakaoAdapterGetTokenWhenApiThrowsException() {
         // given
-        String tokenUrl = kakaoURLBuilder.token("DeniedToken");
+        String tokenUrl = kakaoURLBuilder.token("DeniedToken", "state");
 
         // when
         assertThatThrownBy(() -> oAuthKakaoAdapter.getToken(tokenUrl))

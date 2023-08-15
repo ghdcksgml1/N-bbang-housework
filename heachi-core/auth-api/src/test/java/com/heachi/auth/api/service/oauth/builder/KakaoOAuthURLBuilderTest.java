@@ -32,9 +32,10 @@ class KakaoOAuthURLBuilderTest extends TestConfig {
     void tokenURLSuccessBuild() {
         // given
         String code = "1bstRNDxht6X3Xi90CexKCqgSQUZWcvoez_WK_8gOOxFceG2HizHOloPJKv1VM0WUeJIugo9c5sAAAGJ2JZu9A";
+        String state = "state";
 
         // when
-        String token = urlBuilder.token(code);
+        String token = urlBuilder.token(code, state);
 
         // then
         System.out.println("token = " + token);
