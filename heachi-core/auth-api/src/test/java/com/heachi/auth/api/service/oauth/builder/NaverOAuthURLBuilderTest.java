@@ -32,9 +32,10 @@ class NaverOAuthURLBuilderTest extends TestConfig {
     void token() {
         // given
         String code = "NaverCode";
+        String state = "NaverState";
 
         // when
-        String token = urlBuilder.token(code);
+        String token = urlBuilder.token(code, state);
 
         // then
         System.out.println("token = " + token);

@@ -11,10 +11,22 @@ import lombok.ToString;
 public class NaverProfileResponse {
     private NaverAccount response;
 
+    public NaverProfileResponse(NaverAccount response) {
+        this.response = response;
+    }
+
     @Getter
     @NoArgsConstructor
     @ToString
-    public class NaverAccount {
+    public static class NaverAccount {
+
+        public NaverAccount(String id, String email, String nickname, String profile_image) {
+            this.id = id;
+            this.email = email;
+            this.nickname = nickname;
+            this.profile_image = profile_image;
+        }
+
         private String id;
         private String email;
         private String nickname;

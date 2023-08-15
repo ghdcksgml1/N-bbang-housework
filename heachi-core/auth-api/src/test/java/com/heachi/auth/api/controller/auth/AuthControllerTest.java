@@ -57,12 +57,12 @@ class AuthControllerTest extends TestConfig {
                 .name("김민수")
                 .profileImageUrl("google.com")
                 .build();
-        when(oAuthService.login(any(UserPlatformType.class), any(String.class))).thenReturn(oAuthResponse); // 성공
+        when(oAuthService.login(any(UserPlatformType.class), any(String.class), any(String.class))).thenReturn(oAuthResponse); // 성공
 
         // when
         mockMvc.perform(
-                get("/auth/KAKAO/login?code=" + code)
-        )
+                        get("/auth/KAKAO/login?code=" + code)
+                )
                 // then
                 .andExpect(status().isOk());
     }
@@ -74,7 +74,7 @@ class AuthControllerTest extends TestConfig {
         UserPlatformType platformType = KAKAO;
         String code = "abcdefg";
 
-        when(oAuthService.login(any(UserPlatformType.class), any(String.class))).thenThrow(RuntimeException.class); // 실패
+        when(oAuthService.login(any(UserPlatformType.class), any(String.class), any(String.class))).thenThrow(RuntimeException.class); // 실패
 
         // when
         mockMvc.perform(
@@ -83,5 +83,46 @@ class AuthControllerTest extends TestConfig {
                 // then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(400));
+    }
+
+    @Test
+    @DisplayName("네이버 로그인 성공 테스트")
+    void NaverLoginSuccessTest() throws Exception {
+        // given
+        UserPlatformType platformType = NAVER;
+        String code = "xxx";
+
+        OAuthResponse oAuthResponse = OAuthResponse.builder()
+                .platformId("1")
+                .platformType(platformType)
+                .email("hgd@naver.com")
+                .name("홍길동")
+                .profileImageUrl("naver.com")
+                .build();
+
+        when(oAuthService.login(any(UserPlatformType.class), any(String.class), any(String.class)))
+                .thenReturn(oAuthResponse);
+
+        // when
+        mockMvc.perform(
+                        get("/auth/NAVER/login?code=" + code)
+                )
+                // then
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("네이버 로그인 실패 테스트")
+    void NaverLoginFailTest() throws Exception {
+        // given
+        when(oAuthService.login(any(UserPlatformType.class), any(String.class), any(String.class)))
+                .thenThrow(RuntimeException.class);
+
+        // when
+        mockMvc.perform(
+                        get("/auth/NAVER/login")
+                )
+                // then
+                .andExpect(status().isBadRequest());
     }
 }
