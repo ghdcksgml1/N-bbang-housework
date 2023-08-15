@@ -7,7 +7,7 @@ import org.springframework.web.service.annotation.PostExchange;
 
 import java.net.URI;
 
-@ExternalClients(baseUrl = "ouath2.client.naver.token-uri")
+@ExternalClients(baseUrl = "oauth2.client.naver.token-uri")
 public interface NaverTokenClients {
 
     @PostExchange(contentType = MediaType.APPLICATION_FORM_URLENCODED_VALUE)

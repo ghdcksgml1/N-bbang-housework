@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 public class NaverURLBuilder implements OAuthURLBuilder {
 
     @Value("${oauth2.client.naver.authorization-uri}") private String authorizationUri;
-    @Value("${ouath2.client.naver.token-uri}") private String tokenUri;
+    @Value("${oauth2.client.naver.token-uri}") private String tokenUri;
     @Value("${oauth2.client.naver.profile-uri}") private String profileUri;
 
     @Value("${oauth2.client.naver.client-id}") private String clientId;

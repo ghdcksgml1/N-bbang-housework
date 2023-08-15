@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class KakaoURLBuilder implements OAuthURLBuilder {
 
     @Value("${oauth2.client.kakao.authorization-uri}") private String authorizationUri;
-    @Value("${ouath2.client.kakao.token-uri}") private String tokenUri;
+    @Value("${oauth2.client.kakao.token-uri}") private String tokenUri;
     @Value("${oauth2.client.kakao.profile-uri}") private String profileUri;
 
     @Value("${oauth2.client.kakao.client-id}") private String clientId;
