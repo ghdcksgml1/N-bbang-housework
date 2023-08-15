@@ -48,7 +48,7 @@ class OAuthNaverAdapterTest extends TestConfig {
         assertThat(accessToken).isEqualTo("accessToken");
     }
 
-/*    @Test
+    @Test
     @DisplayName("네이버 토큰 API 요청 중 예외가 발생하면 Adapter에서 OAuthException으로 예외 처리를 한다.")
     void naverAdapterGetTokenWhenApiThrowsException() {
         // given
@@ -57,7 +57,7 @@ class OAuthNaverAdapterTest extends TestConfig {
         // when
         assertThatThrownBy(() -> oAuthNaverAdapter.getToken(tokenUrl))
                 .isInstanceOf(OAuthException.class);
-    }*/
+    }
 
 
     @Test
@@ -77,16 +77,16 @@ class OAuthNaverAdapterTest extends TestConfig {
                 .contains("123", UserPlatformType.NAVER, "hgd@naver.com", "hgd", "naver.com");
     }
 
-//    @Test
-//    @DisplayName("네이버 프로필 API에 요청 중 예외가 발생하면 Adapter에서 OAuthException으로 예외 처리를 한다.")
-//    void naverAdapterGetProfileWhenApiThrowsException() {
-//        //given
-//        String accessToken = "DeniedToken";
-//
-//        // when
-//        assertThatThrownBy(() -> oAuthNaverAdapter.getProfile(accessToken))
-//                .isInstanceOf(OAuthException.class);
-//    }
+    @Test
+    @DisplayName("네이버 프로필 API에 요청 중 예외가 발생하면 Adapter에서 OAuthException으로 예외 처리를 한다.")
+    void naverAdapterGetProfileWhenApiThrowsException() {
+        //given
+        String accessToken = "DeniedToken";
+
+        // when
+        assertThatThrownBy(() -> oAuthNaverAdapter.getProfile(accessToken))
+                .isInstanceOf(OAuthException.class);
+    }
 
     static class MockNaverTokenClients implements NaverTokenClients {
         @Override

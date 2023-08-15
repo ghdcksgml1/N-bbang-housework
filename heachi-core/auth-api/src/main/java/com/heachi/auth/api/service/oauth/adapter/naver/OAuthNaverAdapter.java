@@ -1,5 +1,7 @@
 package com.heachi.auth.api.service.oauth.adapter.naver;
 
+import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.auth.api.service.oauth.adapter.OAuthAdapter;
 import com.heachi.auth.api.service.oauth.response.OAuthResponse;
 import com.heachi.external.clients.oauth2.naver.NaverProfileClients;
@@ -23,24 +25,35 @@ public class OAuthNaverAdapter implements OAuthAdapter {
 
     @Override
     public String getToken(String tokenURL) {
-        NaverTokenResponse token = naverTokenClients.getToken(URI.create(tokenURL));
+        try {
+            NaverTokenResponse token = naverTokenClients.getToken(URI.create(tokenURL));
 
-        return token.getAccess_token();
+            if (token.getAccess_token().isEmpty()) {
+                throw new RuntimeException();
+            }
+
+            return token.getAccess_token();
+        } catch (RuntimeException e) {
+            throw new OAuthException(ExceptionMessage.OAUTH_INVALID_TOKEN_URL);
+        }
     }
 
     @Override
     public OAuthResponse getProfile(String accessToken) {
-        NaverProfileResponse profile = naverProfileClients.getProfile("Bearer " + accessToken);
+        try {
+            NaverProfileResponse profile = naverProfileClients.getProfile("Bearer " + accessToken);
 
-        OAuthResponse oAuthResponse = OAuthResponse.builder()
-                .platformId(profile.getResponse().getId().toString())
-                .platformType(NAVER)
-                .email(profile.getResponse().getEmail())
-                .name(profile.getResponse().getNickname())
-                .profileImageUrl(profile.getResponse().getProfile_image())
-                .build();
+            OAuthResponse oAuthResponse = OAuthResponse.builder()
+                    .platformId(profile.getResponse().getId().toString())
+                    .platformType(NAVER)
+                    .email(profile.getResponse().getEmail())
+                    .name(profile.getResponse().getNickname())
+                    .profileImageUrl(profile.getResponse().getProfile_image())
+                    .build();
 
-        return oAuthResponse;
-
+            return oAuthResponse;
+        } catch (RuntimeException e) {
+            throw new OAuthException(ExceptionMessage.OAUTH_INVALID_ACCESS_TOKEN);
+        }
     }
 }
