@@ -1,0 +1,55 @@
+name: Spring Boot & Gradle CI Jobs (With. main branches push)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    # 실행 환경 (Git Runners 개인 서버)
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'adopt'
+
+    # application.yml 파일 설정
+    - name: resources 폴더 생성
+      run: |
+        mkdir -p ./heachi-core/auth-api/src/main/resources
+        mkdir -p ./heachi-domain-mongo/src/main/resources
+        mkdir -p ./heachi-domain-mysql/src/main/resources
+        mkdir -p ./heachi-notify/src/main/resources
+        mkdir -p ./heachi-support/common/src/main/resources
+        mkdir -p ./heachi-support/external-clients/src/main/resources
+
+    - name: yml 파일 생성
+      run: | 
+        echo "${{ secrets.HEACHICORE_AUTHAPI_APPLICATION }}" > ./heachi-core/auth-api/src/main/resources/application.yml
+        echo "${{ secrets.HEACHIDOMAINMONGO_APPLICATION }}" > ./heachi-domain-mongo/src/main/resources/application.yml
+        echo "${{ secrets.HEACHIDOMAINMYSQL_DATABASE }}" > ./heachi-domain-mysql/src/main/resources/database.yml
+        echo "${{ secrets.HEACHINOTIFY_APPLICATION }}" > ./heachi-notify/src/main/resources/application.yml
+        echo "${{ secrets.HEACHISUPPORT_COMMON_COMMON }}" > ./heachi-support/common/src/main/resources/common.yml
+        echo "${{ secrets.HEACHISUPPORT_EXTERNALCLIENTS_APPLICATION }}" > ./heachi-support/external-clients/src/main/resources/application.yml
+
+    # docker Build에 필요한 gradle.properties 설정
+    - name: gradle.properties 생성
+      run: echo "${{ secrets.GRADLE_PROPERTIES }}" > ./gradle.properties
+
+    # gradlew를 실행시키기 위해 권한 부여
+    - name: Gradlew에게 실행권한 부여
+      run: chmod +x gradlew
+
+    # 멀티모듈 빌드하기
+    - name: 멀티모듈 전체 빌드
+      run: ./gradlew build
+
+    # Jib을 이용한 도커 이미지 빌드 후 허브 푸쉬
+    - name: 도커 이미지 빌드 & 도커 허브 푸쉬
+      run: ./gradlew jib
+    
+    
