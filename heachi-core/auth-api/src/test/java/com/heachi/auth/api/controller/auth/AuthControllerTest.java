@@ -89,6 +89,30 @@ class AuthControllerTest extends TestConfig {
     }
 
     @Test
+    @DisplayName("카카오 로그인시 State 값이 현재 session Id와 일치하지 않으면, OAuthException 예외가 발생한다.")
+    void kakaoLoginFailWhenInvalidState() throws Exception {
+        String code = "code";
+        String state = "invalidState";
+
+        // invalidState 값을 사용해 login을 시도하면 Exception 발생함
+        given(oAuthService.login(KAKAO, code, state))
+                .willThrow(new OAuthException(ExceptionMessage.OAUTH_INVALID_STATE));
+
+
+        // when
+        mockMvc.perform(
+                        get("/auth/KAKAO/login")
+                                .param("code", code)
+                                .param("state", state))
+
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(400))
+                .andExpect(jsonPath("$.resMsg").value(ExceptionMessage.OAUTH_INVALID_STATE.getText()))
+                .andDo(print());
+    }
+
+    @Test
     @DisplayName("네이버 로그인 성공 테스트")
     void naverLoginSuccessTest() throws Exception {
         // given
@@ -131,7 +155,7 @@ class AuthControllerTest extends TestConfig {
     }
 
     @Test
-    @DisplayName("네이버 로그인시 State 값이 유효하지 않으면 OAuthException 예외가 발생한다.")
+    @DisplayName("네이버 로그인시 State 값이 현재 session Id와 일치하지 않으면, OAuthException 예외가 발생한다.")
     void naverLoginFailWhenInvalidState() throws Exception {
         String code = "code";
         String state = "invalidState";
