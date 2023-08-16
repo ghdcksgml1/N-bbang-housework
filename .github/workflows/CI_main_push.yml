@@ -2,7 +2,7 @@ name: Spring Boot & Gradle CI Jobs (With. main branches push)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ chore(#27)-github-action ]
 
 jobs:
   build:
