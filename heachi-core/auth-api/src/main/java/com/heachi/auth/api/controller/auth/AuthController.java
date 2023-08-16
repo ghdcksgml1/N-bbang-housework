@@ -1,5 +1,7 @@
 package com.heachi.auth.api.controller.auth;
 
+import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.auth.api.controller.auth.request.AuthRegisterRequest;
 import com.heachi.auth.api.service.auth.AuthService;
@@ -33,7 +35,15 @@ public class AuthController {
     public JsonResult<String> login(
             @PathVariable("platformType") UserPlatformType platformType,
             @RequestParam("code") String code,
+            @RequestParam("state") String state,
             HttpServletRequest request) {
+        String requestState = request.getSession().getId();
+
+        // state 값 유효성 검증
+        if (!state.equals(requestState)) {
+            throw new OAuthException(ExceptionMessage.OAUTH_INVALID_STATE);
+        }
+
         authService.login(platformType, code, request.getSession().getId());
 
         return JsonResult.successOf("AuthServiceLoginResponse");

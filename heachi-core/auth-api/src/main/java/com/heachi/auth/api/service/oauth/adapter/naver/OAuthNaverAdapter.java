@@ -29,7 +29,7 @@ public class OAuthNaverAdapter implements OAuthAdapter {
             NaverTokenResponse token = naverTokenClients.getToken(URI.create(tokenURL));
 
             if (token.getAccess_token().isEmpty()) {
-                throw new RuntimeException();
+                throw new OAuthException(ExceptionMessage.OAUTH_INVALID_TOKEN_URL);
             }
 
             return token.getAccess_token();
