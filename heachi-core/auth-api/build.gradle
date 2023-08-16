@@ -1,3 +1,12 @@
+plugins {
+    id 'com.google.cloud.tools.jib' version '3.3.2'
+}
+
+bootJar {
+    // 빌드된 Jar 파일명 지정
+    archiveFileName = "heachi-auth-" + buildVersion + ".jar"
+}
+
 dependencies {
     // 내부 모듈
     implementation project(':heachi-support:common')
@@ -22,6 +31,45 @@ dependencies {
     testCompileOnly project(':heachi-domain-mysql')
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+}
+
+jib {
+    from {
+        image = 'eclipse-temurin:17-jre' // https://github.com/GoogleContainerTools/jib/issues/3483
+        platforms {
+            platform {
+                architecture = "arm64"
+                os = "linux"
+            }
+        }
+    }
+    to {
+        image = 'ghdcksgml1/heachi-auth'
+        tags = [buildVersion, "latest"]
+        auth {
+            username = dockerUsername
+            password = dockerPassword
+        }
+    }
+    container {
+
+        entrypoint = ['java', '-Dspring.profiles.active=prod', '-jar', 'heachi-auth-' + buildVersion + '.jar']
+        jvmFlags = ['-Xms2048m', '-Xmx2048m', '-Xdebug', '-XshowSettings:vm', '-XX:+UnlockExperimentalVMOptions', '-XX:+UseContainerSupport']
+        ports = ['8080']
+        environment = [SPRING_OUTPUT_ANSI_ENABLED: "ALWAYS"]
+
+        creationTime = 'USE_CURRENT_TIMESTAMP'
+        format = 'Docker'
+    }
+
+    // 어디 폴더로 부터 가져올지
+    extraDirectories {
+        paths {
+            path {
+                from = file('build/libs')
+            }
+        }
+    }
 }
 
 bootJar.enabled = true

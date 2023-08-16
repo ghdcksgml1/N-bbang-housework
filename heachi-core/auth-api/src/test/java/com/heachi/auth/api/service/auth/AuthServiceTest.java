@@ -54,6 +54,7 @@ class AuthServiceTest extends TestConfig {
         // given
         UserPlatformType platformType = UserPlatformType.KAKAO;
         String code = "임의의 코드입니다.";
+        String state = "임의의 state입니다.";
         String email = "kimminsu@dankook.ac.kr";
 
         User user = User.builder()
@@ -71,9 +72,9 @@ class AuthServiceTest extends TestConfig {
                 .build();
 
         // when
-        when(oAuthService.login(any(UserPlatformType.class), any(String.class))).thenReturn(oAuthResponse); // Mocking
+        when(oAuthService.login(any(UserPlatformType.class), any(String.class), any(String.class))).thenReturn(oAuthResponse); // Mocking
 
-        AuthServiceLoginResponse login = authService.login(platformType, code);     // 로그인 프로세스
+        AuthServiceLoginResponse login = authService.login(platformType, code, state);     // 로그인 프로세스
         User findUser = userRepository.findByEmail(email).get();                  // 로그인한 사용자 찾기
         boolean tokenValid = jwtService.isTokenValid(login.getToken(), findUser);   // 발행한 토큰 검증
 
@@ -90,6 +91,7 @@ class AuthServiceTest extends TestConfig {
         // given
         UserPlatformType platformType = UserPlatformType.KAKAO;
         String code = "임의의 코드입니다.";
+        String state = "임의의 state입니다.";
         String email = "kimminsu@dankook.ac.kr";
 
         User user = User.builder()
@@ -107,10 +109,10 @@ class AuthServiceTest extends TestConfig {
                 .build();
 
         // when
-        when(oAuthService.login(any(UserPlatformType.class), any(String.class))).thenReturn(oAuthResponse); // Mocking
+        when(oAuthService.login(any(UserPlatformType.class), any(String.class), any(String.class))).thenReturn(oAuthResponse); // Mocking
 
         // then
-        assertThatThrownBy(() -> authService.login(platformType, code))
+        assertThatThrownBy(() -> authService.login(platformType, code, state))
                 .isInstanceOf(Exception.class);
     }
 
@@ -157,13 +159,13 @@ class AuthServiceTest extends TestConfig {
                 .build();
 
         // when
-        when(oAuthService.login(any(UserPlatformType.class), eq("abc1"))).thenReturn(oAuthResponse1); // Mocking
-        when(oAuthService.login(any(UserPlatformType.class), eq("abc2"))).thenReturn(oAuthResponse2); // Mocking
-        when(oAuthService.login(any(UserPlatformType.class), eq("abc3"))).thenReturn(oAuthResponse3); // Mocking
+        when(oAuthService.login(any(UserPlatformType.class), eq("abc1"), eq("abc1"))).thenReturn(oAuthResponse1); // Mocking
+        when(oAuthService.login(any(UserPlatformType.class), eq("abc2"), eq("abc2"))).thenReturn(oAuthResponse2); // Mocking
+        when(oAuthService.login(any(UserPlatformType.class), eq("abc3"), eq("abc3"))).thenReturn(oAuthResponse3); // Mocking
 
-        AuthServiceLoginResponse abc1 = authService.login(platformType, "abc1");        // 김민수
-        AuthServiceLoginResponse abc2 = authService.login(platformType, "abc2");        // 김민목
-        AuthServiceLoginResponse abc3 = authService.login(platformType, "abc3");        // 김민금
+        AuthServiceLoginResponse abc1 = authService.login(platformType, "abc1", "abc1");        // 김민수
+        AuthServiceLoginResponse abc2 = authService.login(platformType, "abc2", "abc2");        // 김민목
+        AuthServiceLoginResponse abc3 = authService.login(platformType, "abc3", "abc3");        // 김민금
 
         Claims claims1 = jwtService.extractAllClaims(abc1.getToken());
         Claims claims2 = jwtService.extractAllClaims(abc2.getToken());
@@ -207,10 +209,10 @@ class AuthServiceTest extends TestConfig {
                 .name("김민수짱")
                 .profileImageUrl("google.com")
                 .build();
-        when(oAuthService.login(any(UserPlatformType.class), any(String.class))).thenReturn(oAuthResponse);
+        when(oAuthService.login(any(UserPlatformType.class), any(String.class), any(String.class))).thenReturn(oAuthResponse);
 
         // when
-        authService.login(platformType, "123344");
+        authService.login(platformType, "123344", "state");
         User findUser = userRepository.findByEmail("kms@kakao.com").get();
 
         // then

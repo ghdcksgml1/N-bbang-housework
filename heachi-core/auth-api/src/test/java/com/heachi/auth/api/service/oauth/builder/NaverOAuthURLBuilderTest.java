@@ -9,16 +9,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-class KakaoOAuthURLBuilderTest extends TestConfig {
+class NaverOAuthURLBuilderTest extends TestConfig {
 
     @Autowired
-    private KakaoURLBuilder urlBuilder;
+    private NaverURLBuilder urlBuilder;
 
     @Test
-    @DisplayName("authorize URL이 성공적으로 만들어진다.")
-    void authorizeURLSuccesBuild() {
+    @DisplayName("Naver - authorize URL이 성공적으로 만들어진다.")
+    void authorize() {
         // given
-        String state = "CsrfDetecting";
+        String state = "sessionID";
 
         // when
         String authorize = urlBuilder.authorize(state);
@@ -28,11 +28,11 @@ class KakaoOAuthURLBuilderTest extends TestConfig {
     }
 
     @Test
-    @DisplayName("token URL이 성공적으로 만들어진다.")
-    void tokenURLSuccessBuild() {
+    @DisplayName("Naver - token URL이 성공적으로 만들어진다.")
+    void token() {
         // given
-        String code = "1bstRNDxht6X3Xi90CexKCqgSQUZWcvoez_WK_8gOOxFceG2HizHOloPJKv1VM0WUeJIugo9c5sAAAGJ2JZu9A";
-        String state = "state";
+        String code = "NaverCode";
+        String state = "NaverState";
 
         // when
         String token = urlBuilder.token(code, state);
@@ -42,15 +42,14 @@ class KakaoOAuthURLBuilderTest extends TestConfig {
     }
 
     @Test
-    @DisplayName("profile URL이 성공적으로 만들어진다.")
-    void profileURLSuccessBuild() {
+    @DisplayName("Naver - profile URL이 성공적으로 만들어진다.")
+    void profile() {
         // given
-
 
         // when
         String profile = urlBuilder.profile();
 
-        // then
+        //then
         System.out.println("profile = " + profile);
     }
 }
