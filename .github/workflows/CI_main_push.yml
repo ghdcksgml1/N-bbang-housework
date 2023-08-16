@@ -47,5 +47,9 @@ jobs:
     # 멀티모듈 빌드하기
     - name: 멀티모듈 전체 빌드
       run: ./gradlew build
+
+    # Jib을 이용한 도커 이미지 빌드 후 허브 푸쉬
+    - name: 도커 이미지 빌드 & 도커 허브 푸쉬
+      run: ./gradlew jib
     
     
