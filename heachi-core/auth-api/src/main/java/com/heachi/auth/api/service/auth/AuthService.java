@@ -22,8 +22,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final OAuthService oAuthService;
 
-    public AuthServiceLoginResponse login(UserPlatformType platformType, String code) {
-        OAuthResponse loginResponse = oAuthService.login(platformType, code);
+    public AuthServiceLoginResponse login(UserPlatformType platformType, String code, String state) {
+        OAuthResponse loginResponse = oAuthService.login(platformType, code, state);
         log.info(">>>> {}님이 로그인하셨습니다.", loginResponse.getName());
 
         return null;

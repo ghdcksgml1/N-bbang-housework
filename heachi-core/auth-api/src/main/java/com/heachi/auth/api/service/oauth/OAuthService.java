@@ -46,13 +46,13 @@ public class OAuthService {
     }
 
     // OAuth 2.0 로그인
-    public OAuthResponse login(UserPlatformType platformType, String code) {
+    public OAuthResponse login(UserPlatformType platformType, String code, String state) {
         OAuthFactory factory = getOAuthFactory(platformType);
         OAuthURLBuilder urlBuilder = factory.getOAuthURLBuilder();
         OAuthAdapter adapter = factory.getOAuthAdapter();
         log.info(">>>> {} Login Start", platformType);
 
-        String tokenURL = urlBuilder.token(code);
+        String tokenURL = urlBuilder.token(code, state);
         String accessToken = adapter.getToken(tokenURL);
         OAuthResponse userInfo = adapter.getProfile(accessToken);
         log.info(">>>> {} Login Success", platformType);
