@@ -20,16 +20,16 @@ public class NaverProfileResponse {
     @ToString
     public static class NaverAccount {
 
-        public NaverAccount(String id, String email, String nickname, String profile_image) {
+        public NaverAccount(String id, String email, String name, String profile_image) {
             this.id = id;
             this.email = email;
-            this.nickname = nickname;
+            this.name = name;
             this.profile_image = profile_image;
         }
 
         private String id;
         private String email;
-        private String nickname;
+        private String name;
         private String profile_image;
     }
 }

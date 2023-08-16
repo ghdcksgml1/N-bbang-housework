@@ -47,7 +47,7 @@ public class OAuthNaverAdapter implements OAuthAdapter {
                     .platformId(profile.getResponse().getId().toString())
                     .platformType(NAVER)
                     .email(profile.getResponse().getEmail())
-                    .name(profile.getResponse().getNickname())
+                    .name(profile.getResponse().getName())
                     .profileImageUrl(profile.getResponse().getProfile_image())
                     .build();
 
