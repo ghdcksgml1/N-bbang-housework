@@ -2,11 +2,21 @@ plugins {
     id 'java-library'
     id 'org.springframework.boot' version '3.1.2'
     id 'io.spring.dependency-management' version '1.1.2'
+
+    // jib
+    id 'com.google.cloud.tools.jib' version '3.3.2' apply false
+}
+
+ext {
+    projectGroup = project.findProperty("projectGroup")
+    buildVersion = project.findProperty("applicationVersion")
+    dockerUsername = project.findProperty("DOCKER_USERNAME")
+    dockerPassword = project.findProperty("DOCKER_PASSWORD")
 }
 
 allprojects {
-    group = "com.heachi"
-    version = "0.0.1"
+    group = projectGroup
+    version = buildVersion
 
     java {
         sourceCompatibility = '17'
@@ -15,7 +25,6 @@ allprojects {
     repositories {
         mavenCentral()
     }
-
 }
 
 subprojects {
@@ -23,17 +32,12 @@ subprojects {
     apply plugin: "org.springframework.boot"
     apply plugin: "io.spring.dependency-management"
 
-    dependencyManagement {
-        imports {
-            mavenBom "org.springframework.cloud:spring-cloud-dependencies:2022.0.4"
-        }
-    }
-
     configurations {
         compileOnly {
             extendsFrom annotationProcessor
         }
     }
+
 
     dependencies {
         // lombok 설정
@@ -43,3 +47,6 @@ subprojects {
     }
 
 }
+
+bootJar.enabled = false
+jar.enabled = false
