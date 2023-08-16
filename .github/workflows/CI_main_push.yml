@@ -35,7 +35,10 @@ jobs:
         echo "${{ secrets.HEACHINOTIFY_APPLICATION }}" > ./heachi-notify/src/main/resources/application.yml
         echo "${{ secrets.HEACHISUPPORT_COMMON_COMMON }}" > ./heachi-support/common/src/main/resources/common.yml
         echo "${{ secrets.HEACHISUPPORT_EXTERNALCLIENTS_APPLICATION }}" > ./heachi-support/external-clients/src/main/resources/application.yml
-      
+
+    # docker Build에 필요한 gradle.properties 설정
+    - name: gradle.properties 생성
+      run: echo "${{ secrets.GRADLE_PROPERTIES }}" > ./gradle.properties
 
     # gradlew를 실행시키기 위해 권한 부여
     - name: Gradlew에게 실행권한 부여
