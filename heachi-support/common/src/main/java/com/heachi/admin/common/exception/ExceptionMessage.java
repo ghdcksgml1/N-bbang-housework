@@ -16,8 +16,7 @@ public enum ExceptionMessage {
     // OAuthException
     OAUTH_INVALID_STATE("STATE 검증에 실패하였습니다."),
     OAUTH_INVALID_TOKEN_URL("tokenURL이 정확하지 않습니다."),
-    OAUTH_INVALID_ACCESS_TOKEN("잘못된 access_token 입니다."),
-    OAUTH_UNAUTH_USER("인증이 완료되지 않은 사용자입니다.");
+    OAUTH_INVALID_ACCESS_TOKEN("잘못된 access_token 입니다.");
 
 
     private final String text;

@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.Objects;
+import java.util.Optional;
 
 
 @Slf4j
@@ -29,47 +31,42 @@ public class AuthService {
     private final OAuthService oAuthService;
     private final JwtService jwtService;
 
-    private final String ROLE_CLAIM = "role";
-    private final String NAME_CLAIM = "name";
-    private final String PROFILE_IMAGE_CLAIM = "profileImageUrl";
+    private static final String ROLE_CLAIM = "role";
+    private static final String NAME_CLAIM = "name";
+    private static final String PROFILE_IMAGE_CLAIM = "profileImageUrl";
 
     @Transactional
     public AuthServiceLoginResponse login(UserPlatformType platformType, String code, String state) {
         OAuthResponse loginResponse = oAuthService.login(platformType, code, state);
         log.info(">>>> {}님이 로그인하셨습니다.", loginResponse.getName());
 
-        // OAuth 로그인을 시도한 사용자 정보가 DB에 존재하는지
-        // null인 경우 - 영속성 컨텍스트 변경 X. 비어있는 상태
-        // null이 아닌 경우 - 해당 사용자 정보 영속성 컨텍스트에 가져와 로드
-        User findUser = userRepository.findByEmail(loginResponse.getEmail()).orElse(null);
+        // OAuth 로그인을 시도한 사용자 정보가 DB에 존재하는지 확인 후 없다면 등록
+        User findUser = userRepository.findByEmail(loginResponse.getEmail())
+                .orElseGet(() -> {
+                    User saveUser = User.builder()
+                            .platformId(loginResponse.getPlatformId())
+                            .platformType(loginResponse.getPlatformType())
+                            .role(UserRole.UNAUTH)
+                            .name(loginResponse.getName())
+                            .email(loginResponse.getEmail())
+                            .profileImageUrl(loginResponse.getProfileImageUrl())
+                            .build();
 
-        // 이미 가입된 경우
-        // 영속성 컨텍스트 변경 감지 발동 - 트랜잭션 종료시 자동 반영
-        if (findUser != null) {
+                    return userRepository.save(saveUser);
+                });
+
+        // name, profileImageUrl의 변경이 있을 경우 update
+        if (!Objects.equals(findUser.getName(), loginResponse.getName()) ||
+                !Objects.equals(findUser.getProfileImageUrl(), loginResponse.getProfileImageUrl())) {
             findUser.updateProfile(loginResponse.getName(), loginResponse.getProfileImageUrl());
-            System.out.println("AuthService.login - 이미 가입된 경우");
         }
 
-        // 가입되지 않은 경우
-        // 새로운 사용자 정보를 생성해 영속성 컨텍스트에 저장
-        // 트랜잭션 종료시 DB 반영
-        if (findUser == null) {
-            System.out.println("AuthService.login - 가입되지 않은 경우");
-            User saveUser = User.builder()
-                    .platformId(loginResponse.getPlatformId())
-                    .platformType(loginResponse.getPlatformType())
-                    .role(UserRole.USER)
-                    .name(loginResponse.getName())
-                    .email(loginResponse.getEmail())
-                    .profileImageUrl(loginResponse.getProfileImageUrl())
+        // 인증이 완료되지 않은 사용자(UNAUTH) 처리
+        if (findUser.getRole() == UserRole.UNAUTH) {
+            return AuthServiceLoginResponse.builder()
+                    .token(null)
+                    .role(UserRole.UNAUTH)
                     .build();
-
-            userRepository.save(saveUser);
-        }
-
-        // 인증이 완료되지 않은 사용자(UserRole = UNAUTH) 거르기
-        if (findUser.getRole().name().equals(UserRole.UNAUTH.name())) {
-            throw new OAuthException(ExceptionMessage.OAUTH_UNAUTH_USER);
         }
 
         // JWT 토큰 생성을 위한 claims 생성
