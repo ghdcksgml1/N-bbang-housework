@@ -82,11 +82,10 @@ public class AuthService {
         final String token = jwtService.generateToken(claims, findUser);
 
         // 로그인 반환 객체 생성
-        AuthServiceLoginResponse authServiceLoginResponse = AuthServiceLoginResponse.builder()
+        return AuthServiceLoginResponse.builder()
                 .token(token)
+                .role(findUser.getRole())
                 .build();
-
-        return authServiceLoginResponse;
     }
 
     public AuthServiceLoginResponse register(UserPlatformType platformType, AuthServiceRegisterRequest request) {
