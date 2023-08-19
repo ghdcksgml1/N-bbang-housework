@@ -44,9 +44,9 @@ public class AuthController {
             throw new OAuthException(ExceptionMessage.OAUTH_INVALID_STATE);
         }
 
-        authService.login(platformType, code, request.getSession().getId());
+        AuthServiceLoginResponse loginResponse = authService.login(platformType, code, request.getSession().getId());
 
-        return JsonResult.successOf("AuthServiceLoginResponse");
+        return JsonResult.successOf(loginResponse);
     }
 
     @PostMapping("/{platformType}/register")

@@ -41,6 +41,11 @@ public class User extends BaseEntity implements UserDetails {
 
     private String profileImageUrl;
 
+    public void updateProfile(String name, String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+        this.name = name;
+    }
+
     @Builder
     private User(String platformId, UserPlatformType platformType, UserRole role, String name, String email, String phoneNumber, String profileImageUrl) {
         this.platformId = platformId;

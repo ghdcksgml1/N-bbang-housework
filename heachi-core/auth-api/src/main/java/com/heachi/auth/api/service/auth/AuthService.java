@@ -1,16 +1,24 @@
 package com.heachi.auth.api.service.auth;
 
+import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
+import com.heachi.auth.api.service.jwt.JwtService;
 import com.heachi.auth.api.service.oauth.OAuthService;
-import com.heachi.auth.api.service.oauth.request.OAuthRegisterRequest;
 import com.heachi.auth.api.service.oauth.response.OAuthResponse;
+import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
+import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.Optional;
 
 
 @Slf4j
@@ -21,16 +29,60 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final OAuthService oAuthService;
+    private final JwtService jwtService;
 
+    private static final String ROLE_CLAIM = "role";
+    private static final String NAME_CLAIM = "name";
+    private static final String PROFILE_IMAGE_CLAIM = "profileImageUrl";
+
+    @Transactional
     public AuthServiceLoginResponse login(UserPlatformType platformType, String code, String state) {
         OAuthResponse loginResponse = oAuthService.login(platformType, code, state);
         log.info(">>>> {}님이 로그인하셨습니다.", loginResponse.getName());
 
-        return null;
+        // OAuth 로그인을 시도한 사용자 정보가 DB에 존재하는지 확인 후 없다면 등록
+        User findUser = userRepository.findByEmail(loginResponse.getEmail())
+                .orElseGet(() -> {
+                    User saveUser = User.builder()
+                            .platformId(loginResponse.getPlatformId())
+                            .platformType(loginResponse.getPlatformType())
+                            .role(UserRole.UNAUTH)
+                            .name(loginResponse.getName())
+                            .email(loginResponse.getEmail())
+                            .profileImageUrl(loginResponse.getProfileImageUrl())
+                            .build();
+
+                    return userRepository.save(saveUser);
+                });
+
+        // 기존 회원의 경우 name, profileImageUrl 변하면 update
+        findUser.updateProfile(loginResponse.getName(), loginResponse.getProfileImageUrl());
+
+        // 인증이 완료되지 않은 사용자(UNAUTH) 처리
+        if (findUser.getRole() == UserRole.UNAUTH) {
+            return AuthServiceLoginResponse.builder()
+                    .token(null)
+                    .role(UserRole.UNAUTH)
+                    .build();
+        }
+
+        // JWT 토큰 생성을 위한 claims 생성
+        HashMap<String, String> claims = new HashMap<>();
+        claims.put(ROLE_CLAIM, findUser.getRole().name());
+        claims.put(NAME_CLAIM, findUser.getName());
+        claims.put(PROFILE_IMAGE_CLAIM, findUser.getProfileImageUrl());
+
+        // JWT 토큰 생성 (claims, UserDetails)
+        final String token = jwtService.generateToken(claims, findUser);
+
+        // 로그인 반환 객체 생성
+        return AuthServiceLoginResponse.builder()
+                .token(token)
+                .role(findUser.getRole())
+                .build();
     }
 
     public AuthServiceLoginResponse register(UserPlatformType platformType, AuthServiceRegisterRequest request) {
-
         return null;
     }
 }

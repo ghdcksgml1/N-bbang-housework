@@ -112,8 +112,10 @@ class AuthServiceTest extends TestConfig {
         when(oAuthService.login(any(UserPlatformType.class), any(String.class), any(String.class))).thenReturn(oAuthResponse); // Mocking
 
         // then
-        assertThatThrownBy(() -> authService.login(platformType, code, state))
-                .isInstanceOf(Exception.class);
+        assertAll(() -> {
+            assertThat(authService.login(platformType, code, state).getRole()).isEqualTo(UserRole.UNAUTH);
+            assertThat(authService.login(platformType, code, state).getToken()).isNull();
+        });
     }
 
     @Test
