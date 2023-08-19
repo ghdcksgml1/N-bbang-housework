@@ -55,11 +55,8 @@ public class AuthService {
                     return userRepository.save(saveUser);
                 });
 
-        // name, profileImageUrl의 변경이 있을 경우 update
-        if (!Objects.equals(findUser.getName(), loginResponse.getName()) ||
-                !Objects.equals(findUser.getProfileImageUrl(), loginResponse.getProfileImageUrl())) {
-            findUser.updateProfile(loginResponse.getName(), loginResponse.getProfileImageUrl());
-        }
+        // 기존 회원의 경우 name, profileImageUrl 변하면 update
+        findUser.updateProfile(loginResponse.getName(), loginResponse.getProfileImageUrl());
 
         // 인증이 완료되지 않은 사용자(UNAUTH) 처리
         if (findUser.getRole() == UserRole.UNAUTH) {
