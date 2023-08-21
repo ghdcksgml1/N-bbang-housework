@@ -14,6 +14,7 @@ import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final OAuthService oAuthService;
     private final JwtService jwtService;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     private static final String ROLE_CLAIM = "role";
     private static final String NAME_CLAIM = "name";
@@ -86,6 +88,28 @@ public class AuthService {
     // 회원가입 후 바로 로그인된 상태가 아닌 다시 로그인 시도하도록
     // 반환 타입을 AuthServiceLoginResponse에서 AuthRegisterResponse로 바꿔봤어요
     public AuthRegisterResponse register(UserPlatformType platformType, AuthServiceRegisterRequest request) {
-        return null;
+
+        User saveUser = User.builder()
+                .platformId(passwordEncoder.encode(request.getPlatformId()))
+                .platformType(platformType)
+                .role(request.getRole())
+                .name(request.getName())
+                .email(request.getEmail())
+                .phoneNumber(request.getPhoneNumber())
+                .profileImageUrl(request.getProfileImageUrl())
+                .build();
+
+        User savedUser = userRepository.save(saveUser);
+
+        AuthRegisterResponse registerResponse = AuthRegisterResponse.builder()
+                .id(savedUser.getId())
+                .name(savedUser.getName())
+                .email(savedUser.getEmail())
+                .phoneNumber(savedUser.getPhoneNumber())
+                .profileImageUrl(savedUser.getProfileImageUrl())
+                .createdDateTime(savedUser.getCreatedDateTime().toString())
+                .build();
+
+        return registerResponse;
     }
 }

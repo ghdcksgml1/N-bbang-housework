@@ -1,5 +1,8 @@
 package com.heachi.auth.api.controller.auth.request;
 
+import com.heachi.mysql.define.user.constant.UserRole;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -20,11 +23,8 @@ public class AuthRegisterRequest {
             message = "비밀번호는 영문, 숫자, 특수문자를 포함한 8~20자여야 합니다")
     private String platformId;
 
-    @NotEmpty
-    private String platformType;
-
-    @NotEmpty
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 
     @NotEmpty
     @Pattern(regexp = "^[a-zA-Z가-힣\\\\s]{2,15}",
@@ -40,7 +40,7 @@ public class AuthRegisterRequest {
 
     // 숫자 값이므로 null이 아니어야 하니까 @NotEmpty 대신 @NotNull 사용 -> 빈 문자열("") 허용
     @NotNull
-    @Pattern(regexp = "^\\d{11}$\n",
+    @Pattern(regexp = "^\\d{11}$",
             message = "전화번호는 11자리의 숫자로 입력해야 합니다.")
     private String phoneNumber;
 

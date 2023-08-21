@@ -69,14 +69,13 @@ public class AuthController {
             String errorMessages = bindingResult.getFieldErrors()
                     .stream()
                     .map(fieldError -> fieldError.getField() + " " + fieldError.getDefaultMessage())
-                    .collect(Collectors.joining("\n"));
+                    .collect(Collectors.joining(", "));
 
             return JsonResult.failOf(errorMessages);
         }
 
         // Service용 DTO로 변환
         AuthServiceRegisterRequest registerRequest = AuthServiceRegisterRequest.builder()
-                .platformType(platformType.name())
                 .platformId(request.getPlatformId())
                 .role(request.getRole())
                 .name(request.getName())
