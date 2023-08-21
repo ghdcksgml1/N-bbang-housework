@@ -20,7 +20,6 @@ public class AuthRegisterRequest {
             message = "비밀번호는 영문, 숫자, 특수문자를 포함한 8~20자여야 합니다")
     private String platformId;
 
-    // 플랫폼 타입 회원 정보에 필요할까??
     @NotEmpty
     private String platformType;
 

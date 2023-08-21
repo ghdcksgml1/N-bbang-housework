@@ -2,6 +2,7 @@ package com.heachi.auth.api.service.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.oauth.OAuthException;
+import com.heachi.auth.api.controller.auth.response.AuthRegisterResponse;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.jwt.JwtService;
@@ -82,7 +83,9 @@ public class AuthService {
                 .build();
     }
 
-    public AuthServiceLoginResponse register(UserPlatformType platformType, AuthServiceRegisterRequest request) {
+    // 회원가입 후 바로 로그인된 상태가 아닌 다시 로그인 시도하도록
+    // 반환 타입을 AuthServiceLoginResponse에서 AuthRegisterResponse로 바꿔봤어요
+    public AuthRegisterResponse register(UserPlatformType platformType, AuthServiceRegisterRequest request) {
         return null;
     }
 }
