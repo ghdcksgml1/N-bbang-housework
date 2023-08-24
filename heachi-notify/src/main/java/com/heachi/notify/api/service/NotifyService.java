@@ -19,12 +19,13 @@ public class NotifyService {
 
     private final NotifyRepository notifyRepository;
 
-    public Flux<NotifyServiceReceiverResponse> receive(String receiverId, Integer timeoutSeconds) {
+    public Flux<JsonResult> receive(String receiverId) {
         return notifyRepository.findByReceiveUserIds(receiverId)
-                .mapNotNull(NotifyServiceReceiverResponse::of)
-                .doOnNext(response -> System.out.println("response = " + response))
-                .timeout(Duration.ofSeconds(timeoutSeconds), Flux.just())
-                .subscribeOn(Schedulers.boundedElastic());
+                .flatMap(notify -> {
+                    NotifyServiceReceiverResponse nsrr = NotifyServiceReceiverResponse.of(notify);
+
+                    return Flux.just(JsonResult.successOf(nsrr));
+                });
     }
 
     public void registNotify(NotifyServiceRegistRequest request) {
