@@ -61,18 +61,7 @@ public class AuthController {
     @PostMapping("/{platformType}/register")
     public JsonResult<?> register(
             @PathVariable("platformType") UserPlatformType platformType,
-            @RequestBody @Valid AuthRegisterRequest request,
-            BindingResult bindingResult) {
-
-        // AuthRegisterRequest 유효성 검사 실패시 실패한 필드의 에러 메세지를 담아 실패 리턴
-        if (bindingResult.hasErrors()) {
-            String errorMessages = bindingResult.getFieldErrors()
-                    .stream()
-                    .map(fieldError -> fieldError.getField() + " " + fieldError.getDefaultMessage())
-                    .collect(Collectors.joining(", "));
-
-            return JsonResult.failOf(errorMessages);
-        }
+            @Valid @RequestBody AuthRegisterRequest request) {
 
         // Service용 DTO로 변환
         AuthServiceRegisterRequest registerRequest = AuthServiceRegisterRequest.builder()
