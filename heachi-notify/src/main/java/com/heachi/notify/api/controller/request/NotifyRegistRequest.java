@@ -10,7 +10,6 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class NotifyRegistRequest {
-    private String sendUserId;                                          // 알림을 보낸 유저 아이디
     private List<String> receiveUserIds = new ArrayList<>();            // 알림을 받는 아이디
     private NotifyType type;                                            // 알림 종류
     private String message;                                             // 알림 내용
