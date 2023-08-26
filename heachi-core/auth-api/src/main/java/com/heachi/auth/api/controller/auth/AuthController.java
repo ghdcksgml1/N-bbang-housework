@@ -11,7 +11,11 @@ import com.heachi.mysql.define.user.constant.UserPlatformType;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -54,5 +58,11 @@ public class AuthController {
             @PathVariable("platformType") UserPlatformType platformType,
             @RequestBody AuthRegisterRequest request) {
         return JsonResult.successOf();
+    }
+
+    @GetMapping("/info")
+    public JsonResult<?> userInfo(@AuthenticationPrincipal UserDetails user) {
+
+        return JsonResult.successOf(user);
     }
 }

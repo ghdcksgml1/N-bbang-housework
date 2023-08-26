@@ -2,6 +2,9 @@ bootJar.enabled = false
 jar.enabled = true
 
 dependencies {
+    // 내부 모듈
+    implementation project(':heachi-support:common')
+
     // Reflections 라이브러리
     implementation group: 'org.reflections', name: 'reflections', version: '0.10.2'
 
