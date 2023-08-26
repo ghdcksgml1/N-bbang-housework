@@ -1,15 +1,17 @@
-package com.heachi.notify.api.service.response;
+package com.heachi.notify.api.service.notify.response;
 
 import com.heachi.admin.common.utils.DateDistance;
 import com.heachi.mongo.define.notify.Notify;
 import com.heachi.mongo.define.notify.constant.NotifyType;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Getter
+@ToString
 public class NotifyServiceReceiverResponse {
     private String sendUserId;                                          // 알림을 보낸 유저 아이디
     private List<String> receiveUserIds = new ArrayList<>();            // 알림을 받는 아이디

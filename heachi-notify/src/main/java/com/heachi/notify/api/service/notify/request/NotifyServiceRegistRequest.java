@@ -1,4 +1,4 @@
-package com.heachi.notify.api.service.request;
+package com.heachi.notify.api.service.notify.request;
 
 import com.heachi.mongo.define.notify.Notify;
 import com.heachi.mongo.define.notify.constant.NotifyType;
@@ -32,9 +32,9 @@ public class NotifyServiceRegistRequest {
         this.url = url;
     }
 
-    public static NotifyServiceRegistRequest of(NotifyRegistRequest request) {
+    public static NotifyServiceRegistRequest of(NotifyRegistRequest request, String sendUserId) {
         return NotifyServiceRegistRequest.builder()
-                .sendUserId(request.getSendUserId())
+                .sendUserId(sendUserId)
                 .receiveUserIds(request.getReceiveUserIds())
                 .type(request.getType())
                 .message(request.getMessage())

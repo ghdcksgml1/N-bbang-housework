@@ -3,6 +3,7 @@ package com.heachi.mongo.define.notify;
 import com.heachi.mongo.define.notify.constant.NotifyType;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Getter
+@ToString
 @Document(collection = "notify")
 public class Notify {
     @Id
