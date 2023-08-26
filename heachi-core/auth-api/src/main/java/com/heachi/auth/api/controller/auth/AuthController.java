@@ -4,24 +4,16 @@ import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.auth.api.controller.auth.request.AuthRegisterRequest;
-import com.heachi.auth.api.controller.auth.response.AuthRegisterResponse;
 import com.heachi.auth.api.service.auth.AuthService;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.oauth.OAuthService;
-import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
-import com.heachi.mysql.define.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -73,7 +65,8 @@ public class AuthController {
                 .profileImageUrl(request.getProfileImageUrl())
                 .build();
 
-        AuthRegisterResponse registerResponse = authService.register(platformType, registerRequest);
+        // 회원가입이 완료되면 로그인된 상태가 되도록 JWT 토큰과 role을 담아 반환
+        AuthServiceLoginResponse registerResponse = authService.register(platformType, registerRequest);
 
         return JsonResult.successOf(registerResponse);
     }

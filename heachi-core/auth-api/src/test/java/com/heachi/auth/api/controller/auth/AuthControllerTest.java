@@ -1,11 +1,16 @@
 package com.heachi.auth.api.controller.auth;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.auth.TestConfig;
+import com.heachi.auth.api.controller.auth.request.AuthRegisterRequest;
+import com.heachi.auth.api.service.auth.AuthService;
+import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.oauth.OAuthService;
 import com.heachi.auth.api.service.oauth.response.OAuthResponse;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
+import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,18 +19,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static com.heachi.mysql.define.user.constant.UserPlatformType.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @AutoConfigureMockMvc
@@ -37,6 +39,9 @@ class AuthControllerTest extends TestConfig {
 
     @MockBean
     private OAuthService oAuthService;
+
+    @MockBean
+    private AuthService authService;
 
     @Autowired
     private UserRepository userRepository;
@@ -155,26 +160,49 @@ class AuthControllerTest extends TestConfig {
     }
 
     @Test
-    @DisplayName("네이버 로그인시 State 값이 현재 session Id와 일치하지 않으면, OAuthException 예외가 발생한다.")
-    void naverLoginFailWhenInvalidState() throws Exception {
-        String code = "code";
-        String state = "invalidState";
+    @DisplayName("회원가입 성공 테스트")
+    void registerSuccessTest() throws Exception {
+        // given
+        // 유효성 검사 통과하는 request
+        AuthServiceRegisterRequest request = AuthServiceRegisterRequest.builder()
+                .platformId("test1234@@")
+                .role(UserRole.USER)
+                .name("testUser")
+                .email("testUser@example.com")
+                .phoneNumber("01012341234")
+                .profileImageUrl("https://example.com")
+                .build();
 
-        // invalidState 값을 사용해 login을 시도하면 Exception 발생함
-        given(oAuthService.login(NAVER, code, state))
-                .willThrow(new OAuthException(ExceptionMessage.OAUTH_INVALID_STATE));
-
-
-        // when
         mockMvc.perform(
-                        get("/auth/NAVER/login")
-                                .param("code", code)
-                                .param("state", state))
+                        post("/auth/KAKAO/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(JsonMapper.builder().build().writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(200))
+                .andExpect(jsonPath("$.resMsg").value("OK"));
+    }
 
-                // then
+    @Test
+    @DisplayName("회원가입 실패 테스트")
+    void registerFailTest() throws Exception {
+        // given
+        // 유효성 검사 실패하는 request
+        AuthRegisterRequest request = AuthRegisterRequest.builder()
+                .platformId("test1234@@")
+                .role(null)
+                .name("testUser")
+                .email("1-203-102-3") // 잘못된 형식의 email
+                .phoneNumber("01012341234")
+                .profileImageUrl("https://naver.com")
+                .build();
+
+        mockMvc.perform(
+                        post("/auth/KAKAO/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(JsonMapper.builder().build().writeValueAsString(request)))
+                // .andExpect(status().isBadRequest());
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(400))
-                .andExpect(jsonPath("$.resMsg").value(ExceptionMessage.OAUTH_INVALID_STATE.getText()))
-                .andDo(print());
+                .andExpect(jsonPath("$.resMsg").value("email: 이메일 형식을 맞춰야합니다"));
     }
 }

@@ -2,7 +2,6 @@ package com.heachi.auth.api.service.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.oauth.OAuthException;
-import com.heachi.auth.api.controller.auth.response.AuthRegisterResponse;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.jwt.JwtService;
@@ -12,6 +11,9 @@ import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
 import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,8 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
-import java.util.Objects;
-import java.util.Optional;
 
 
 @Slf4j
@@ -33,6 +33,8 @@ public class AuthService {
     private final OAuthService oAuthService;
     private final JwtService jwtService;
     private final BCryptPasswordEncoder passwordEncoder;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private static final String ROLE_CLAIM = "role";
     private static final String NAME_CLAIM = "name";
@@ -61,47 +63,70 @@ public class AuthService {
         // 기존 회원의 경우 name, profileImageUrl 변하면 update
         findUser.updateProfile(loginResponse.getName(), loginResponse.getProfileImageUrl());
 
-        // JWT 토큰 생성을 위한 claims 생성
-        HashMap<String, String> claims = new HashMap<>();
-        claims.put(ROLE_CLAIM, findUser.getRole().name());
-        claims.put(NAME_CLAIM, findUser.getName());
-        claims.put(PROFILE_IMAGE_CLAIM, findUser.getProfileImageUrl());
+        // JWT 토큰 발급
+        final String token = createJwtToken(findUser);
 
-        // JWT 토큰 생성 (claims, UserDetails)
-        final String token = jwtService.generateToken(claims, findUser);
-
-        // 로그인 반환 객체 생성
         return AuthServiceLoginResponse.builder()
                 .token(token)
                 .role(findUser.getRole())
                 .build();
     }
 
-    // 회원가입 후 바로 로그인된 상태가 아닌 다시 로그인 시도하도록
-    // 반환 타입을 AuthServiceLoginResponse에서 AuthRegisterResponse로 바꿔봤어요
-    public AuthRegisterResponse register(UserPlatformType platformType, AuthServiceRegisterRequest request) {
+    @Transactional
+    public AuthServiceLoginResponse register(UserPlatformType platformType, AuthServiceRegisterRequest request) {
+        try {
+            User findUser = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> {
+                // UNAUTH인 토큰을 받고 회원 탈퇴 후 그 토큰으로 회원가입 요청시 예외 처리
+                throw new OAuthException(ExceptionMessage.OAUTH_INVALID_REGISTER);
+            });
 
-        User saveUser = User.builder()
-                .platformId(passwordEncoder.encode(request.getPlatformId()))
-                .platformType(platformType)
-                .role(request.getRole())
-                .name(request.getName())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .profileImageUrl(request.getProfileImageUrl())
-                .build();
+            // User findUser = userRepository.findByEmail(request.getEmail()).get();
 
-        User savedUser = userRepository.save(saveUser);
+            // 회원가입 정보 DB 반영
+            findUser.updateRegister(passwordEncoder.encode(request.getPlatformId()),
+                    request.getRole(),
+                    request.getName(),
+                    request.getEmail(),
+                    request.getPhoneNumber(),
+                    request.getProfileImageUrl());
 
-        AuthRegisterResponse registerResponse = AuthRegisterResponse.builder()
-                .id(savedUser.getId())
-                .name(savedUser.getName())
-                .email(savedUser.getEmail())
-                .phoneNumber(savedUser.getPhoneNumber())
-                .profileImageUrl(savedUser.getProfileImageUrl())
-                .createdDateTime(savedUser.getCreatedDateTime().toString())
-                .build();
+            // 수정된 회원정보 조회
+            String jpql = "SELECT u FROM USERS u WHERE u.email = :email";
+            User updateUser = entityManager.createQuery(jpql, User.class)
+                    .setParameter("email", request.getEmail())
+                    .getSingleResult();
 
-        return registerResponse;
+            // UNAUTH 토큰으로 회원가입을 요청했지만 이미 회원가입시 update되어 UNAUTH가 아닌 사용자 예외 처리
+            if (updateUser.getRole() != UserRole.UNAUTH) {
+                throw new OAuthException(ExceptionMessage.OAUTH_UNAUTH_DUPLICATE_REGISTER);
+            }
+
+            // 바뀐 회원 정보로 JWT 토큰 재발급
+            final String token = createJwtToken(updateUser);
+
+            return AuthServiceLoginResponse.builder()
+                    .token(token)
+                    .role(findUser.getRole())
+                    .build();
+
+        } catch (OAuthException e) {
+            throw new RuntimeException(e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("exception!!!");
+        }
+    }
+
+    private String createJwtToken(User user) {
+        // JWT 토큰 생성을 위한 claims 생성
+        HashMap<String, String> claims = new HashMap<>();
+        claims.put(ROLE_CLAIM, user.getRole().name());
+        claims.put(NAME_CLAIM, user.getName());
+        claims.put(PROFILE_IMAGE_CLAIM, user.getProfileImageUrl());
+
+        // JWT 토큰 생성 (claims, UserDetails)
+        final String token = jwtService.generateToken(claims, user);
+
+        // 로그인 반환 객체 생성
+        return token;
     }
 }
