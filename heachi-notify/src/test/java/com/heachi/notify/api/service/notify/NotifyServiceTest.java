@@ -1,4 +1,4 @@
-package com.heachi.notify.api.service;
+package com.heachi.notify.api.service.notify;
 
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.mongo.define.notify.Notify;
@@ -6,6 +6,7 @@ import com.heachi.mongo.define.notify.constant.NotifyType;
 import com.heachi.mongo.define.notify.repository.NotifyRepository;
 import com.heachi.notify.TestConfig;
 import com.heachi.notify.api.service.notify.NotifyService;
+import com.heachi.notify.api.service.notify.request.NotifyServiceRegistRequest;
 import com.heachi.notify.api.service.notify.response.NotifyServiceReceiverResponse;
 import org.junit.jupiter.api.*;
 import org.mockito.BDDMockito;
@@ -53,7 +54,7 @@ class NotifyServiceTest extends TestConfig {
         StepVerifier.withVirtualTime(() -> notifyService.receive("2954438047"))
                 // then
                 .expectSubscription()               // 구독이 시작되고 나서
-                .thenAwait(Duration.ofSeconds(30))  // 30초간 아무런 응답이 없으면
+                .expectNoEvent(Duration.ofSeconds(30))  // 30초간 아무런 응답이 없으면
                 .expectNextMatches(jsonResult -> {  // 에러를 뱉음
                     assertThat(jsonResult.getResCode()).isEqualTo(400);
                     assertThat(jsonResult.getResMsg()).isEqualTo("Timeout");
@@ -65,7 +66,7 @@ class NotifyServiceTest extends TestConfig {
 
     @Test
     @DisplayName("구독 도중 객체가 추가되었을때 값이 곧바로 반영된다.")
-    void addNotifyWhenSubscribeOn() throws InterruptedException {
+    void addNotifyWhenSubscribeOn() {
         // given
         Notify notify1 = Notify.builder()
                 .sendUserId("ghdcksgml1")
@@ -116,7 +117,32 @@ class NotifyServiceTest extends TestConfig {
                     return false;
                 })
                 .verifyComplete();
+    }
 
+    @Test
+    @DisplayName("올바른 데이터를 넣어주면, Notify에 저장되고, ID도 부여된다.")
+    void registNotify() {
+        // given
+        NotifyServiceRegistRequest notify = NotifyServiceRegistRequest.builder()
+                .sendUserId("ghdcksgml1")
+                .receiveUserIds(List.of("ghdcksgml1", "ghdcksgml2", "ghdcksgml3"))
+                .type(NotifyType.NOTE)
+                .build();
 
+        Mono<Notify> notifyMono = notifyService.registNotify(notify) // notify 등록 후
+                .flatMap(n -> notifyRepository.findById(n.getId())); // Id로 조회하기
+
+        // when
+        StepVerifier.create(notifyMono.log())
+                // then
+                .expectSubscription()
+                .expectNextMatches(n -> {
+                    assertThat(n.getId()).isNotNull();
+                    assertThat(n.getSendUserId()).isEqualTo("ghdcksgml1");
+                    assertThat(n.getType()).isEqualTo(NotifyType.NOTE);
+
+                    return true;
+                })
+                .verifyComplete();
     }
 }

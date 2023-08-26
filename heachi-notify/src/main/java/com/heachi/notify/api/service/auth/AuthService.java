@@ -25,7 +25,7 @@ public class AuthService {
     public Mono<String> getUserId(String token) {
 
         return authClients.getUserInfo(token)
-                .onErrorMap(WebClientRequestException.class, t -> new AuthException(ExceptionMessage.AUTH_SERVER_NOT_RESPOND))
+                .onErrorMap(t -> new AuthException(ExceptionMessage.AUTH_SERVER_NOT_RESPOND))
                 .map(userInfoResponseJsonResult -> {
                     if (userInfoResponseJsonResult.getResObj() == null) {
                         throw new JwtException(ExceptionMessage.JWT_USER_NOT_FOUND);
