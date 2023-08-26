@@ -82,6 +82,11 @@ public class AuthService {
 
             // User findUser = userRepository.findByEmail(request.getEmail()).get();
 
+            // UNAUTH 토큰으로 회원가입을 요청했지만 이미 update되어 UNAUTH가 아닌 사용자 예외 처리
+            if (findUser.getRole() != UserRole.UNAUTH) {
+                throw new OAuthException(ExceptionMessage.OAUTH_UNAUTH_DUPLICATE_REGISTER);
+            }
+
             // 회원가입 정보 DB 반영
             findUser.updateRegister(passwordEncoder.encode(request.getPlatformId()),
                     request.getRole(),
@@ -95,11 +100,6 @@ public class AuthService {
             User updateUser = entityManager.createQuery(jpql, User.class)
                     .setParameter("email", request.getEmail())
                     .getSingleResult();
-
-            // UNAUTH 토큰으로 회원가입을 요청했지만 이미 회원가입시 update되어 UNAUTH가 아닌 사용자 예외 처리
-            if (updateUser.getRole() != UserRole.UNAUTH) {
-                throw new OAuthException(ExceptionMessage.OAUTH_UNAUTH_DUPLICATE_REGISTER);
-            }
 
             // 바뀐 회원 정보로 JWT 토큰 재발급
             final String token = createJwtToken(updateUser);
