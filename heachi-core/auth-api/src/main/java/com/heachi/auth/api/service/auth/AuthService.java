@@ -61,14 +61,6 @@ public class AuthService {
         // 기존 회원의 경우 name, profileImageUrl 변하면 update
         findUser.updateProfile(loginResponse.getName(), loginResponse.getProfileImageUrl());
 
-        // 인증이 완료되지 않은 사용자(UNAUTH) 처리
-        if (findUser.getRole() == UserRole.UNAUTH) {
-            return AuthServiceLoginResponse.builder()
-                    .token(null)
-                    .role(UserRole.UNAUTH)
-                    .build();
-        }
-
         // JWT 토큰 생성을 위한 claims 생성
         HashMap<String, String> claims = new HashMap<>();
         claims.put(ROLE_CLAIM, findUser.getRole().name());
