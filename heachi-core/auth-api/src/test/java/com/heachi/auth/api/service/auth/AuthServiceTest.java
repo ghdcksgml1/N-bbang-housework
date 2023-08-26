@@ -1,6 +1,8 @@
 package com.heachi.auth.api.service.auth;
 
+import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.auth.TestConfig;
+import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.jwt.JwtService;
 import com.heachi.auth.api.service.oauth.OAuthService;
@@ -20,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.heachi.mysql.define.user.constant.UserPlatformType.KAKAO;
 import static org.assertj.core.api.Assertions.*;
@@ -83,39 +86,6 @@ class AuthServiceTest extends TestConfig {
         assertThat(findUser)
                 .extracting("name", "email", "profileImageUrl", "role")
                 .contains("김민수", email, "google.com", UserRole.USER);
-    }
-
-    @Test
-    @DisplayName("User로 등록되어있더라도, 인증이 완료되지 않은 유저(UserRole = UNAUTH)는 로그인할 수 없다.")
-    void loginWhenUnAuthUser() {
-        // given
-        UserPlatformType platformType = UserPlatformType.KAKAO;
-        String code = "임의의 코드입니다.";
-        String state = "임의의 state입니다.";
-        String email = "kimminsu@dankook.ac.kr";
-
-        User user = User.builder()
-                .name("김민수")
-                .email(email)
-                .role(UserRole.UNAUTH)
-                .build();
-        userRepository.save(user);
-
-        OAuthResponse oAuthResponse = OAuthResponse.builder()
-                .platformId("123")
-                .email(email)
-                .name("김민수")
-                .profileImageUrl("google.com")
-                .build();
-
-        // when
-        when(oAuthService.login(any(UserPlatformType.class), any(String.class), any(String.class))).thenReturn(oAuthResponse); // Mocking
-
-        // then
-        assertAll(() -> {
-            assertThat(authService.login(platformType, code, state).getRole()).isEqualTo(UserRole.UNAUTH);
-            assertThat(authService.login(platformType, code, state).getToken()).isNull();
-        });
     }
 
     @Test
@@ -221,6 +191,82 @@ class AuthServiceTest extends TestConfig {
         assertAll(() -> {
             assertThat(findUser.getName()).isEqualTo("김민수짱");
             assertThat(findUser.getProfileImageUrl()).isEqualTo("google.com");
+        });
+    }
+
+    @Test
+    @DisplayName("UNAUTH 미가입자 회원가입 성공 테스트")
+    public void registerUnauthUserSuccessTest() {
+        UserPlatformType platformType = KAKAO;
+        String email = "user@example.com";
+        String platformId = "qwer1234@";
+        String name = "tesrUser";
+        String phoneNumber = "01234567890";
+        String profileImageUrl = "https://example.com/profile.jpg";
+
+        // UNAUTH 사용자 저장
+        User unauthUser = User.builder()
+                .platformId(platformId)
+                .platformType(platformType)
+                .role(UserRole.UNAUTH)
+                .email(email)
+                .build();
+
+        User findUser = userRepository.save(unauthUser);
+
+        // 회원가입 요청 생성 (CENTER)
+        AuthServiceRegisterRequest request = AuthServiceRegisterRequest.builder()
+                .platformId(platformId)
+                .role(UserRole.CENTER)
+                .profileImageUrl(profileImageUrl)
+                .phoneNumber(phoneNumber)
+                .email(email)
+                .name(name)
+                .build();
+
+        // when
+        AuthServiceLoginResponse response = authService.register(platformType, request);
+        boolean tokenValid = jwtService.isTokenValid(response.getToken(), findUser);   // 발행한 토큰 검증
+
+        // then
+        assertEquals(UserRole.CENTER, response.getRole());
+        assertThat(tokenValid).isTrue();
+    }
+
+    @Test
+    @DisplayName("UNAUTH 미가입자 회원가입 실패 테스트")
+    public void registerUnauthUserFailTest() {
+        UserPlatformType platformType = KAKAO;
+        String email = "user@example.com";
+        String platformId = "qwer1234@";
+        String name = "tesrUser";
+        String phoneNumber = "01234567890";
+        String profileImageUrl = "https://example.com/profile.jpg";
+
+        // UNAUTH 사용자 저장
+        User unauthUser = User.builder()
+                .platformId(platformId)
+                .platformType(platformType)
+                .role(UserRole.CENTER) // UNAUTH 미가입자가 아님
+                .email(email)
+                .build();
+        User findUser = userRepository.save(unauthUser);
+
+        // 회원가입 요청 생성 (CENTER)
+        AuthServiceRegisterRequest request = AuthServiceRegisterRequest.builder()
+                .platformId(platformId)
+                .role(UserRole.CENTER)
+                .profileImageUrl(profileImageUrl)
+                .phoneNumber(phoneNumber)
+                .email(email)
+                .name(name)
+                .build();
+
+        // when
+
+        // then
+        assertThrows(RuntimeException.class, () -> {
+            authService.register(platformType, request);
         });
     }
 }
