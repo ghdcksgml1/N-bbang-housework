@@ -197,7 +197,7 @@ class AuthServiceTest extends TestConfig {
     @Test
     @DisplayName("UNAUTH 미가입자 회원가입 성공 테스트")
     public void registerUnauthUserSuccessTest() {
-        UserPlatformType platformType = KAKAO;
+        UserPlatformType platformType =KAKAO;
         String email = "user@example.com";
         String platformId = "qwer1234@";
         String name = "tesrUser";
@@ -210,23 +210,25 @@ class AuthServiceTest extends TestConfig {
                 .platformType(platformType)
                 .role(UserRole.UNAUTH)
                 .email(email)
+                .name(name)
+                .profileImageUrl(profileImageUrl)
                 .build();
 
         User findUser = userRepository.save(unauthUser);
 
         // 회원가입 요청 생성 (CENTER)
         AuthServiceRegisterRequest request = AuthServiceRegisterRequest.builder()
-                .platformId(platformId)
                 .role(UserRole.CENTER)
-                .profileImageUrl(profileImageUrl)
                 .phoneNumber(phoneNumber)
                 .email(email)
-                .name(name)
                 .build();
 
         // when
-        AuthServiceLoginResponse response = authService.register(platformType, request);
-        boolean tokenValid = jwtService.isTokenValid(response.getToken(), findUser);   // 발행한 토큰 검증
+        AuthServiceLoginResponse response = authService.register(request);
+
+        User savedUser = userRepository.findByEmail(request.getEmail()).get();
+        boolean tokenValid = jwtService.isTokenValid(response.getToken(), savedUser);   // 발행한 토큰 검증
+
 
         // then
         assertEquals(UserRole.CENTER, response.getRole());
@@ -243,30 +245,29 @@ class AuthServiceTest extends TestConfig {
         String phoneNumber = "01234567890";
         String profileImageUrl = "https://example.com/profile.jpg";
 
-        // UNAUTH 사용자 저장
-        User unauthUser = User.builder()
+        User user = User.builder()
                 .platformId(platformId)
                 .platformType(platformType)
-                .role(UserRole.CENTER) // UNAUTH 미가입자가 아님
+                .role(UserRole.CENTER)
                 .email(email)
+                .name(name)
+                .profileImageUrl(profileImageUrl)
                 .build();
-        User findUser = userRepository.save(unauthUser);
+
+        userRepository.save(user);
 
         // 회원가입 요청 생성 (CENTER)
         AuthServiceRegisterRequest request = AuthServiceRegisterRequest.builder()
-                .platformId(platformId)
                 .role(UserRole.CENTER)
-                .profileImageUrl(profileImageUrl)
                 .phoneNumber(phoneNumber)
                 .email(email)
-                .name(name)
                 .build();
 
         // when
 
         // then
         assertThrows(RuntimeException.class, () -> {
-            authService.register(platformType, request);
+            authService.register(request);
         });
     }
 }

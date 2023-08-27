@@ -18,10 +18,9 @@ public enum ExceptionMessage {
     OAUTH_INVALID_TOKEN_URL("tokenURL이 정확하지 않습니다."),
     OAUTH_INVALID_ACCESS_TOKEN("잘못된 access_token 입니다."),
 
-    // RegisterException
-    OAUTH_INVALID_REGISTER("잘못된 회원가입 요청입니다."),
-    OAUTH_UNAUTH_DUPLICATE_REGISTER("UNAUTH인 사용자만 회원가입이 가능합니다.");
-
+    // AuthException
+    AUTH_INVALID_REGISTER("잘못된 회원가입 요청입니다."),
+    AUTH_DUPLICATE_UNAUTH_REGISTER("중복된 회원가입 요청입니다.");
 
     private final String text;
 }

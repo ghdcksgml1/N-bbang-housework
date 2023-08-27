@@ -1,6 +1,7 @@
 package com.heachi.auth.api.service.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.auth.AuthException;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
@@ -73,36 +74,23 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthServiceLoginResponse register(UserPlatformType platformType, AuthServiceRegisterRequest request) {
+    public AuthServiceLoginResponse register(AuthServiceRegisterRequest request) {
         try {
             User findUser = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> {
                 // UNAUTH인 토큰을 받고 회원 탈퇴 후 그 토큰으로 회원가입 요청시 예외 처리
-                throw new OAuthException(ExceptionMessage.OAUTH_INVALID_REGISTER);
+                throw new AuthException(ExceptionMessage.AUTH_INVALID_REGISTER);
             });
-
-            // User findUser = userRepository.findByEmail(request.getEmail()).get();
 
             // UNAUTH 토큰으로 회원가입을 요청했지만 이미 update되어 UNAUTH가 아닌 사용자 예외 처리
             if (findUser.getRole() != UserRole.UNAUTH) {
-                throw new OAuthException(ExceptionMessage.OAUTH_UNAUTH_DUPLICATE_REGISTER);
+                throw new AuthException(ExceptionMessage.AUTH_DUPLICATE_UNAUTH_REGISTER);
             }
 
             // 회원가입 정보 DB 반영
-            findUser.updateRegister(passwordEncoder.encode(request.getPlatformId()),
-                    request.getRole(),
-                    request.getName(),
-                    request.getEmail(),
-                    request.getPhoneNumber(),
-                    request.getProfileImageUrl());
+            findUser.updateRegister(request.getRole(), request.getPhoneNumber());
 
-            // 수정된 회원정보 조회
-            String jpql = "SELECT u FROM USERS u WHERE u.email = :email";
-            User updateUser = entityManager.createQuery(jpql, User.class)
-                    .setParameter("email", request.getEmail())
-                    .getSingleResult();
-
-            // 바뀐 회원 정보로 JWT 토큰 재발급
-            final String token = createJwtToken(updateUser);
+            // JWT 토큰 재발급
+            final String token = createJwtToken(findUser);
 
             return AuthServiceLoginResponse.builder()
                     .token(token)

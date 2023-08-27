@@ -165,12 +165,9 @@ class AuthControllerTest extends TestConfig {
         // given
         // 유효성 검사 통과하는 request
         AuthServiceRegisterRequest request = AuthServiceRegisterRequest.builder()
-                .platformId("test1234@@")
                 .role(UserRole.USER)
-                .name("testUser")
                 .email("testUser@example.com")
                 .phoneNumber("01012341234")
-                .profileImageUrl("https://example.com")
                 .build();
 
         mockMvc.perform(
@@ -188,12 +185,9 @@ class AuthControllerTest extends TestConfig {
         // given
         // 유효성 검사 실패하는 request
         AuthRegisterRequest request = AuthRegisterRequest.builder()
-                .platformId("test1234@@")
                 .role(null)
-                .name("testUser")
                 .email("1-203-102-3") // 잘못된 형식의 email
                 .phoneNumber("01012341234")
-                .profileImageUrl("https://naver.com")
                 .build();
 
         mockMvc.perform(

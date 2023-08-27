@@ -50,23 +50,11 @@ public class AuthController {
         return JsonResult.successOf(loginResponse);
     }
 
-    @PostMapping("/{platformType}/register")
+    @PostMapping("/register")
     public JsonResult<?> register(
-            @PathVariable("platformType") UserPlatformType platformType,
             @Valid @RequestBody AuthRegisterRequest request) {
 
-        // Service용 DTO로 변환
-        AuthServiceRegisterRequest registerRequest = AuthServiceRegisterRequest.builder()
-                .platformId(request.getPlatformId())
-                .role(request.getRole())
-                .name(request.getName())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .profileImageUrl(request.getProfileImageUrl())
-                .build();
-
-        // 회원가입이 완료되면 로그인된 상태가 되도록 JWT 토큰과 role을 담아 반환
-        AuthServiceLoginResponse registerResponse = authService.register(platformType, registerRequest);
+        AuthServiceLoginResponse registerResponse = authService.register(AuthServiceRegisterRequest.of(request));
 
         return JsonResult.successOf(registerResponse);
     }

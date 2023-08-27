@@ -46,19 +46,9 @@ public class User extends BaseEntity implements UserDetails {
         this.name = name;
     }
 
-    public void updateRegister(String platformId,
-                              UserRole role,
-                              String name,
-                              String email,
-                              String phoneNumber,
-                              String profileImageUrl) {
-        this.platformId = platformId;
+    public void updateRegister(UserRole role, String phoneNumber) {
         this.role = role;
-        this.name = name;
-        this.email = email;
         this.phoneNumber = phoneNumber;
-        this.profileImageUrl = profileImageUrl;
-
     }
 
     @Builder
