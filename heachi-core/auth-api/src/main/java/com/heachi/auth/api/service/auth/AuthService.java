@@ -75,33 +75,26 @@ public class AuthService {
 
     @Transactional
     public AuthServiceLoginResponse register(AuthServiceRegisterRequest request) {
-        try {
-            User findUser = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> {
-                // UNAUTH인 토큰을 받고 회원 탈퇴 후 그 토큰으로 회원가입 요청시 예외 처리
-                throw new AuthException(ExceptionMessage.AUTH_INVALID_REGISTER);
-            });
+        User findUser = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> {
+            // UNAUTH인 토큰을 받고 회원 탈퇴 후 그 토큰으로 회원가입 요청시 예외 처리
+            throw new AuthException(ExceptionMessage.AUTH_INVALID_REGISTER);
+        });
 
-            // UNAUTH 토큰으로 회원가입을 요청했지만 이미 update되어 UNAUTH가 아닌 사용자 예외 처리
-            if (findUser.getRole() != UserRole.UNAUTH) {
-                throw new AuthException(ExceptionMessage.AUTH_DUPLICATE_UNAUTH_REGISTER);
-            }
-
-            // 회원가입 정보 DB 반영
-            findUser.updateRegister(request.getRole(), request.getPhoneNumber());
-
-            // JWT 토큰 재발급
-            final String token = createJwtToken(findUser);
-
-            return AuthServiceLoginResponse.builder()
-                    .token(token)
-                    .role(findUser.getRole())
-                    .build();
-
-        } catch (OAuthException e) {
-            throw new RuntimeException(e.getMessage());
-        } catch (Exception e) {
-            throw new RuntimeException("exception!!!");
+        // UNAUTH 토큰으로 회원가입을 요청했지만 이미 update되어 UNAUTH가 아닌 사용자 예외 처리
+        if (findUser.getRole() != UserRole.UNAUTH) {
+            throw new AuthException(ExceptionMessage.AUTH_DUPLICATE_UNAUTH_REGISTER);
         }
+
+        // 회원가입 정보 DB 반영
+        findUser.updateRegister(request.getRole(), request.getPhoneNumber());
+
+        // JWT 토큰 재발급
+        final String token = createJwtToken(findUser);
+
+        return AuthServiceLoginResponse.builder()
+                .token(token)
+                .role(findUser.getRole())
+                .build();
     }
 
     private String createJwtToken(User user) {
