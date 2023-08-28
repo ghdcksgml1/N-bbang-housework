@@ -1,13 +1,17 @@
 package com.heachi.auth.api.controller.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.auth.AuthException;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.auth.api.controller.auth.request.AuthRegisterRequest;
+import com.heachi.auth.api.controller.auth.response.UserSimpleInfoResponse;
 import com.heachi.auth.api.service.auth.AuthService;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.oauth.OAuthService;
+import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
+import com.heachi.mysql.define.user.constant.UserRole;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +20,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+
+import static com.heachi.mysql.define.user.constant.UserRole.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -61,8 +67,11 @@ public class AuthController {
     }
 
     @GetMapping("/info")
-    public JsonResult<?> userInfo(@AuthenticationPrincipal UserDetails user) {
+    public JsonResult<UserSimpleInfoResponse> userInfo(@AuthenticationPrincipal User user) {
+        if (user.getRole() == UNAUTH) {
+            throw new AuthException(ExceptionMessage.AUTH_UNAUTHORIZED);
+        }
 
-        return JsonResult.successOf(user);
+        return JsonResult.successOf(UserSimpleInfoResponse.of(user));
     }
 }

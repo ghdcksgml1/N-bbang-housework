@@ -21,6 +21,7 @@ public enum ExceptionMessage {
 
     // AuthException
     AUTH_SERVER_NOT_RESPOND("인증 서버가 응답하지 않습니다."),
+    AUTH_UNAUTHORIZED("현재 권한으로 실행할 수 없는 요청입니다."),
 
     ;
 
