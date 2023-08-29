@@ -7,12 +7,14 @@ import com.heachi.admin.common.response.JsonResult;
 import com.heachi.auth.api.controller.auth.request.AuthRegisterRequest;
 import com.heachi.auth.api.controller.auth.response.UserSimpleInfoResponse;
 import com.heachi.auth.api.service.auth.AuthService;
+import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.oauth.OAuthService;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
 import com.heachi.mysql.define.user.constant.UserRole;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,7 +30,6 @@ import static com.heachi.mysql.define.user.constant.UserRole.*;
 @RequestMapping("/auth")
 @RestController
 public class AuthController {
-
     private final AuthService authService;
     private final OAuthService oAuthService;
 
@@ -59,11 +60,13 @@ public class AuthController {
         return JsonResult.successOf(loginResponse);
     }
 
-    @PostMapping("/{platformType}/register")
+    @PostMapping("/register")
     public JsonResult<?> register(
-            @PathVariable("platformType") UserPlatformType platformType,
-            @RequestBody AuthRegisterRequest request) {
-        return JsonResult.successOf();
+            @Valid @RequestBody AuthRegisterRequest request) {
+
+        AuthServiceLoginResponse registerResponse = authService.register(AuthServiceRegisterRequest.of(request));
+
+        return JsonResult.successOf(registerResponse);
     }
 
     @GetMapping("/info")

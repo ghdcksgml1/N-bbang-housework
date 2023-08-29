@@ -20,6 +20,8 @@ public enum ExceptionMessage {
     OAUTH_INVALID_ACCESS_TOKEN("잘못된 access_token 입니다."),
 
     // AuthException
+    AUTH_INVALID_REGISTER("잘못된 회원가입 요청입니다."),
+    AUTH_DUPLICATE_UNAUTH_REGISTER("중복된 회원가입 요청입니다."),
     AUTH_SERVER_NOT_RESPOND("인증 서버가 응답하지 않습니다."),
     AUTH_UNAUTHORIZED("현재 권한으로 실행할 수 없는 요청입니다."),
 

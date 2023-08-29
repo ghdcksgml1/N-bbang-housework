@@ -1,6 +1,7 @@
 package com.heachi.auth.api.service.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.auth.AuthException;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
@@ -11,14 +12,16 @@ import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
 import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
-import java.util.Objects;
-import java.util.Optional;
 
 
 @Slf4j
@@ -30,6 +33,9 @@ public class AuthService {
     private final UserRepository userRepository;
     private final OAuthService oAuthService;
     private final JwtService jwtService;
+    private final BCryptPasswordEncoder passwordEncoder;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private static final String ROLE_CLAIM = "role";
     private static final String NAME_CLAIM = "name";
@@ -58,31 +64,50 @@ public class AuthService {
         // 기존 회원의 경우 name, profileImageUrl 변하면 update
         findUser.updateProfile(loginResponse.getName(), loginResponse.getProfileImageUrl());
 
-        // 인증이 완료되지 않은 사용자(UNAUTH) 처리
-        if (findUser.getRole() == UserRole.UNAUTH) {
-            return AuthServiceLoginResponse.builder()
-                    .token(null)
-                    .role(UserRole.UNAUTH)
-                    .build();
-        }
+        // JWT 토큰 발급
+        final String token = createJwtToken(findUser);
 
-        // JWT 토큰 생성을 위한 claims 생성
-        HashMap<String, String> claims = new HashMap<>();
-        claims.put(ROLE_CLAIM, findUser.getRole().name());
-        claims.put(NAME_CLAIM, findUser.getName());
-        claims.put(PROFILE_IMAGE_CLAIM, findUser.getProfileImageUrl());
-
-        // JWT 토큰 생성 (claims, UserDetails)
-        final String token = jwtService.generateToken(claims, findUser);
-
-        // 로그인 반환 객체 생성
         return AuthServiceLoginResponse.builder()
                 .token(token)
                 .role(findUser.getRole())
                 .build();
     }
 
-    public AuthServiceLoginResponse register(UserPlatformType platformType, AuthServiceRegisterRequest request) {
-        return null;
+    @Transactional
+    public AuthServiceLoginResponse register(AuthServiceRegisterRequest request) {
+        User findUser = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> {
+            // UNAUTH인 토큰을 받고 회원 탈퇴 후 그 토큰으로 회원가입 요청시 예외 처리
+            throw new AuthException(ExceptionMessage.AUTH_INVALID_REGISTER);
+        });
+
+        // UNAUTH 토큰으로 회원가입을 요청했지만 이미 update되어 UNAUTH가 아닌 사용자 예외 처리
+        if (findUser.getRole() != UserRole.UNAUTH) {
+            throw new AuthException(ExceptionMessage.AUTH_DUPLICATE_UNAUTH_REGISTER);
+        }
+
+        // 회원가입 정보 DB 반영
+        findUser.updateRegister(request.getRole(), request.getPhoneNumber());
+
+        // JWT 토큰 재발급
+        final String token = createJwtToken(findUser);
+
+        return AuthServiceLoginResponse.builder()
+                .token(token)
+                .role(findUser.getRole())
+                .build();
+    }
+
+    private String createJwtToken(User user) {
+        // JWT 토큰 생성을 위한 claims 생성
+        HashMap<String, String> claims = new HashMap<>();
+        claims.put(ROLE_CLAIM, user.getRole().name());
+        claims.put(NAME_CLAIM, user.getName());
+        claims.put(PROFILE_IMAGE_CLAIM, user.getProfileImageUrl());
+
+        // JWT 토큰 생성 (claims, UserDetails)
+        final String token = jwtService.generateToken(claims, user);
+
+        // 로그인 반환 객체 생성
+        return token;
     }
 }
