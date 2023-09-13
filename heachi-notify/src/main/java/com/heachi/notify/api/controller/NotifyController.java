@@ -27,6 +27,9 @@ public class NotifyController {
     private final NotifyService notifyService;
     private final AuthService authService;
 
+    /**
+     * 알림 구독하기 (Server Sent Event 방식)
+     */
     @GetMapping(value = "/", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<JsonResult> receive(@RequestHeader(value = "Authorization", required = false, defaultValue = "token") String headers) {
 
@@ -35,6 +38,9 @@ public class NotifyController {
                 .subscribeOn(Schedulers.boundedElastic());  // publisher의 스케줄러를 boundedElastic으로 변경
     }
 
+    /**
+     * 알림 추가하기
+     */
     @PostMapping("/")
     public Mono<JsonResult> registNotify(
             @RequestHeader(value = "Authorization", required = false, defaultValue = "token") String headers,
@@ -44,5 +50,17 @@ public class NotifyController {
                         .registNotify(NotifyServiceRegistRequest.of(request, sendUserId))
                         .thenReturn(JsonResult.successOf()))
                 .subscribeOn(Schedulers.boundedElastic());  // publisher의 스케줄러를 boundedElastic으로 변경
+    }
+
+    /**
+     * 사용자 알림 읽기 이벤트
+     */
+    @GetMapping("/read/{notifyId}")
+    public Mono<JsonResult> readNotify(
+            @RequestHeader(value = "Authorization", required = false, defaultValue = "token") String headers,
+            @PathVariable("notifyId") String notifyId) {
+        return authService.getUserId(headers)
+                .flatMap(userId -> notifyService.readNotify(userId, notifyId))
+                .subscribeOn(Schedulers.boundedElastic());
     }
 }

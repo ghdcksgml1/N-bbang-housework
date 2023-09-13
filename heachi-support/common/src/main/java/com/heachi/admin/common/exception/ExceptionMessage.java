@@ -22,6 +22,8 @@ public enum ExceptionMessage {
     // AuthException
     AUTH_SERVER_NOT_RESPOND("인증 서버가 응답하지 않습니다."),
 
+    // NotifyException
+    NOTIFY_NOT_FOUND("해당 아이디의 알림을 찾을 수 없습니다."),
     ;
 
     private final String text;

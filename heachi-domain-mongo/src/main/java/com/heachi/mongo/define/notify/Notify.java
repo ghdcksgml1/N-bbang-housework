@@ -41,7 +41,8 @@ public class Notify {
         this.checked = checked;
     }
 
-    public void receiverUserCheckedNotify() {
-
+    public void receiverUserCheckedNotify(String receiverUserId) {
+        checked.add(receiverUserId);
+        checkedTime.put(receiverUserId, LocalDateTime.now());
     }
 }
