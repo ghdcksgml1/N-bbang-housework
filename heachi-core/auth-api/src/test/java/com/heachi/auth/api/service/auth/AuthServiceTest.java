@@ -79,7 +79,7 @@ class AuthServiceTest extends TestConfig {
 
         AuthServiceLoginResponse login = authService.login(platformType, code, state);     // 로그인 프로세스
         User findUser = userRepository.findByEmail(email).get();                  // 로그인한 사용자 찾기
-        boolean tokenValid = jwtService.isTokenValid(login.getToken(), findUser);   // 발행한 토큰 검증
+        boolean tokenValid = jwtService.isTokenValid(login.getToken(), findUser.getUsername());   // 발행한 토큰 검증
 
         // then
         assertThat(tokenValid).isTrue();
@@ -227,7 +227,7 @@ class AuthServiceTest extends TestConfig {
         AuthServiceLoginResponse response = authService.register(request);
 
         User savedUser = userRepository.findByEmail(request.getEmail()).get();
-        boolean tokenValid = jwtService.isTokenValid(response.getToken(), savedUser);   // 발행한 토큰 검증
+        boolean tokenValid = jwtService.isTokenValid(response.getToken(), savedUser.getUsername());   // 발행한 토큰 검증
 
 
         // then
