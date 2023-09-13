@@ -7,8 +7,10 @@ import com.heachi.auth.TestConfig;
 import com.heachi.auth.api.controller.auth.request.AuthRegisterRequest;
 import com.heachi.auth.api.service.auth.AuthService;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
+import com.heachi.auth.api.service.jwt.JwtService;
 import com.heachi.auth.api.service.oauth.OAuthService;
 import com.heachi.auth.api.service.oauth.response.OAuthResponse;
+import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
 import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
@@ -21,6 +23,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.HashMap;
 
 import static com.heachi.mysql.define.user.constant.UserPlatformType.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -45,6 +49,9 @@ class AuthControllerTest extends TestConfig {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private JwtService jwtService;
 
     @AfterEach
     void tearDown() {
@@ -198,5 +205,51 @@ class AuthControllerTest extends TestConfig {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(400))
                 .andExpect(jsonPath("$.resMsg").value("email: must be a well-formed email address"));
+    }
+
+    @Test
+    @DisplayName("userSimpleInfo 테스트, role, name, email, profileImageUrl이 리턴된다.")
+    void userSimpleInfoResponseTest() throws Exception {
+        // given
+        User user = User.builder()
+                .name("김민수")
+                .role(UserRole.USER)
+                .email("kimminsu@dankook.ac.kr")
+                .profileImageUrl("https://google.com")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        HashMap<String, String> map = new HashMap<>();
+        map.put("role", savedUser.getRole().name());
+        map.put("name", savedUser.getName());
+        map.put("profileImageUrl", savedUser.getProfileImageUrl());
+        String token = jwtService.generateToken(map, savedUser);
+
+        // when
+        mockMvc.perform(get("/auth/info")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + token))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(200))
+                .andExpect(jsonPath("$.resObj.role").value("USER"))
+                .andExpect(jsonPath("$.resObj.name").value("김민수"))
+                .andExpect(jsonPath("$.resObj.email").value("kimminsu@dankook.ac.kr"))
+                .andExpect(jsonPath("$.resObj.profileImageUrl").value("https://google.com"));
+    }
+
+    @Test
+    @DisplayName("userSimpleInfo 실패 테스트, 잘못된 Token을 넣으면 오류를 뱉는다.")
+    void userSimpleInfoTestWhenInvalidToken() throws Exception {
+        // given
+        String token = "strangeToken";
+
+        // when
+        mockMvc.perform(get("/auth/info")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + token))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(400));
     }
 }
