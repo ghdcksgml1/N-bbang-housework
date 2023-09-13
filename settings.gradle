@@ -4,6 +4,7 @@ include(
     "heachi-core:auth-api",
     "heachi-domain-mongo",
     "heachi-domain-mysql",
+    "heachi-domain-redis",
     "heachi-notify",
     "heachi-support:common",
     "heachi-support:logging",
