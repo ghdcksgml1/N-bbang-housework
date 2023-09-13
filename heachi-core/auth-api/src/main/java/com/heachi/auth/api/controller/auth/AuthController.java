@@ -48,12 +48,7 @@ public class AuthController {
             @RequestParam("code") String code,
             @RequestParam("state") String state,
             HttpServletRequest request) {
-        String requestState = request.getSession().getId();
-
-        // state 값 유효성 검증
-        if (!state.equals(requestState)) {
-            throw new OAuthException(ExceptionMessage.OAUTH_INVALID_STATE);
-        }
+        // state 값 검증 (redis)
 
         AuthServiceLoginResponse loginResponse = authService.login(platformType, code, request.getSession().getId());
 
@@ -71,9 +66,6 @@ public class AuthController {
 
     @GetMapping("/info")
     public JsonResult<UserSimpleInfoResponse> userInfo(@AuthenticationPrincipal User user) {
-        if (user.getRole() == UNAUTH) {
-            throw new AuthException(ExceptionMessage.AUTH_UNAUTHORIZED);
-        }
 
         return JsonResult.successOf(UserSimpleInfoResponse.of(user));
     }
