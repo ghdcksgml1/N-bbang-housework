@@ -171,7 +171,7 @@ class AuthControllerTest extends TestConfig {
                 .build();
 
         mockMvc.perform(
-                        post("/auth/KAKAO/register")
+                        post("/auth/register")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(JsonMapper.builder().build().writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -185,18 +185,18 @@ class AuthControllerTest extends TestConfig {
         // given
         // 유효성 검사 실패하는 request
         AuthRegisterRequest request = AuthRegisterRequest.builder()
-                .role(null)
+                .role(UserRole.USER) // userRole null
                 .email("1-203-102-3") // 잘못된 형식의 email
                 .phoneNumber("01012341234")
                 .build();
 
         mockMvc.perform(
-                        post("/auth/KAKAO/register")
+                        post("/auth/register")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(JsonMapper.builder().build().writeValueAsString(request)))
                 // .andExpect(status().isBadRequest());
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(400))
-                .andExpect(jsonPath("$.resMsg").value("email: 이메일 형식을 맞춰야합니다"));
+                .andExpect(jsonPath("$.resMsg").value("email: must be a well-formed email address"));
     }
 }
