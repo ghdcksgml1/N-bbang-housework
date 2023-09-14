@@ -1,35 +1,22 @@
 package com.heachi.notify.api.service.notify;
 
-import com.heachi.admin.common.response.JsonResult;
 import com.heachi.mongo.define.notify.Notify;
 import com.heachi.mongo.define.notify.constant.NotifyType;
 import com.heachi.mongo.define.notify.repository.NotifyRepository;
 import com.heachi.notify.TestConfig;
-import com.heachi.notify.api.service.notify.NotifyService;
 import com.heachi.notify.api.service.notify.request.NotifyServiceRegistRequest;
-import com.heachi.notify.api.service.notify.response.NotifyServiceReceiverResponse;
 import org.junit.jupiter.api.*;
-import org.mockito.BDDMockito;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
-import reactor.test.scheduler.VirtualTimeScheduler;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 
 @SpringBootTest
 class NotifyServiceTest extends TestConfig {
@@ -125,7 +112,7 @@ class NotifyServiceTest extends TestConfig {
     void registNotify() {
         // given
         NotifyServiceRegistRequest notify = NotifyServiceRegistRequest.builder()
-                .sendUserId("ghdcksgml1")
+                .sendUserId("ghdcksgml")
                 .receiveUserIds(List.of("ghdcksgml1", "ghdcksgml2", "ghdcksgml3"))
                 .type(NotifyType.NOTE)
                 .build();
@@ -145,5 +132,50 @@ class NotifyServiceTest extends TestConfig {
                     return true;
                 })
                 .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("자신이 Receiver로 지정되어 있는 알림을 읽으면 Checked가 true가 된다.")
+    void notifyReadEvent() {
+        // given
+        Notify notify = Notify.builder()
+                .sendUserId("ghdcksgml")
+                .receiveUserIds(List.of("ghdcksgml1"))
+                .checked(new HashSet<>())
+                .checkedTime(new HashMap<>())
+                .createdTime(LocalDateTime.now())
+                .build();
+        Notify savedNotify = notifyRepository.save(notify).block();
+
+        Mono<Notify> mono = notifyService.readNotify("ghdcksgml1", savedNotify.getId());
+
+        // when
+        StepVerifier.create(mono)
+                // then
+                .expectSubscription()
+                .assertNext(notify1 -> assertThat(notify1.getChecked()).contains("ghdcksgml1"))
+                .verifyComplete();
+    }
+
+
+    @Test
+    @DisplayName("findNotifyByIdWhereReceiveUserIdsIn에서 찾은 값이 없다면, NOTIFY_NOT_FOUND 에러를 발생시킨다.")
+    void notifyReadEventFailWhenFindQueryResultIsNull() {
+        // given
+        Notify notify = Notify.builder()
+                .sendUserId("ghdcksgml")
+                .receiveUserIds(List.of("ghdcksgml1"))
+                .createdTime(LocalDateTime.now())
+                .build();
+        Notify savedNotify = notifyRepository.save(notify).block();
+
+        Mono<Notify> mono = notifyService.readNotify("UnKnownUser", savedNotify.getId());
+
+        // when
+        StepVerifier.create(mono)
+                // then
+                .expectSubscription()
+                .expectError()
+                .verify();
     }
 }

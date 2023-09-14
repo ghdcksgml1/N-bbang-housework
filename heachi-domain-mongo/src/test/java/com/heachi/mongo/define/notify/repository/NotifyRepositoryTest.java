@@ -77,4 +77,44 @@ class NotifyRepositoryTest extends TestConfig {
                 .expectNextCount(10)
                 .verifyComplete();
     }
+
+    @Test
+    @DisplayName("notifyId가 일치하고, receiverUserIds에 나의 요청하는 아이디가 있다면, Notify를 가져온다.")
+    void selectNotifyWhereNotifyIdAndReceiverUserIdsIn() {
+        // given
+        Notify notify = Notify.builder()
+                .sendUserId("ghdcksgml")
+                .receiveUserIds(List.of("ghdcksgml1"))
+                .createdTime(LocalDateTime.now())
+                .build();
+
+        Notify savedNotify = notifyRepository.save(notify).block();
+
+        // when
+        StepVerifier.create(notifyRepository.findNotifyByIdWhereReceiveUserIdsIn("ghdcksgml1", savedNotify.getId()))
+                // then
+                .expectSubscription()
+                .expectNextCount(1)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("notifyId가 일치하지만, receiverUserIds에 요청하는 아이디가 존재하지 않는다면, 권한이 없으므로 아무것도 리턴되지 않는다.")
+    void selectNotifyWhereNotifyIdAndReceiverUserIdsInNotMatching() {
+        // given
+        Notify notify = Notify.builder()
+                .sendUserId("ghdcksgml")
+                .receiveUserIds(List.of("ghdcksgml1"))
+                .createdTime(LocalDateTime.now())
+                .build();
+
+        Notify savedNotify = notifyRepository.save(notify).block();
+
+        // when
+        StepVerifier.create(notifyRepository.findNotifyByIdWhereReceiveUserIdsIn("ghdcksgml", savedNotify.getId()))
+                // then
+                .expectSubscription()
+                .expectNextCount(0)
+                .verifyComplete();
+    }
 }
