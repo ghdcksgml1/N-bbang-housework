@@ -126,7 +126,7 @@ class NotifyServiceTest extends TestConfig {
                 .expectSubscription()
                 .expectNextMatches(n -> {
                     assertThat(n.getId()).isNotNull();
-                    assertThat(n.getSendUserId()).isEqualTo("ghdcksgml1");
+                    assertThat(n.getSendUserId()).isEqualTo("ghdcksgml");
                     assertThat(n.getType()).isEqualTo(NotifyType.NOTE);
 
                     return true;
