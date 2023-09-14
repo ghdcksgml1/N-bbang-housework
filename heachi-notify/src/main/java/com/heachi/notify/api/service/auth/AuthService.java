@@ -3,16 +3,11 @@ package com.heachi.notify.api.service.auth;
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.auth.AuthException;
 import com.heachi.admin.common.exception.jwt.JwtException;
-import com.heachi.admin.common.response.JsonResult;
 import com.heachi.external.clients.auth.AuthClients;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
-import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
-
-import java.net.ConnectException;
 
 @Slf4j
 @Service

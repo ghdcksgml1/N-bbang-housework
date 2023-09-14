@@ -9,15 +9,8 @@ import com.heachi.notify.api.service.notify.request.NotifyServiceRegistRequest;
 import com.heachi.notify.api.service.notify.response.NotifyServiceReceiverResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-
-import java.time.Duration;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeoutException;
 
 @Service
 @RequiredArgsConstructor

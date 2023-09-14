@@ -2,9 +2,7 @@ package com.heachi.notify.api.controller;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.notify.NotifyException;
-import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.admin.common.response.JsonResult;
-import com.heachi.external.clients.auth.AuthClients;
 import com.heachi.notify.api.controller.request.NotifyRegistRequest;
 import com.heachi.notify.api.service.auth.AuthService;
 import com.heachi.notify.api.service.notify.request.NotifyServiceRegistRequest;
@@ -12,14 +10,9 @@ import com.heachi.notify.api.service.notify.NotifyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
-import java.net.ConnectException;
-import java.time.Duration;
-import java.util.List;
 
 @RestController
 @RequestMapping("/notify")
