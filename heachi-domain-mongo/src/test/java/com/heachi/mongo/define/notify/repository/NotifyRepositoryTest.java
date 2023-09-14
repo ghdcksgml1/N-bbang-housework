@@ -2,10 +2,7 @@ package com.heachi.mongo.define.notify.repository;
 
 import com.heachi.mongo.TestConfig;
 import com.heachi.mongo.define.notify.Notify;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import reactor.core.publisher.Flux;
@@ -13,6 +10,9 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,8 +26,9 @@ class NotifyRepositoryTest extends TestConfig {
 
     @AfterEach
     void tearDown() {
-        notifyRepository.deleteAll();
+        notifyRepository.deleteAll().subscribe();
     }
+
 
     @Test
     @DisplayName("Notify 객체를 만들어 저장할 수 있다.")
@@ -50,18 +51,30 @@ class NotifyRepositoryTest extends TestConfig {
     }
 
     @Test
-    @Disabled
-    @DisplayName("ReceiveUserIds 리스트에 ReceiveUserId가 존재하면 해당 Notify를 반환한다.")
-    void findByReceiveUserIds() {
+    @DisplayName("ReceiveUserId를 넣고, 페이지를 넣으면 해당 페이지의 Notify가 10개가 나온다.")
+    void selectNotifyWhereReceiveUserIdLimit10Pagination() {
         // given
-        Notify notify = Notify.builder()
-                .sendUserId("홍찬희")
-                .receiveUserIds(List.of("ghdcksgml1", "ghdcksgml2", "ghdcksgml3"))
-                .build();
+        List<Notify> list = new ArrayList<>();
+        for (int i=0; i<10; i++) {
+            Notify notify = Notify.builder()
+                    .sendUserId("ghdcksgml")
+                    .receiveUserIds(List.of("ghdcksgml1"))
+                    .createdTime(LocalDateTime.now())
+                    .build();
+            list.add(notify);
+        }
+
+
+        Flux<Notify> flux1 = notifyRepository.saveAll(list);
+        Flux<Notify> flux2 = notifyRepository.findNotifyByReceiveUserIdsPaging("ghdcksgml1", 0);
+
 
         // when
-        Mono<Notify> save = notifyRepository.save(notify);
-        Flux<Notify> ghdcksgml1 = notifyRepository.findByReceiveUserIds("ghdcksgml1");
-        assertThat(ghdcksgml1.collectList().block()).isEqualTo(notify.getSendUserId());
+        StepVerifier.create(Flux.concat(flux1, flux2).log())
+                // then
+                .expectSubscription()
+                .expectNextCount(10)
+                .expectNextCount(10)
+                .verifyComplete();
     }
 }
