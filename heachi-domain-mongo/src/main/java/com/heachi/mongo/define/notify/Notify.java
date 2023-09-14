@@ -4,6 +4,7 @@ import com.heachi.mongo.define.notify.constant.NotifyType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -13,6 +14,7 @@ import java.util.*;
 @Getter
 @ToString
 @Document(collection = "notify")
+@Slf4j
 public class Notify {
     @Id
     private String id;
@@ -42,6 +44,16 @@ public class Notify {
     }
 
     public void receiverUserCheckedNotify(String receiverUserId) {
+        // receiver에 해당 사용자가 있는지 확인한다.
+        this.receiveUserIds.stream()
+                .filter(id -> id.equals(receiverUserId))
+                .findFirst()
+                .orElseThrow(() -> {
+                    log.error(">>>> ReceiverIds에 해당 사용자가 존재하지 않습니다 : {}", receiverUserId);
+                    throw new IllegalArgumentException();
+                });
+
+        // 있다면, 체크표시
         checked.add(receiverUserId);
         checkedTime.put(receiverUserId, LocalDateTime.now());
     }
