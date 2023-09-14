@@ -15,6 +15,8 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 @Service
@@ -23,25 +25,27 @@ public class NotifyService {
 
     private final NotifyRepository notifyRepository;
 
-    public Flux<JsonResult> receive(String receiverId) {
-        return notifyRepository.findByReceiveUserIds(receiverId)
-                .doOnCancel(() -> System.out.println(">>>>>>>cancel!!!!!!!!!!"))
-                .flatMap(notify -> Flux.just(JsonResult.successOf(NotifyServiceReceiverResponse.of(notify, receiverId))))
-                .timeout(Duration.ofSeconds(30))
-                .onErrorReturn(TimeoutException.class, JsonResult.failOf("Timeout"));   // 30초가 지나면 타임아웃
+    public Flux<JsonResult> receive(String receiverId, int page) {
+        return notifyRepository.findNotifyByReceiveUserIdsPaging(receiverId, page)
+                .flatMap(notify -> Flux.just(JsonResult.successOf(NotifyServiceReceiverResponse.of(notify, receiverId))));
     }
 
     public Mono<Notify> registNotify(NotifyServiceRegistRequest request) {
         return notifyRepository.save(request.toEntity());
     }
 
-    public Mono<JsonResult> readNotify(String userId, String notifyId) {
+    public Mono<Notify> readNotify(String userId, String notifyId) {
         return notifyRepository.findById(notifyId)
                 .switchIfEmpty(Mono.error(new NotifyException(ExceptionMessage.NOTIFY_NOT_FOUND)))
                 .flatMap(notify -> {
-                    notify.receiverUserCheckedNotify(userId); // 알림 확인 체크
-                    return notifyRepository.save(notify);
-                })
-                .map(notify -> JsonResult.successOf(NotifyServiceReceiverResponse.of(notify, userId)));
+                    // 이미 알림 확인했는지 체크
+                    if (!notify.getChecked().contains(userId)) {
+                        notify.receiverUserCheckedNotify(userId); // 알림 확인 체크
+
+                        return notifyRepository.save(notify);
+                    } else {
+                        return Mono.just(notify);
+                    }
+                });
     }
 }

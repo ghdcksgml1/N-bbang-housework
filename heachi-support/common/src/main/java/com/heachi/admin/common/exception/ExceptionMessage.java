@@ -24,6 +24,7 @@ public enum ExceptionMessage {
 
     // NotifyException
     NOTIFY_NOT_FOUND("해당 아이디의 알림을 찾을 수 없습니다."),
+    NOTIFY_DUPLICATE_ID("SendUser와 ReceiveUser가 같습니다."),
     ;
 
     private final String text;

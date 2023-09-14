@@ -1,6 +1,7 @@
 package com.heachi.notify.api.controller;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.notify.NotifyException;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.external.clients.auth.AuthClients;
@@ -18,6 +19,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.net.ConnectException;
 import java.time.Duration;
+import java.util.List;
 
 @RestController
 @RequestMapping("/notify")
@@ -28,13 +30,15 @@ public class NotifyController {
     private final AuthService authService;
 
     /**
-     * 알림 구독하기 (Server Sent Event 방식)
+     * 알림 받기
      */
     @GetMapping(value = "/", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<JsonResult> receive(@RequestHeader(value = "Authorization", required = false, defaultValue = "token") String headers) {
+    public Flux<JsonResult> receive(
+            @RequestHeader(value = "Authorization", required = false, defaultValue = "token") String headers,
+            @RequestParam(name = "page", defaultValue = "0") int page) {
 
         return authService.getUserId(headers)
-                .flatMapMany(sendUserId -> notifyService.receive(sendUserId))
+                .flatMapMany(sendUserId -> notifyService.receive(sendUserId, page))
                 .subscribeOn(Schedulers.boundedElastic());  // publisher의 스케줄러를 boundedElastic으로 변경
     }
 
@@ -45,9 +49,16 @@ public class NotifyController {
     public Mono<JsonResult> registNotify(
             @RequestHeader(value = "Authorization", required = false, defaultValue = "token") String headers,
             @RequestBody NotifyRegistRequest request) {
+
         return authService.getUserId(headers)
+                .flatMap(sendUserId ->
+                    request.getReceiveUserIds().stream().filter(receiverId -> receiverId.equals(sendUserId))
+                            .findFirst()
+                            .map(id -> Mono.error(new NotifyException(ExceptionMessage.NOTIFY_DUPLICATE_ID)))
+                            .orElseGet(() -> Mono.just(sendUserId))
+                )
                 .flatMap(sendUserId -> notifyService
-                        .registNotify(NotifyServiceRegistRequest.of(request, sendUserId))
+                        .registNotify(NotifyServiceRegistRequest.of(request, sendUserId.toString()))
                         .thenReturn(JsonResult.successOf()))
                 .subscribeOn(Schedulers.boundedElastic());  // publisher의 스케줄러를 boundedElastic으로 변경
     }
@@ -59,8 +70,11 @@ public class NotifyController {
     public Mono<JsonResult> readNotify(
             @RequestHeader(value = "Authorization", required = false, defaultValue = "token") String headers,
             @PathVariable("notifyId") String notifyId) {
+
         return authService.getUserId(headers)
                 .flatMap(userId -> notifyService.readNotify(userId, notifyId))
+                .onErrorMap(throwable -> new NotifyException(ExceptionMessage.NOTIFY_NOT_FOUND))
+                .map(notify -> JsonResult.successOf())
                 .subscribeOn(Schedulers.boundedElastic());
     }
 }
