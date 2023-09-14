@@ -28,7 +28,7 @@ public class NotifyService {
     }
 
     public Mono<Notify> readNotify(String userId, String notifyId) {
-        return notifyRepository.findById(notifyId)
+        return notifyRepository.findNotifyByIdWhereReceiveUserIdsIn(userId, notifyId)
                 .switchIfEmpty(Mono.error(new NotifyException(ExceptionMessage.NOTIFY_NOT_FOUND)))
                 .flatMap(notify -> {
                     // 이미 알림 확인했는지 체크
