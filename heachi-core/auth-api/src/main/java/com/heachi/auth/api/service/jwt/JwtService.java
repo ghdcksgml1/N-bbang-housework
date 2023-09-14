@@ -1,5 +1,8 @@
 package com.heachi.auth.api.service.jwt;
 
+import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.jwt.JwtException;
+import com.heachi.mysql.define.user.constant.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -51,16 +54,23 @@ public class JwtService {
                 .compact();
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(String token, String username) {
         Claims claims = extractAllClaims(token);
 
-        if (!claims.containsKey("role")) return false;
-        if (!claims.containsKey("name")) return false;
-        if (!claims.containsKey("profileImageUrl")) return false;
+        try {
+            if (!claims.containsKey("role")) {
+                UserRole.valueOf(claims.get("role", String.class));
+                return false;
+            }
+            if (!claims.containsKey("name")) return false;
+            if (!claims.containsKey("profileImageUrl")) return false;
+        } catch (RuntimeException e) { // covered for NullPointException, IllegalArgumentException
+            throw new JwtException(ExceptionMessage.JWT_ILLEGAL_ARGUMENT);
+        }
 
-        String username = claims.getSubject();
+        String claimsSubject = claims.getSubject();
 
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return (claimsSubject.equals(username)) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
