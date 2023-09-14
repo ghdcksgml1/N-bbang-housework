@@ -5,6 +5,9 @@ import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.jwt.JwtException;
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.auth.api.service.jwt.JwtService;
+import com.heachi.mysql.define.user.User;
+import com.heachi.mysql.define.user.constant.UserRole;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -53,22 +56,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             token = authHeader.substring(7);
             userEmail = jwtService.extractUsername(token);
 
-            // token의 claims에 userEmail이 있는데, 인증정보가 없는 경우 -> 토큰 생성해주기
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail); // 유저 이메일 있는지 확인
+            // token의 claims에 userEmail이 있는지 체크, 토큰이 유효한지 체크
+            if (userEmail != null && jwtService.isTokenValid(token, userEmail)) {
+                Claims claims = jwtService.extractAllClaims(token);
+                UserDetails userDetails = User.builder()
+                        .email(userEmail)
+                        .role(UserRole.valueOf(claims.get("role", String.class)))
+                        .name(claims.get("name", String.class))
+                        .profileImageUrl(claims.get("profileImageUrl", String.class))
+                        .build();
 
-                if (jwtService.isTokenValid(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
 
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    // SecurityContext에 Authenticaiton 등록
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
+                // SecurityContext에 Authenticaiton 등록
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
             filterChain.doFilter(request, response);
         } catch (ExpiredJwtException e){
@@ -92,7 +99,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private void jwtExceptionHandler(HttpServletResponse response, ExceptionMessage message) throws IOException {
         response.setStatus(HttpStatus.OK.value());
         response.setCharacterEncoding("utf-8");
-        response.setCharacterEncoding(MediaType.APPLICATION_JSON_VALUE);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write(objectMapper.writeValueAsString(JsonResult.failOf(message.getText())));
     }
 }

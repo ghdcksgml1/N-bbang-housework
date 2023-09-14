@@ -29,6 +29,8 @@ public class SecurityConfig {
                                 .requestMatchers("/auth/**").permitAll()
                                 // Swagger 3.0
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                                // register
+                                .requestMatchers("/auth/register").hasAnyAuthority("UNAUTH")
                                 // Others
                                 .anyRequest().hasAnyAuthority("USER", "CHEMIST", "CENTER")
                 )
