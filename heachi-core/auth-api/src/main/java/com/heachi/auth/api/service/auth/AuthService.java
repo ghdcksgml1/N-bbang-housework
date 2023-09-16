@@ -2,7 +2,6 @@ package com.heachi.auth.api.service.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.auth.AuthException;
-import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.jwt.JwtService;
@@ -12,9 +11,9 @@ import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
 import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
+import com.heachi.redis.config.RedisConfig;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,9 +32,9 @@ public class AuthService {
     private final UserRepository userRepository;
     private final OAuthService oAuthService;
     private final JwtService jwtService;
-    private final BCryptPasswordEncoder passwordEncoder;
-    @PersistenceContext
-    private EntityManager entityManager;
+
+    // 빈 주입이 안됨 ㅠ
+    // private final RedisTemplacte redisTemplacte;
 
     private static final String ROLE_CLAIM = "role";
     private static final String NAME_CLAIM = "name";
@@ -104,10 +103,16 @@ public class AuthService {
         claims.put(NAME_CLAIM, user.getName());
         claims.put(PROFILE_IMAGE_CLAIM, user.getProfileImageUrl());
 
-        // JWT 토큰 생성 (claims, UserDetails)
-        final String token = jwtService.generateToken(claims, user);
+        // Access Token 생성
+        final String accessToken = jwtService.generateAccessToken(claims, user);
+
+        // Refresh Token 생성
+        final String refreshToken = jwtService.generateRefreshToken(claims, user);
+
+        // Refresh Token 저장
+
 
         // 로그인 반환 객체 생성
-        return token;
+        return accessToken;
     }
 }

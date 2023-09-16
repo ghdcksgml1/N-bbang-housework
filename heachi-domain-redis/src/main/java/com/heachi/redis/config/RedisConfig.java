@@ -10,27 +10,26 @@ import org.springframework.data.redis.core.RedisTemplate;
 @Configuration
 public class RedisConfig {
 
-    private final String redisHost;
-    private final int redisPort;
+    @Value("${spring.redis.host}")
+    private String host;
 
-    public RedisConfig(@Value("${spring.redis.host}") final String redisHost,
-                       @Value("${spring.redis.port}") final int redisPort){
-        this.redisHost = redisHost;
-        this.redisPort = redisPort;
-    }
+    @Value("${spring.redis.port}")
+    private int port;
 
     // Bean으로 등록해 Redis 연결 - Lettuce 사용
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory(redisHost, redisPort);
+        return new LettuceConnectionFactory(host, port);
     }
 
     // RedisTemplate를 사용해 데이터 저장, 검색 ...
     @Bean
     public RedisTemplate<?, ?> redisTemplate() {
+        // 나중에 필요한 자료구조로 Serialize 해서 사용할 예정
         RedisTemplate<byte[], byte[]> redisTemplate = new RedisTemplate<>();
+        // 커넥션 등록
         redisTemplate.setConnectionFactory(redisConnectionFactory());
+
         return redisTemplate;
     }
-
 }
