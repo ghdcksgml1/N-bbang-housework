@@ -16,6 +16,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,7 @@ public class AuthService {
     private final JwtService jwtService;
 
     // 빈 주입이 안됨 ㅠ
-    // private final RedisTemplacte redisTemplacte;
+     private final RedisTemplate redisTemplacte;
 
     private static final String ROLE_CLAIM = "role";
     private static final String NAME_CLAIM = "name";

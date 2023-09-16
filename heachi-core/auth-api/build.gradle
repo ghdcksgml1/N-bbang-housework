@@ -13,7 +13,7 @@ dependencies {
     implementation project(':heachi-support:logging')
     implementation project(':heachi-support:external-clients')
     implementation project(':heachi-domain-mysql')
-    api project(':heachi-domain-redis')
+    implementation project(':heachi-domain-redis')
 
     implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web
     implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation
