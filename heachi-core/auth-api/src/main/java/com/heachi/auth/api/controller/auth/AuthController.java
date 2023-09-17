@@ -68,9 +68,6 @@ public class AuthController {
 
     @GetMapping("/info")
     public JsonResult<UserSimpleInfoResponse> userInfo(@AuthenticationPrincipal User user) {
-        if (user.getRole() == UNAUTH) {
-            throw new AuthException(ExceptionMessage.AUTH_UNAUTHORIZED);
-        }
 
         return JsonResult.successOf(UserSimpleInfoResponse.of(user));
     }

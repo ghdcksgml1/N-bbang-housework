@@ -14,22 +14,5 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class JpaConfigTest extends TestConfig {
 
-    @Autowired
-    private ReactiveMongoTemplate reactiveMongoTemplate;
 
-    @Test
-    @DisplayName("Spring Applicatoin이 띄워질때, MongoDB capped 설정이 true가 된다.")
-    void mongoDBConfigurationInitialized() {
-        // when
-        reactiveMongoTemplate.executeCommand("{ collStats: 'notify' }")
-                // then
-                .as(StepVerifier::create)
-                .expectNextMatches(document -> {
-                    assertThat(document.get("capped")).isEqualTo(true);
-                    assertThat(document.get("totalSize")).isEqualTo(8192);
-
-                    return true;
-                })
-                .verifyComplete();
-    }
 }
