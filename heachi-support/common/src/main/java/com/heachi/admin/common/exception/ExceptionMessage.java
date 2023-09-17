@@ -19,6 +19,11 @@ public enum ExceptionMessage {
     OAUTH_INVALID_TOKEN_URL("tokenURL이 정확하지 않습니다."),
     OAUTH_INVALID_ACCESS_TOKEN("잘못된 access_token 입니다."),
 
+    // LoginState
+    LOGINSTATE_IS_NOT_USE("해당 LoginState를 사용할 수 없습니다."),
+    LOGINSTATE_INVALID_VALUE("LoginState 정보가 잘못되었습니다."),
+    LOGINSTATE_NOT_FOUND("LoginState를 찾을 수 없습니다."),
+
     // AuthException
     AUTH_INVALID_REGISTER("잘못된 회원가입 요청입니다."),
     AUTH_DUPLICATE_UNAUTH_REGISTER("중복된 회원가입 요청입니다."),
