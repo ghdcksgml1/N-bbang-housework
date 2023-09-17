@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
@@ -34,12 +36,14 @@ public class AuthService {
     private final OAuthService oAuthService;
     private final JwtService jwtService;
 
-    // 빈 주입이 안됨 ㅠ
-     private final RedisTemplate redisTemplacte;
+    // 빈 주입이 안됨
+    private final RedisTemplate<String, String> redisTemplacte;
 
     private static final String ROLE_CLAIM = "role";
     private static final String NAME_CLAIM = "name";
     private static final String PROFILE_IMAGE_CLAIM = "profileImageUrl";
+    private static final String ACCESS_TOKEN = "accessToken";
+    private static final String REFRESH_TOKEN = "refreshToken";
 
     @Transactional
     public AuthServiceLoginResponse login(UserPlatformType platformType, String code, String state) {
@@ -64,11 +68,15 @@ public class AuthService {
         // 기존 회원의 경우 name, profileImageUrl 변하면 update
         findUser.updateProfile(loginResponse.getName(), loginResponse.getProfileImageUrl());
 
-        // JWT 토큰 발급
-        final String token = createJwtToken(findUser);
+        // JWT Access Token 발급
+        final String accessToken = createJwtToken(findUser).get(ACCESS_TOKEN);
+
+        // JWT Refresh Token 발급
+        final String refreshToken = createJwtToken(findUser).get(REFRESH_TOKEN);
 
         return AuthServiceLoginResponse.builder()
-                .token(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .role(findUser.getRole())
                 .build();
     }
@@ -88,16 +96,20 @@ public class AuthService {
         // 회원가입 정보 DB 반영
         findUser.updateRegister(request.getRole(), request.getPhoneNumber());
 
-        // JWT 토큰 재발급
-        final String token = createJwtToken(findUser);
+        // JWT Access Token 재발급
+        final String accessToken = createJwtToken(findUser).get(ACCESS_TOKEN);
+
+        // JWT Refresh Token 재발급
+        final String refreshToken = createJwtToken(findUser).get(REFRESH_TOKEN);
 
         return AuthServiceLoginResponse.builder()
-                .token(token)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .role(findUser.getRole())
                 .build();
     }
 
-    private String createJwtToken(User user) {
+    private Map<String, String> createJwtToken(User user) {
         // JWT 토큰 생성을 위한 claims 생성
         HashMap<String, String> claims = new HashMap<>();
         claims.put(ROLE_CLAIM, user.getRole().name());
@@ -110,10 +122,21 @@ public class AuthService {
         // Refresh Token 생성
         final String refreshToken = jwtService.generateRefreshToken(claims, user);
 
-        // Refresh Token 저장
+        // Refresh Token 저장 - REDIS
+        redisTemplacte.opsForValue().set(
+                user.getEmail(),
+                refreshToken,
+                jwtService.extractExpiration(refreshToken).getTime(),
+                TimeUnit.MICROSECONDS
+        );
 
+        final Map<String, String> tokens = new HashMap<String, String>();
+
+        // Refresh Token 저장
+        tokens.put(ACCESS_TOKEN, accessToken);
+        tokens.put(REFRESH_TOKEN, refreshToken);
 
         // 로그인 반환 객체 생성
-        return accessToken;
+        return tokens;
     }
 }
