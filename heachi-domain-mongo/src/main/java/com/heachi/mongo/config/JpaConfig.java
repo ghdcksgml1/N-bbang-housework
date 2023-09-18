@@ -19,18 +19,4 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class JpaConfig {
 
-    private final ReactiveMongoTemplate reactiveMongoTemplate;
-
-    // notify Collection Setting
-    @Bean
-    public void mongoDBinit() {
-        // Collection 초기 세팅을 위해 Notify 객체를 생성했다가 지움
-        reactiveMongoTemplate.insert(Notify.builder().build())
-                .flatMap(notify -> reactiveMongoTemplate.remove(notify)
-                        .then(reactiveMongoTemplate.executeCommand("{ convertToCapped: 'notify', size: 8192 }"))
-                        .then(reactiveMongoTemplate.executeCommand("{ collStats: 'notify' }"))
-                        .doOnNext(stats -> System.out.println("stats = " + stats))
-                )
-                .subscribe();
-    }
 }
