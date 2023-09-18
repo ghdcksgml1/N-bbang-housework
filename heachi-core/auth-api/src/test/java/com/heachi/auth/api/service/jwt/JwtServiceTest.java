@@ -61,7 +61,7 @@ class JwtServiceTest extends TestConfig {
         User savedUser = userRepository.save(user);
 
         // when
-        String expiredToken = jwtService.generateToken(new HashMap<>(), user, new Date());
+        String expiredToken = jwtService.generateAccessToken(new HashMap<>(), user, new Date());
 
         // then
         assertThatThrownBy(() -> jwtService.isTokenValid(expiredToken, savedUser))
@@ -87,7 +87,7 @@ class JwtServiceTest extends TestConfig {
         map.put("profileImageUrl", savedUser.getProfileImageUrl());
 
         // when
-        String token = jwtService.generateToken(map, savedUser);
+        String token = jwtService.generateAccessToken(map, savedUser);
 
         // then
         System.out.println("token = " + token);
@@ -113,7 +113,7 @@ class JwtServiceTest extends TestConfig {
         map.put("profileImageUrl", savedUser.getProfileImageUrl());
 
         // when
-        String token = jwtService.generateToken(map, savedUser);
+        String token = jwtService.generateAccessToken(map, savedUser);
         Claims claims = jwtService.extractAllClaims(token);
 
 
@@ -146,7 +146,7 @@ class JwtServiceTest extends TestConfig {
         map.put("profileImageUrl", savedUser.getProfileImageUrl());
 
         // when
-        String token = jwtService.generateToken(map, savedUser);
+        String token = jwtService.generateAccessToken(map, savedUser);
 
 
         // then
