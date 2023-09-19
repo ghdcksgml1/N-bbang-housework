@@ -80,7 +80,7 @@ class SecurityConfigTest extends TestConfig {
         map.put("profileImageUrl", savedUser.getProfileImageUrl());
 
         // when
-        String token = jwtService.generateToken(map, savedUser);
+        String token = jwtService.generateAccessToken(map, savedUser);
         mockMvc.perform(
                         get(uri)
                                 .header("Authorization", "Bearer " + token)

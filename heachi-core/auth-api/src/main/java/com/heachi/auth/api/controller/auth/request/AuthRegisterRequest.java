@@ -3,6 +3,7 @@ package com.heachi.auth.api.controller.auth.request;
 import com.heachi.mysql.define.user.constant.UserRole;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -17,9 +18,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AuthRegisterRequest {
     @NotEmpty
+    @Email
     private String email;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private UserRole role;
 
     // 숫자 값이므로 null이 아니어야 하니까 @NotEmpty 대신 @NotNull 사용 -> 빈 문자열("") 허용
