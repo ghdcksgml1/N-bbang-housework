@@ -255,4 +255,50 @@ class AuthControllerTest extends TestConfig {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(400));
     }
+
+    @Test
+    @DisplayName("로그아웃 실패 테스트 - 잘못된 토큰으로 요청시 예외 발생")
+    void logoutTestWhenInvalidToken() throws Exception {
+        String accessToken = "strangeToken";
+        String refreshToken = "strangeToken";
+
+        // when
+        mockMvc.perform(
+                        get("/auth/logout")
+                                .header("Authorization", "Bearer " + accessToken + " " + refreshToken))
+
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(400));
+    }
+
+    @Test
+    @DisplayName("로그아웃 성공 테스트")
+    void logoutSuccessTest() throws Exception {
+        // given
+        User user = User.builder()
+                .name("김민수")
+                .role(UserRole.USER)
+                .email("kimminsu@dankook.ac.kr")
+                .profileImageUrl("https://google.com")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        HashMap<String, String> map = new HashMap<>();
+        map.put("role", savedUser.getRole().name());
+        map.put("name", savedUser.getName());
+        map.put("profileImageUrl", savedUser.getProfileImageUrl());
+        String accessToken = jwtService.generateAccessToken(map, savedUser);
+        String refreshToken = jwtService.generateRefreshToken(map, savedUser);
+
+
+        // when
+        mockMvc.perform(get("/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken + " " + refreshToken))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(200))
+                .andExpect(jsonPath("$.resObj").value("Logout successfully."));
+    }
 }
