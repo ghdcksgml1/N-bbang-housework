@@ -2,28 +2,28 @@ package com.heachi.auth.api.service.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.auth.AuthException;
+import com.heachi.admin.common.exception.refreshToken.RefreshTokenException;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.jwt.JwtService;
+import com.heachi.auth.api.service.jwt.JwtTokenDTO;
 import com.heachi.auth.api.service.oauth.OAuthService;
 import com.heachi.auth.api.service.oauth.response.OAuthResponse;
+import com.heachi.auth.api.service.token.RefreshTokenService;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
 import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
-import com.heachi.redis.config.RedisConfig;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import com.heachi.redis.define.refreshToken.RefreshToken;
+import com.heachi.redis.define.refreshToken.repository.RefreshTokenRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
@@ -35,15 +35,11 @@ public class AuthService {
     private final UserRepository userRepository;
     private final OAuthService oAuthService;
     private final JwtService jwtService;
-
-    // 빈 주입이 안됨
-    private final RedisTemplate<String, String> redisTemplacte;
+    private final RefreshTokenService refreshTokenService;
 
     private static final String ROLE_CLAIM = "role";
     private static final String NAME_CLAIM = "name";
     private static final String PROFILE_IMAGE_CLAIM = "profileImageUrl";
-    private static final String ACCESS_TOKEN = "accessToken";
-    private static final String REFRESH_TOKEN = "refreshToken";
 
     @Transactional
     public AuthServiceLoginResponse login(UserPlatformType platformType, String code, String state) {
@@ -68,17 +64,19 @@ public class AuthService {
         // 기존 회원의 경우 name, profileImageUrl 변하면 update
         findUser.updateProfile(loginResponse.getName(), loginResponse.getProfileImageUrl());
 
-        // JWT Access Token 발급
-        final String accessToken = createJwtToken(findUser).get(ACCESS_TOKEN);
+        // JWT Access Token, Refresh Token 발급
 
-        // JWT Refresh Token 발급
-        final String refreshToken = createJwtToken(findUser).get(REFRESH_TOKEN);
+        JwtTokenDTO tokens = createJwtToken(findUser);
 
         return AuthServiceLoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .accessToken(tokens.getAccessToken())
+                .refreshToken(tokens.getRefreshToken())
                 .role(findUser.getRole())
                 .build();
+    }
+    @Transactional
+    public void logout(String refreshToken) {
+        refreshTokenService.logout(refreshToken);
     }
 
     @Transactional
@@ -96,20 +94,17 @@ public class AuthService {
         // 회원가입 정보 DB 반영
         findUser.updateRegister(request.getRole(), request.getPhoneNumber());
 
-        // JWT Access Token 재발급
-        final String accessToken = createJwtToken(findUser).get(ACCESS_TOKEN);
-
-        // JWT Refresh Token 재발급
-        final String refreshToken = createJwtToken(findUser).get(REFRESH_TOKEN);
+        // JWT Access Token, Refresh Token 재발급
+        JwtTokenDTO tokens = createJwtToken(findUser);
 
         return AuthServiceLoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .accessToken(tokens.getAccessToken())
+                .refreshToken(tokens.getRefreshToken())
                 .role(findUser.getRole())
                 .build();
     }
 
-    private Map<String, String> createJwtToken(User user) {
+    private JwtTokenDTO createJwtToken(User user) {
         // JWT 토큰 생성을 위한 claims 생성
         HashMap<String, String> claims = new HashMap<>();
         claims.put(ROLE_CLAIM, user.getRole().name());
@@ -121,22 +116,18 @@ public class AuthService {
 
         // Refresh Token 생성
         final String refreshToken = jwtService.generateRefreshToken(claims, user);
+        long rtExpiration = jwtService.extractExpiration(refreshToken).getTime();
 
         // Refresh Token 저장 - REDIS
-        redisTemplacte.opsForValue().set(
-                user.getEmail(),
-                refreshToken,
-                jwtService.extractExpiration(refreshToken).getTime(),
-                TimeUnit.MICROSECONDS
-        );
+        RefreshToken rt = RefreshToken.builder()
+                .refreshToken(refreshToken)
+                .email(user.getEmail())
+                .build();
+        refreshTokenService.saveRefreshToken(rt);
 
-        final Map<String, String> tokens = new HashMap<String, String>();
-
-        // Refresh Token 저장
-        tokens.put(ACCESS_TOKEN, accessToken);
-        tokens.put(REFRESH_TOKEN, refreshToken);
-
-        // 로그인 반환 객체 생성
-        return tokens;
+        return JwtTokenDTO.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 }
