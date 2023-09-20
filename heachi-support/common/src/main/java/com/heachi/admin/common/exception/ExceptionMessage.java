@@ -24,6 +24,8 @@ public enum ExceptionMessage {
     AUTH_DUPLICATE_UNAUTH_REGISTER("중복된 회원가입 요청입니다."),
     AUTH_SERVER_NOT_RESPOND("인증 서버가 응답하지 않습니다."),
     AUTH_UNAUTHORIZED("현재 권한으로 실행할 수 없는 요청입니다."),
+    AUTH_NOT_FOUND("계정 정보를 찾을 수 없습니다."),
+    AUTH_DELETE_FAIL("계정 삭제에 실패했습니다."),
 
     // NotifyException
     NOTIFY_NOT_FOUND("해당 아이디의 알림을 찾을 수 없습니다."),
