@@ -252,4 +252,34 @@ class AuthControllerTest extends TestConfig {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(400));
     }
+
+    @Test
+    @DisplayName("올바른 사용자의 토큰으로 사용자 계정 탈퇴 요청을 하면, 계정이 삭제된다.")
+    void validUserTokenRequestWithDrawThenUserDelete() throws Exception {
+        // given
+        User user = User.builder()
+                .platformId("12345")
+                .platformType(KAKAO)
+                .email("kms@kakao.com")
+                .name("김민수")
+                .profileImageUrl("google.co.kr")
+                .role(UserRole.USER)
+                .build();
+        userRepository.saveAndFlush(user);
+
+        AuthServiceRegisterRequest request = AuthServiceRegisterRequest.builder()
+                .role(UserRole.USER)
+                .phoneNumber("010-0000-0000")
+                .email(user.getEmail())
+                .build();
+        String token = authService.register(request).getToken();
+
+        // when
+        mockMvc.perform(get("/auth/delete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + token))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(200));
+    }
 }
