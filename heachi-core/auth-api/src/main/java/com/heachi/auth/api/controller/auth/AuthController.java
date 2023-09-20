@@ -69,4 +69,11 @@ public class AuthController {
 
         return JsonResult.successOf(UserSimpleInfoResponse.of(user));
     }
+
+    @PostMapping("/delete")
+    public JsonResult<?> userDelete(@AuthenticationPrincipal User user) {
+        authService.userDelete(user.getEmail());
+
+        return JsonResult.successOf();
+    }
 }
