@@ -36,8 +36,8 @@ public class RefreshTokenService {
     }
 
     public void saveRefreshToken(RefreshToken refreshToken) {
-        refreshTokenRepository.save(refreshToken);
-        log.info(">>>> Refresh Token register : {}", refreshToken);
+        RefreshToken savedToken = refreshTokenRepository.save(refreshToken);
+        log.info(">>>> Refresh Token register : {}", savedToken);
     }
 
 //    public String findByKey(String key) {

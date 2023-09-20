@@ -9,11 +9,12 @@ import com.heachi.auth.api.controller.auth.response.UserSimpleInfoResponse;
 import com.heachi.auth.api.service.auth.AuthService;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
+import com.heachi.auth.api.service.jwt.JwtTokenDTO;
 import com.heachi.auth.api.service.oauth.OAuthService;
 import com.heachi.auth.api.service.state.LoginStateService;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
-import com.heachi.mysql.define.user.constant.UserRole;
+import io.swagger.v3.oas.annotations.headers.Header;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -70,5 +71,13 @@ public class AuthController {
     public JsonResult<UserSimpleInfoResponse> userInfo(@AuthenticationPrincipal User user) {
 
         return JsonResult.successOf(UserSimpleInfoResponse.of(user));
+    }
+
+    @GetMapping("/logout")
+    public JsonResult<String> logout(@RequestHeader(name = "Authorization") String token) {
+        String[] tokens = token.split(" ");
+        authService.logout(tokens[2]);
+
+        return JsonResult.successOf("Logout successfully.");
     }
 }

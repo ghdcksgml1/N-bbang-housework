@@ -14,6 +14,10 @@ public enum ExceptionMessage {
     JWT_ILLEGAL_ARGUMENT("잘못된 정보를 넣었습니다."),
     JWT_USER_NOT_FOUND("사용자를 찾을 수 없습니다."),
 
+    // RefreshTokenException
+    JWT_NOT_EXIST_RTK("해당 Refresh Token이 존재하지 않습니다."),
+    JWT_INVALID_RTK("유효하지 않은 Refresh Token입니다."),
+
     // OAuthException
     OAUTH_INVALID_STATE("STATE 검증에 실패하였습니다."),
     OAUTH_INVALID_TOKEN_URL("tokenURL이 정확하지 않습니다."),
