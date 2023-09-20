@@ -223,12 +223,14 @@ class AuthControllerTest extends TestConfig {
         map.put("role", savedUser.getRole().name());
         map.put("name", savedUser.getName());
         map.put("profileImageUrl", savedUser.getProfileImageUrl());
-        String token = jwtService.generateToken(map, savedUser);
+        String accessToken = jwtService.generateAccessToken(map, savedUser);
+        String refreshToken = jwtService.generateRefreshToken(map, savedUser);
+
 
         // when
         mockMvc.perform(get("/auth/info")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + accessToken + " " + refreshToken))
                 // then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(200))
@@ -242,12 +244,13 @@ class AuthControllerTest extends TestConfig {
     @DisplayName("userSimpleInfo 실패 테스트, 잘못된 Token을 넣으면 오류를 뱉는다.")
     void userSimpleInfoTestWhenInvalidToken() throws Exception {
         // given
-        String token = "strangeToken";
+        String accessToken = "strangeToken";
+        String refreshToken = "strangeToken";
 
         // when
         mockMvc.perform(get("/auth/info")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + accessToken + " " + refreshToken))
                 // then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(400));
