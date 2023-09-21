@@ -1,5 +1,6 @@
 package com.heachi.auth.api.service.auth;
 
+import com.heachi.admin.common.exception.auth.AuthException;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.auth.TestConfig;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
@@ -269,5 +270,38 @@ class AuthServiceTest extends TestConfig {
         assertThrows(RuntimeException.class, () -> {
             authService.register(request);
         });
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 Email로 계정삭제를 진행할 수 없다.")
+    void isNotProcessingWhenEmailIsNotExist() {
+        // given
+        String invalidEmail = "abcdd@abc.com";
+
+        // when
+        assertThrows(AuthException.class,
+                () -> authService.userDelete(invalidEmail));
+    }
+
+    @Test
+    @DisplayName("존재하는 계정의 Email로 계정삭제를 진행할 수 있다.")
+    void successProcessingWhenEmailIsExistInDB() {
+        // given
+        User user = User.builder()
+                .platformId("12345")
+                .platformType(KAKAO)
+                .email("kms@kakao.com")
+                .name("김민수")
+                .profileImageUrl("google.co.kr")
+                .role(UserRole.USER)
+                .build();
+        userRepository.save(user);
+
+        // when
+        authService.userDelete("kms@kakao.com");
+        Optional<User> byEmail = userRepository.findByEmail("kms@kakao.com");
+
+        // then
+        assertThat(byEmail.isEmpty()).isTrue();
     }
 }

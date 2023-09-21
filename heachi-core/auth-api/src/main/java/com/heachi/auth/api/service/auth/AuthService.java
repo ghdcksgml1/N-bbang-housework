@@ -130,4 +130,20 @@ public class AuthService {
                 .refreshToken(refreshToken)
                 .build();
     }
+
+    @Transactional
+    public void userDelete(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> {
+            log.warn(">>>> User Delete Fail : {}", ExceptionMessage.AUTH_NOT_FOUND.getText());
+            throw new AuthException(ExceptionMessage.AUTH_NOT_FOUND);
+        });
+
+        try {
+            userRepository.deleteById(user.getId());
+            log.info(">>>> {} Info is Deleted.", user.getName());
+        } catch (IllegalArgumentException e) {
+            log.error(">>>> ID = {} : 계정 삭제에 실패했습니다.", user.getId());
+            throw new AuthException(ExceptionMessage.AUTH_DELETE_FAIL);
+        }
+    }
 }
