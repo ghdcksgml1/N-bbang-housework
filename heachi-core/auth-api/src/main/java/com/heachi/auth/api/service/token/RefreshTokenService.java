@@ -1,7 +1,7 @@
 package com.heachi.auth.api.service.token;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
-import com.heachi.admin.common.exception.refreshToken.RefreshTokenException;
+import com.heachi.admin.common.exception.jwt.JwtException;
 import com.heachi.auth.api.service.jwt.JwtService;
 import com.heachi.auth.api.service.jwt.JwtTokenDTO;
 import com.heachi.redis.define.refreshToken.RefreshToken;
@@ -25,12 +25,12 @@ public class RefreshTokenService {
 
         // refreshToken 유효성 검사
         if (!jwtService.isTokenValid(refreshToken, email)) {
-            throw new RefreshTokenException(ExceptionMessage.JWT_INVALID_RTK);
+            throw new JwtException(ExceptionMessage.JWT_INVALID_RTK);
         }
 
         // redis에서 rtk 삭제
         RefreshToken rtk = refreshTokenRepository.findById(refreshToken).orElseThrow(() -> {
-            throw new RefreshTokenException(ExceptionMessage.JWT_NOT_EXIST_RTK);
+            throw new JwtException(ExceptionMessage.JWT_NOT_EXIST_RTK);
         });
         refreshTokenRepository.delete(rtk);
     }
