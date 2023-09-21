@@ -2,7 +2,6 @@ package com.heachi.auth.api.service.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.auth.AuthException;
-import com.heachi.admin.common.exception.refreshToken.RefreshTokenException;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.jwt.JwtService;

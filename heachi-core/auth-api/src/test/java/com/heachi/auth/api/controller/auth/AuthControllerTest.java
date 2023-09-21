@@ -301,6 +301,7 @@ class AuthControllerTest extends TestConfig {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(200))
                 .andExpect(jsonPath("$.resObj").value("Logout successfully."));
+    }
 
     @DisplayName("올바른 사용자의 토큰으로 사용자 계정 탈퇴 요청을 하면, 계정이 삭제된다.")
     void validUserTokenRequestWithDrawThenUserDelete() throws Exception {
@@ -320,7 +321,7 @@ class AuthControllerTest extends TestConfig {
                 .phoneNumber("010-0000-0000")
                 .email(user.getEmail())
                 .build();
-        String token = authService.register(request).getToken();
+        String token = authService.register(request).getAccessToken();
 
         // when
         mockMvc.perform(get("/auth/delete")

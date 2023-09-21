@@ -1,7 +1,7 @@
 package com.heachi.auth.api.service.token;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
-import com.heachi.admin.common.exception.refreshToken.RefreshTokenException;
+import com.heachi.admin.common.exception.jwt.JwtException;
 import com.heachi.auth.api.service.jwt.JwtService;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserRole;
@@ -122,7 +122,7 @@ class RefreshTokenServiceTest {
         refreshTokenRepository.deleteById(refreshToken);
 
         // when
-        RefreshTokenException exception = assertThrows(RefreshTokenException.class,
+        JwtException exception = assertThrows(JwtException.class,
                 () -> refreshTokenService.logout(refreshToken));
 
         assertThat(exception.getMessage()).isEqualTo(ExceptionMessage.JWT_NOT_EXIST_RTK.getText());
@@ -155,7 +155,7 @@ class RefreshTokenServiceTest {
 
 
         // when
-        RefreshTokenException exception = assertThrows(RefreshTokenException.class,
+        JwtException exception = assertThrows(JwtException.class,
                 () -> refreshTokenService.logout(refreshToken));
 
         assertThat(exception.getMessage()).isEqualTo(ExceptionMessage.JWT_NOT_EXIST_RTK.getText());
