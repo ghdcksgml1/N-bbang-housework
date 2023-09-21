@@ -79,5 +79,11 @@ public class AuthController {
         authService.logout(tokens[2]);
 
         return JsonResult.successOf("Logout successfully.");
+
+    @PostMapping("/delete")
+    public JsonResult<?> userDelete(@AuthenticationPrincipal User user) {
+        authService.userDelete(user.getEmail());
+
+        return JsonResult.successOf();
     }
 }
