@@ -24,8 +24,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
 import java.util.HashMap;
-
 import static com.heachi.mysql.define.user.constant.UserPlatformType.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -101,10 +101,10 @@ class AuthControllerTest extends TestConfig {
     }
 
     @Test
-    @DisplayName("카카오 로그인시 State 값이 현재 session Id와 일치하지 않으면, OAuthException 예외가 발생한다.")
+    @DisplayName("카카오 로그인시 State 값이 redis의 키로 존재하지 않으면, LoginStateException 예외가 발생한다.")
     void kakaoLoginFailWhenInvalidState() throws Exception {
         String code = "code";
-        String state = "invalidState";
+        String state = UUID.randomUUID().toString();
 
         // invalidState 값을 사용해 login을 시도하면 Exception 발생함
         given(oAuthService.login(KAKAO, code, state))
@@ -120,7 +120,7 @@ class AuthControllerTest extends TestConfig {
                 // then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(400))
-                .andExpect(jsonPath("$.resMsg").value(ExceptionMessage.OAUTH_INVALID_STATE.getText()))
+                .andExpect(jsonPath("$.resMsg").value(ExceptionMessage.LOGINSTATE_NOT_FOUND.getText()))
                 .andDo(print());
     }
 
