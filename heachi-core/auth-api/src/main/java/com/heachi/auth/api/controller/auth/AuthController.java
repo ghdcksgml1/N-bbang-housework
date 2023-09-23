@@ -87,12 +87,12 @@ public class AuthController {
         return JsonResult.successOf();
     }
 
-    @PostMapping("/reissue")
-    public JsonResult<?> reissueAccessToken(
-            @RequestParam("refreshToken") String refreshToken) {
-
-        AuthServiceLoginResponse reissueResponse = authService.reissueAccessToken(refreshToken);
-
-        return JsonResult.successOf(reissueResponse);
-    }
+//    @PostMapping("/reissue")
+//    public JsonResult<?> reissueAccessToken(
+//            @RequestParam("refreshToken") String refreshToken) {
+//
+//        AuthServiceLoginResponse reissueResponse = authService.reissueAccessToken(refreshToken);
+//
+//        return JsonResult.successOf(reissueResponse);
+//    }
 }

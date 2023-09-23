@@ -5,6 +5,7 @@ import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.jwt.JwtException;
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.auth.api.service.jwt.JwtService;
+import com.heachi.auth.api.service.token.RefreshTokenService;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.redis.define.refreshToken.RefreshToken;
@@ -39,6 +40,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenService refreshTokenService;
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
@@ -63,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 userEmail = jwtService.extractUsername(tokens.get(1));
 
                 // 토큰 유효성 검증 후 시큐리티 등록
-                authenticateUser(userEmail, tokens, 1, request);
+                authenticateUser(userEmail, tokens.get(1), request);
 
                 filterChain.doFilter(request, response);
             } else {
@@ -83,8 +85,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             userEmail = jwtService.extractUsername(refreshToken.getRefreshToken());
 
-            // 토큰 유효성 검증 후 시큐리티 등록
-            authenticateUser(userEmail, tokens, 2, request);
+            // 엑세스 토큰 재발급
+            String reissueAccessToken = refreshTokenService.reissue(jwtService.extractAllClaims(refreshToken.getRefreshToken()), refreshToken.getRefreshToken());
+
+            // 재발급 받은 토큰 유효성 검증 후 시큐리티에 등록
+            authenticateUser(userEmail, reissueAccessToken, request);
 
             filterChain.doFilter(request, response);
 
@@ -103,9 +108,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private void authenticateUser(String userEmail, List<String> tokens, int index, HttpServletRequest request) {
-        if (userEmail != null && jwtService.isTokenValid(tokens.get(index), userEmail)) {
-            Claims claims = jwtService.extractAllClaims(tokens.get(index));
+    private void authenticateUser(String userEmail, String accessToken, HttpServletRequest request) {
+        if (userEmail != null && jwtService.isTokenValid(accessToken, userEmail)) {
+            Claims claims = jwtService.extractAllClaims(accessToken);
 
             UserDetails userDetails = User.builder()
                     .email(userEmail)

@@ -2,6 +2,7 @@ package com.heachi.auth.api.service.jwt;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.jwt.JwtException;
+import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -126,5 +127,20 @@ public class JwtService {
         byte[] keyBytes = Base64.getDecoder().decode(secretKey);
 
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String generateExpiredAccessToken(Map<String, String> claims, UserDetails user) {
+        Date now = new Date();
+
+        // 만료기간을 현재 시각보다 이전으로
+        Date expiryTime = new Date(now.getTime() - 1000);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(user.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(expiryTime)
+                .signWith(getSignInkey(), SignatureAlgorithm.HS256)
+                .compact();
     }
 }

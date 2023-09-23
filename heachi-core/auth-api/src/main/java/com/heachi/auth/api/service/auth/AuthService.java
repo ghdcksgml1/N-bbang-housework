@@ -146,16 +146,16 @@ public class AuthService {
         }
     }
 
-    public AuthServiceLoginResponse reissueAccessToken(String refreshToken) {
-        // 리프레시 토큰을 이용해 새로운 엑세스 토큰 발급
-        Claims claims = jwtService.extractAllClaims(refreshToken);
-        UserRole role = claims.get("role", UserRole.class);
-        String accessToken = refreshTokenService.reissue(claims, refreshToken);
-
-        return AuthServiceLoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .role(role)
-                .build();
-    }
+//    public AuthServiceLoginResponse reissueAccessToken(String refreshToken) {
+//        // 리프레시 토큰을 이용해 새로운 엑세스 토큰 발급
+//        Claims claims = jwtService.extractAllClaims(refreshToken);
+//        UserRole role = claims.get("role", UserRole.class);
+//        String accessToken = refreshTokenService.reissue(claims, refreshToken);
+//
+//        return AuthServiceLoginResponse.builder()
+//                .accessToken(accessToken)
+//                .refreshToken(refreshToken)
+//                .role(role)
+//                .build();
+//    }
 }
