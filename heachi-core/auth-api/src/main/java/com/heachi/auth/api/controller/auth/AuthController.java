@@ -1,7 +1,6 @@
 package com.heachi.auth.api.controller.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
-import com.heachi.admin.common.exception.auth.AuthException;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.auth.api.controller.auth.request.AuthRegisterRequest;
@@ -9,23 +8,18 @@ import com.heachi.auth.api.controller.auth.response.UserSimpleInfoResponse;
 import com.heachi.auth.api.service.auth.AuthService;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
-import com.heachi.auth.api.service.jwt.JwtTokenDTO;
 import com.heachi.auth.api.service.oauth.OAuthService;
 import com.heachi.auth.api.service.state.LoginStateService;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
-import io.swagger.v3.oas.annotations.headers.Header;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-
-import static com.heachi.mysql.define.user.constant.UserRole.*;
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -74,11 +68,15 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
-    public JsonResult<String> logout(@RequestHeader(name = "Authorization") String token) {
-        String[] tokens = token.split(" ");
-        authService.logout(tokens[2]);
+    public JsonResult<?> logout(@RequestHeader(name = "Authorization") String token) {
+        List<String> tokens = Arrays.asList(token.split(" "));
 
-        return JsonResult.successOf("Logout successfully.");
+        if (tokens.size() == 3) {
+            authService.logout(tokens.get(2));
+            return JsonResult.successOf("Logout successfully.");
+        } else {
+            return JsonResult.successOf(ExceptionMessage.JWT_INVALID_HEADER.getText());
+        }
     }
 
     @PostMapping("/delete")

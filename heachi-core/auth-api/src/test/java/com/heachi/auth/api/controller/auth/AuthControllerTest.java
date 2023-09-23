@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 import java.util.HashMap;
 import static com.heachi.mysql.define.user.constant.UserPlatformType.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -331,5 +332,16 @@ class AuthControllerTest extends TestConfig {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(200));
 
+    }
+
+    @Test
+    @DisplayName("잘못된 Header로 logout 요청시 에러 발생")
+    void logoutWhenInvalidHeader() throws Exception {
+        mockMvc.perform(get("/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "aa bb cc dd"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(200))
+                .andExpect(jsonPath("$.resObj").value(ExceptionMessage.JWT_INVALID_HEADER.getText()));
     }
 }

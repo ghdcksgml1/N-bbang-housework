@@ -29,6 +29,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -45,20 +47,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String authHeader = request.getHeader("Authorization");
-            String token;
             String userEmail;
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 filterChain.doFilter(request, response);
-                return ;
+                return;
             }
 
-            token = authHeader.substring(7);
-            userEmail = jwtService.extractUsername(token);
+            List<String> tokens = Arrays.asList(authHeader.split(" "));
+
+            if (tokens.size() == 3) {
+                userEmail = jwtService.extractUsername(tokens.get(1));
+            } else {
+                throw new JwtException(ExceptionMessage.JWT_INVALID_HEADER);
+            }
 
             // token의 claims에 userEmail이 있는지 체크, 토큰이 유효한지 체크
-            if (userEmail != null && jwtService.isTokenValid(token, userEmail)) {
-                Claims claims = jwtService.extractAllClaims(token);
+            if (userEmail != null && jwtService.isTokenValid(tokens.get(2), userEmail)) {
+                Claims claims = jwtService.extractAllClaims(tokens.get(2));
                 UserDetails userDetails = User.builder()
                         .email(userEmail)
                         .role(UserRole.valueOf(claims.get("role", String.class)))
@@ -78,20 +84,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
             filterChain.doFilter(request, response);
-        } catch (ExpiredJwtException e){
-            logger.error("Could not set user authentication in security context {}" , e);
+        } catch (ExpiredJwtException e) {
+            logger.error("Could not set user authentication in security context {}", e);
             jwtExceptionHandler(response, ExceptionMessage.JWT_TOKEN_EXPIRED);
-        }catch (UnsupportedJwtException e){
-            logger.error("Could not set user authentication in security context {}" , e);
+        } catch (UnsupportedJwtException e) {
+            logger.error("Could not set user authentication in security context {}", e);
             jwtExceptionHandler(response, ExceptionMessage.JWT_UNSUPPORTED);
-        }catch (MalformedJwtException e){
-            logger.error("Could not set user authentication in security context {}" , e);
+        } catch (MalformedJwtException e) {
+            logger.error("Could not set user authentication in security context {}", e);
             jwtExceptionHandler(response, ExceptionMessage.JWT_MALFORMED);
-        }catch (SignatureException e){
-            logger.error("Could not set user authentication in security context {}" , e);
+        } catch (SignatureException e) {
+            logger.error("Could not set user authentication in security context {}", e);
             jwtExceptionHandler(response, ExceptionMessage.JWT_SIGNATURE);
-        }catch (IllegalArgumentException e){
-            logger.error("Could not set user authentication in security context {}" , e);
+        } catch (IllegalArgumentException e) {
+            logger.error("Could not set user authentication in security context {}", e);
             jwtExceptionHandler(response, ExceptionMessage.JWT_ILLEGAL_ARGUMENT);
         }
     }
