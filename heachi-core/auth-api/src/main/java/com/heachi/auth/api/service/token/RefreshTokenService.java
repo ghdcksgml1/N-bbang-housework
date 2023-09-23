@@ -4,13 +4,19 @@ import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.jwt.JwtException;
 import com.heachi.auth.api.service.jwt.JwtService;
 import com.heachi.auth.api.service.jwt.JwtTokenDTO;
+import com.heachi.mysql.define.user.User;
+import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.redis.define.refreshToken.RefreshToken;
 import com.heachi.redis.define.refreshToken.repository.RefreshTokenRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -40,61 +46,26 @@ public class RefreshTokenService {
         log.info(">>>> Refresh Token register : {}", savedToken);
     }
 
-//    public String findByKey(String key) {
-//        String email = jwtService.extractUsername(key);
-//        String rtk = refreshTokenRepository.findByEmail(email);
-//        if (rtk.isEmpty()) {
-//            return "false";
-//        }
-//
-//        return rtk;
-//    }
+    public String reissue(Claims claims, String refreshToken) {
+        // 토큰 유효성 한번 더 검증
+        if (!jwtService.isTokenValid(refreshToken, claims.getSubject())) {
+            throw new JwtException(ExceptionMessage.JWT_INVALID_RTK);
+        }
 
-//    public String reissueATK(String refreshToken) {
-//        Claims claims = jwtService.extractAllClaims(refreshToken);
-//
-//        // redis에 존재하는 토큰인지 확인
-//        if (!jwtService.isTokenValid(refreshToken, claims.getSubject())) {
-//            throw new RefreshTokenException(ExceptionMessage.JWT_INVALID_RTK);
-//        }
-//
-//        if (refreshTokenRepository.findByEmail(claims.getSubject()).equals(refreshToken)) {
-//            userRepository.findByEmail(claims.getSubject()).;
-//
-//            jwtService.generateAccessToken(claims, )
-//        }
-//    }
+        String role = claims.get("role", String.class);
 
+        UserDetails userDetails = User.builder()
+                .email(jwtService.extractUsername(refreshToken))
+                .role(UserRole.valueOf(role))
+                .name(claims.get("name", String.class))
+                .profileImageUrl(claims.get("profileImageUrl", String.class))
+                .build();
 
-    /*
-    * private RedisTemplate<String, String> redisTemplate;
+        Map<String, String> map = new HashMap<>();
+        for (Map.Entry<String, Object> entry : claims.entrySet()) {
+            map.put(entry.getKey(), entry.getValue().toString());
+        }
 
-    public RefreshTokenRepository(RedisTemplate<String, String> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+        return jwtService.generateAccessToken(map, userDetails);
     }
-
-    public void saveRefreshToken(final RefreshToken refreshToken) {
-        redisTemplate.opsForValue().set(
-                refreshToken.getEmail(),
-                refreshToken.getRefreshToken()
-        );
-        log.info(">>>> Generated RefreshToken : {}", refreshToken.getEmail());
-    }
-
-    public void blackList(final String accessToken) {
-        redisTemplate.opsForValue().set(
-                accessToken,
-                "logout",
-                Duration.ofMillis(86400000)
-        );
-    }
-
-    public String findByEmail(String email) {
-        return redisTemplate.opsForValue().get(email);
-    }
-
-    public void deleteByEmail(final String email) {
-        redisTemplate.delete(email);
-    }
-    * */
 }

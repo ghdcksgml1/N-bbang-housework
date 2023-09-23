@@ -7,6 +7,8 @@ import com.heachi.admin.common.response.JsonResult;
 import com.heachi.auth.api.service.jwt.JwtService;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserRole;
+import com.heachi.redis.define.refreshToken.RefreshToken;
+import com.heachi.redis.define.refreshToken.repository.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -36,6 +38,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
@@ -45,48 +48,46 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info(">>>> [Jwt Authentication Filter] <<<<");
 
+        String authHeader = request.getHeader("Authorization");
+        String userEmail;
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
-            String authHeader = request.getHeader("Authorization");
-            String userEmail;
-
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
             List<String> tokens = Arrays.asList(authHeader.split(" "));
 
             if (tokens.size() == 3) {
                 userEmail = jwtService.extractUsername(tokens.get(1));
+
+                // 토큰 유효성 검증 후 시큐리티 등록
+                authenticateUser(userEmail, tokens, 1, request);
+
+                filterChain.doFilter(request, response);
             } else {
-                throw new JwtException(ExceptionMessage.JWT_INVALID_HEADER);
+                jwtExceptionHandler(response, ExceptionMessage.JWT_INVALID_HEADER);
             }
 
-            // token의 claims에 userEmail이 있는지 체크, 토큰이 유효한지 체크
-            if (userEmail != null && jwtService.isTokenValid(tokens.get(2), userEmail)) {
-                Claims claims = jwtService.extractAllClaims(tokens.get(2));
-                UserDetails userDetails = User.builder()
-                        .email(userEmail)
-                        .role(UserRole.valueOf(claims.get("role", String.class)))
-                        .name(claims.get("name", String.class))
-                        .profileImageUrl(claims.get("profileImageUrl", String.class))
-                        .build();
-
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // SecurityContext에 Authenticaiton 등록
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
-            filterChain.doFilter(request, response);
         } catch (ExpiredJwtException e) {
             logger.error("Could not set user authentication in security context {}", e);
-            jwtExceptionHandler(response, ExceptionMessage.JWT_TOKEN_EXPIRED);
+
+            // 엑세스 토큰 재발급 API인 /auth/reissue로 전달하는 코드
+            // 헤더에서 토큰 추출 - 잘못된 헤더면 이미 try문에서 걸러졌을 것
+            List<String> tokens = Arrays.asList(authHeader.split(" "));
+
+            // refreshToken이 존재하는지 확인 - TTL로 만료시간 자동 체크
+            RefreshToken refreshToken = refreshTokenRepository.findById(tokens.get(2)).orElseThrow(
+                    () -> new JwtException(ExceptionMessage.JWT_NOT_EXIST_RTK));
+
+            userEmail = jwtService.extractUsername(refreshToken.getRefreshToken());
+
+            // 토큰 유효성 검증 후 시큐리티 등록
+            authenticateUser(userEmail, tokens, 2, request);
+
+            filterChain.doFilter(request, response);
+
         } catch (UnsupportedJwtException e) {
             logger.error("Could not set user authentication in security context {}", e);
             jwtExceptionHandler(response, ExceptionMessage.JWT_UNSUPPORTED);
@@ -99,6 +100,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (IllegalArgumentException e) {
             logger.error("Could not set user authentication in security context {}", e);
             jwtExceptionHandler(response, ExceptionMessage.JWT_ILLEGAL_ARGUMENT);
+        }
+    }
+
+    private void authenticateUser(String userEmail, List<String> tokens, int index, HttpServletRequest request) {
+        if (userEmail != null && jwtService.isTokenValid(tokens.get(index), userEmail)) {
+            Claims claims = jwtService.extractAllClaims(tokens.get(index));
+
+            UserDetails userDetails = User.builder()
+                    .email(userEmail)
+                    .role(UserRole.valueOf(claims.get("role", String.class)))
+                    .name(claims.get("name", String.class))
+                    .profileImageUrl(claims.get("profileImageUrl", String.class))
+                    .build();
+
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,
+                    userDetails.getAuthorities()
+            );
+
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+            // SecurityContext에 Authenticaiton 등록
+            SecurityContextHolder.getContext().setAuthentication(authToken);
         }
     }
 

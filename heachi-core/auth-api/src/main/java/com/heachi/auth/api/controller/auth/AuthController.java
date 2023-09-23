@@ -12,6 +12,7 @@ import com.heachi.auth.api.service.oauth.OAuthService;
 import com.heachi.auth.api.service.state.LoginStateService;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
+import io.swagger.v3.core.util.Json;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,5 +85,14 @@ public class AuthController {
         authService.userDelete(user.getEmail());
 
         return JsonResult.successOf();
+    }
+
+    @PostMapping("/reissue")
+    public JsonResult<?> reissueAccessToken(
+            @RequestParam("refreshToken") String refreshToken) {
+
+        AuthServiceLoginResponse reissueResponse = authService.reissueAccessToken(refreshToken);
+
+        return JsonResult.successOf(reissueResponse);
     }
 }
