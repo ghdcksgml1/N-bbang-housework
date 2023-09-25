@@ -1,10 +1,12 @@
 package com.heachi.auth.api.controller.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.jwt.JwtException;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.auth.api.controller.auth.request.AuthRegisterRequest;
 import com.heachi.auth.api.controller.auth.response.UserSimpleInfoResponse;
+import com.heachi.auth.api.controller.token.response.ReissueAccessTokenResponse;
 import com.heachi.auth.api.service.auth.AuthService;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
@@ -74,10 +76,12 @@ public class AuthController {
 
         if (tokens.size() == 3) {
             authService.logout(tokens.get(2));
+
             return JsonResult.successOf("Logout successfully.");
         } else {
-            return JsonResult.successOf(ExceptionMessage.JWT_INVALID_HEADER.getText());
+            return JsonResult.failOf(ExceptionMessage.JWT_INVALID_HEADER.getText());
         }
+
     }
 
     @PostMapping("/delete")
@@ -87,12 +91,16 @@ public class AuthController {
         return JsonResult.successOf();
     }
 
-//    @PostMapping("/reissue")
-//    public JsonResult<?> reissueAccessToken(
-//            @RequestParam("refreshToken") String refreshToken) {
-//
-//        AuthServiceLoginResponse reissueResponse = authService.reissueAccessToken(refreshToken);
-//
-//        return JsonResult.successOf(reissueResponse);
-//    }
+    @PostMapping("/reissue")
+    public JsonResult<?> reissueAccessToken(@RequestHeader(name = "Authorization") String token) {
+        List<String> tokens = Arrays.asList(token.split(" "));
+
+        if (tokens.size() == 3) {
+            ReissueAccessTokenResponse reissueResponse = authService.reissueAccessToken(tokens.get(2));
+
+            return JsonResult.successOf(reissueResponse);
+        } else {
+            return JsonResult.failOf(ExceptionMessage.JWT_INVALID_HEADER.getText());
+        }
+    }
 }

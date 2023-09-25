@@ -75,7 +75,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (ExpiredJwtException e) {
             logger.error("Could not set user authentication in security context {}", e);
 
-            // 엑세스 토큰 재발급 API인 /auth/reissue로 전달하는 코드
             // 헤더에서 토큰 추출 - 잘못된 헤더면 이미 try문에서 걸러졌을 것
             List<String> tokens = Arrays.asList(authHeader.split(" "));
 

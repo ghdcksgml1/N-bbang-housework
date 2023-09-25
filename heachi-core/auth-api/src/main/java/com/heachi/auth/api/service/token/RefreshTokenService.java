@@ -47,9 +47,9 @@ public class RefreshTokenService {
     }
 
     public String reissue(Claims claims, String refreshToken) {
-        // 토큰 유효성 한번 더 검증
-        if (!jwtService.isTokenValid(refreshToken, claims.getSubject())) {
-            throw new JwtException(ExceptionMessage.JWT_INVALID_RTK);
+        // 레디스에 존재하는지 확인
+        if (refreshTokenRepository.findById(refreshToken).isEmpty()) {
+            throw new JwtException(ExceptionMessage.JWT_NOT_EXIST_RTK);
         }
 
         String role = claims.get("role", String.class);

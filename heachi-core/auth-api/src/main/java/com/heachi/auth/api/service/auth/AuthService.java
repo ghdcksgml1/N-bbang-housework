@@ -2,6 +2,8 @@ package com.heachi.auth.api.service.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.auth.AuthException;
+import com.heachi.admin.common.exception.jwt.JwtException;
+import com.heachi.auth.api.controller.token.response.ReissueAccessTokenResponse;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.jwt.JwtService;
@@ -73,6 +75,7 @@ public class AuthService {
                 .role(findUser.getRole())
                 .build();
     }
+
     @Transactional
     public void logout(String refreshToken) {
         refreshTokenService.logout(refreshToken);
@@ -146,16 +149,22 @@ public class AuthService {
         }
     }
 
-//    public AuthServiceLoginResponse reissueAccessToken(String refreshToken) {
-//        // 리프레시 토큰을 이용해 새로운 엑세스 토큰 발급
-//        Claims claims = jwtService.extractAllClaims(refreshToken);
-//        UserRole role = claims.get("role", UserRole.class);
-//        String accessToken = refreshTokenService.reissue(claims, refreshToken);
-//
-//        return AuthServiceLoginResponse.builder()
-//                .accessToken(accessToken)
-//                .refreshToken(refreshToken)
-//                .role(role)
-//                .build();
-//    }
+    public ReissueAccessTokenResponse reissueAccessToken(String refreshToken) {
+        Claims claims = jwtService.extractAllClaims(refreshToken);
+
+        // 토큰 검증
+        if (jwtService.isTokenValid(refreshToken, claims.getSubject())) {
+            // 리프레시 토큰을 이용해 새로운 엑세스 토큰 발급
+            String accessToken = refreshTokenService.reissue(claims, refreshToken);
+
+            return ReissueAccessTokenResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .build();
+
+        } else {
+            throw new JwtException(ExceptionMessage.JWT_INVALID_RTK);
+        }
+
+    }
 }

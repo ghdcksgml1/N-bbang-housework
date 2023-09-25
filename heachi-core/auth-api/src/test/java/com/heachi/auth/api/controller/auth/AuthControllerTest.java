@@ -341,7 +341,7 @@ class AuthControllerTest extends TestConfig {
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "aa bb cc dd"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resCode").value(200))
-                .andExpect(jsonPath("$.resObj").value(ExceptionMessage.JWT_INVALID_HEADER.getText()));
+                .andExpect(jsonPath("$.resCode").value(400))
+                .andExpect(jsonPath("$.resMsg").value(ExceptionMessage.JWT_INVALID_HEADER.getText()));
     }
 }
