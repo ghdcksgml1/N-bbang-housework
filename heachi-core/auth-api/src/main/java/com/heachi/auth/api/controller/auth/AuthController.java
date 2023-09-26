@@ -79,6 +79,7 @@ public class AuthController {
 
             return JsonResult.successOf("Logout successfully.");
         } else {
+            log.warn(">>>> Invalid Header Access : {}", ExceptionMessage.JWT_INVALID_HEADER.getText());
             return JsonResult.failOf(ExceptionMessage.JWT_INVALID_HEADER.getText());
         }
 
@@ -100,6 +101,7 @@ public class AuthController {
 
             return JsonResult.successOf(reissueResponse);
         } else {
+            log.warn(">>>> Invalid Header Access : {}", ExceptionMessage.JWT_INVALID_HEADER.getText());
             return JsonResult.failOf(ExceptionMessage.JWT_INVALID_HEADER.getText());
         }
     }

@@ -66,7 +66,6 @@ public class AuthService {
         findUser.updateProfile(loginResponse.getName(), loginResponse.getProfileImageUrl());
 
         // JWT Access Token, Refresh Token 발급
-
         JwtTokenDTO tokens = createJwtToken(findUser);
 
         return AuthServiceLoginResponse.builder()
@@ -85,11 +84,13 @@ public class AuthService {
     public AuthServiceLoginResponse register(AuthServiceRegisterRequest request) {
         User findUser = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> {
             // UNAUTH인 토큰을 받고 회원 탈퇴 후 그 토큰으로 회원가입 요청시 예외 처리
+            log.warn(">>>> User Not Exist : {}", ExceptionMessage.AUTH_INVALID_REGISTER.getText());
             throw new AuthException(ExceptionMessage.AUTH_INVALID_REGISTER);
         });
 
         // UNAUTH 토큰으로 회원가입을 요청했지만 이미 update되어 UNAUTH가 아닌 사용자 예외 처리
         if (findUser.getRole() != UserRole.UNAUTH) {
+            log.warn(">>>> Not UNAUTH User : {}", ExceptionMessage.AUTH_DUPLICATE_UNAUTH_REGISTER.getText());
             throw new AuthException(ExceptionMessage.AUTH_DUPLICATE_UNAUTH_REGISTER);
         }
 
@@ -115,10 +116,10 @@ public class AuthService {
 
         // Access Token 생성
         final String accessToken = jwtService.generateAccessToken(claims, user);
-
         // Refresh Token 생성
         final String refreshToken = jwtService.generateRefreshToken(claims, user);
-        long rtExpiration = jwtService.extractExpiration(refreshToken).getTime();
+
+        log.info(">>>> {} generate Tokens", user.getName());
 
         // Refresh Token 저장 - REDIS
         RefreshToken rt = RefreshToken.builder()
@@ -126,6 +127,7 @@ public class AuthService {
                 .email(user.getEmail())
                 .build();
         refreshTokenService.saveRefreshToken(rt);
+
 
         return JwtTokenDTO.builder()
                 .accessToken(accessToken)
@@ -149,6 +151,7 @@ public class AuthService {
         }
     }
 
+    @Transactional
     public ReissueAccessTokenResponse reissueAccessToken(String refreshToken) {
         Claims claims = jwtService.extractAllClaims(refreshToken);
 
@@ -156,6 +159,7 @@ public class AuthService {
         if (jwtService.isTokenValid(refreshToken, claims.getSubject())) {
             // 리프레시 토큰을 이용해 새로운 엑세스 토큰 발급
             String accessToken = refreshTokenService.reissue(claims, refreshToken);
+            log.info(">>>> {} reissue AccessToken.", claims.getSubject());
 
             return ReissueAccessTokenResponse.builder()
                     .accessToken(accessToken)
@@ -163,6 +167,7 @@ public class AuthService {
                     .build();
 
         } else {
+            log.warn(">>>> Token Validation Fail : {}", ExceptionMessage.JWT_INVALID_RTK.getText());
             throw new JwtException(ExceptionMessage.JWT_INVALID_RTK);
         }
 

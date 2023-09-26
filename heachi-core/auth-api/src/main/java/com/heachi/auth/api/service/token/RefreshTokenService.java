@@ -25,32 +25,37 @@ public class RefreshTokenService {
     final RefreshTokenRepository refreshTokenRepository;
     final JwtService jwtService;
 
+    // Logout 시 Redis에 저장된 RTK 삭제
     public void logout(String refreshToken) {
 
         String email = jwtService.extractAllClaims(refreshToken).getSubject();
 
         // refreshToken 유효성 검사
         if (!jwtService.isTokenValid(refreshToken, email)) {
+            log.warn(">>>> Token Validation Fail : {}", ExceptionMessage.JWT_INVALID_RTK.getText());
             throw new JwtException(ExceptionMessage.JWT_INVALID_RTK);
         }
 
-        // redis에서 rtk 삭제
         RefreshToken rtk = refreshTokenRepository.findById(refreshToken).orElseThrow(() -> {
+            log.warn(">>>> Token Not Exist : {}", ExceptionMessage.JWT_NOT_EXIST_RTK.getText());
             throw new JwtException(ExceptionMessage.JWT_NOT_EXIST_RTK);
         });
+
         refreshTokenRepository.delete(rtk);
+        log.info(">>>> {}'s RefreshToken id deleted.", email);
     }
 
     public void saveRefreshToken(RefreshToken refreshToken) {
         RefreshToken savedToken = refreshTokenRepository.save(refreshToken);
-        log.info(">>>> Refresh Token register : {}", savedToken);
+        log.info(">>>> Refresh Token register : {}", savedToken.getRefreshToken());
     }
 
     public String reissue(Claims claims, String refreshToken) {
-        // 레디스에 존재하는지 확인
-        if (refreshTokenRepository.findById(refreshToken).isEmpty()) {
+
+        refreshTokenRepository.findById(refreshToken).orElseThrow(() -> {
+            log.warn(">>>> Token Not Exist : {}", ExceptionMessage.JWT_NOT_EXIST_RTK.getText());
             throw new JwtException(ExceptionMessage.JWT_NOT_EXIST_RTK);
-        }
+        });
 
         String role = claims.get("role", String.class);
 
