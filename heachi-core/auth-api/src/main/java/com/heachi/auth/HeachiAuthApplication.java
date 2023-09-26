@@ -11,5 +11,4 @@ public class HeachiAuthApplication {
     public static void main(String[] args) {
         SpringApplication.run(HeachiAuthApplication.class, args);
     }
-
 }

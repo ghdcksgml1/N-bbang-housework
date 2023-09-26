@@ -6,12 +6,14 @@ import lombok.Getter;
 
 @Getter
 public class AuthServiceLoginResponse {
-    private String token;
+    private String accessToken;
+    private String refreshToken;
     private UserRole role;
 
     @Builder
-    private AuthServiceLoginResponse(String token, UserRole role) {
-        this.token = token;
+    public AuthServiceLoginResponse(String accessToken, String refreshToken, UserRole role) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
         this.role = role;
     }
 }

@@ -2,6 +2,7 @@ package com.heachi.auth.api.service.jwt;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.jwt.JwtException;
+import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -24,12 +25,6 @@ public class JwtService {
     @Value("${jwt.secretKey}")
     private String secretKey;
 
-    @Value("${jwt.token.access-expiration-time}")
-    private long accessExpirationTime;
-
-    @Value("${jwt.token.refresh-expiration-time}")
-    private long refreshExpirationTime;
-
     /*
     *   Token에서 사용자 이름 추출
     */
@@ -47,11 +42,11 @@ public class JwtService {
     *   AccessToken 생성
     */
     public String generateAccessToken(UserDetails userDetails) {
-        return generateAccessToken(new HashMap<>(), userDetails, new Date(System.currentTimeMillis() + accessExpirationTime));
+        return generateAccessToken(new HashMap<>(), userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
     }
 
     public String generateAccessToken(Map<String, String> extraClaims, UserDetails userDetails) {
-        return generateAccessToken(extraClaims, userDetails, new Date(System.currentTimeMillis() + accessExpirationTime));
+        return generateAccessToken(extraClaims, userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
     }
 
     public String generateAccessToken(Map<String, String> extraClaims, UserDetails userDetails, Date expiredTime) {
@@ -68,11 +63,11 @@ public class JwtService {
     *   RefreshToken 생성
     */
     public String generateRefreshToken(UserDetails userDetails) {
-        return generateAccessToken(new HashMap<>(), userDetails, new Date(System.currentTimeMillis() + refreshExpirationTime));
+        return generateAccessToken(new HashMap<>(), userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7));
     }
 
     public String generateRefreshToken(Map<String, String> extraClaims, UserDetails userDetails) {
-        return generateRefreshToken(extraClaims, userDetails, new Date(System.currentTimeMillis() + refreshExpirationTime));
+        return generateRefreshToken(extraClaims, userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7));
     }
 
     public String generateRefreshToken(Map<String, String> extraClaims, UserDetails userDetails, Date expiredTime) {
@@ -108,7 +103,7 @@ public class JwtService {
         return (claimsSubject.equals(username)) && !isTokenExpired(token);
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
@@ -116,7 +111,7 @@ public class JwtService {
     /*
     *   Token 정보 추출
     */
-    private Date extractExpiration(String token) {
+    public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
@@ -132,5 +127,20 @@ public class JwtService {
         byte[] keyBytes = Base64.getDecoder().decode(secretKey);
 
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String generateExpiredAccessToken(Map<String, String> claims, UserDetails user) {
+        Date now = new Date();
+
+        // 만료기간을 현재 시각보다 이전으로
+        Date expiryTime = new Date(now.getTime() - 1000);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(user.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(expiryTime)
+                .signWith(getSignInkey(), SignatureAlgorithm.HS256)
+                .compact();
     }
 }

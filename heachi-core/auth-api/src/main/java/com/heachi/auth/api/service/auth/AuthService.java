@@ -2,26 +2,29 @@ package com.heachi.auth.api.service.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.auth.AuthException;
+import com.heachi.admin.common.exception.jwt.JwtException;
+import com.heachi.auth.api.controller.token.response.ReissueAccessTokenResponse;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.jwt.JwtService;
+import com.heachi.auth.api.service.jwt.JwtTokenDTO;
 import com.heachi.auth.api.service.oauth.OAuthService;
 import com.heachi.auth.api.service.oauth.response.OAuthResponse;
+import com.heachi.auth.api.service.token.RefreshTokenService;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
 import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
-import com.heachi.redis.config.RedisConfig;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import com.heachi.redis.define.refreshToken.RefreshToken;
+import com.heachi.redis.define.refreshToken.repository.RefreshTokenRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.Map;
 
 
 @Slf4j
@@ -33,9 +36,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final OAuthService oAuthService;
     private final JwtService jwtService;
-
-    // 빈 주입이 안됨 ㅠ
-     private final RedisTemplate redisTemplacte;
+    private final RefreshTokenService refreshTokenService;
 
     private static final String ROLE_CLAIM = "role";
     private static final String NAME_CLAIM = "name";
@@ -64,40 +65,49 @@ public class AuthService {
         // 기존 회원의 경우 name, profileImageUrl 변하면 update
         findUser.updateProfile(loginResponse.getName(), loginResponse.getProfileImageUrl());
 
-        // JWT 토큰 발급
-        final String token = createJwtToken(findUser);
+        // JWT Access Token, Refresh Token 발급
+        JwtTokenDTO tokens = createJwtToken(findUser);
 
         return AuthServiceLoginResponse.builder()
-                .token(token)
+                .accessToken(tokens.getAccessToken())
+                .refreshToken(tokens.getRefreshToken())
                 .role(findUser.getRole())
                 .build();
+    }
+
+    @Transactional
+    public void logout(String refreshToken) {
+        refreshTokenService.logout(refreshToken);
     }
 
     @Transactional
     public AuthServiceLoginResponse register(AuthServiceRegisterRequest request) {
         User findUser = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> {
             // UNAUTH인 토큰을 받고 회원 탈퇴 후 그 토큰으로 회원가입 요청시 예외 처리
+            log.warn(">>>> User Not Exist : {}", ExceptionMessage.AUTH_INVALID_REGISTER.getText());
             throw new AuthException(ExceptionMessage.AUTH_INVALID_REGISTER);
         });
 
         // UNAUTH 토큰으로 회원가입을 요청했지만 이미 update되어 UNAUTH가 아닌 사용자 예외 처리
         if (findUser.getRole() != UserRole.UNAUTH) {
+            log.warn(">>>> Not UNAUTH User : {}", ExceptionMessage.AUTH_DUPLICATE_UNAUTH_REGISTER.getText());
             throw new AuthException(ExceptionMessage.AUTH_DUPLICATE_UNAUTH_REGISTER);
         }
 
         // 회원가입 정보 DB 반영
         findUser.updateRegister(request.getRole(), request.getPhoneNumber());
 
-        // JWT 토큰 재발급
-        final String token = createJwtToken(findUser);
+        // JWT Access Token, Refresh Token 재발급
+        JwtTokenDTO tokens = createJwtToken(findUser);
 
         return AuthServiceLoginResponse.builder()
-                .token(token)
+                .accessToken(tokens.getAccessToken())
+                .refreshToken(tokens.getRefreshToken())
                 .role(findUser.getRole())
                 .build();
     }
 
-    private String createJwtToken(User user) {
+    private JwtTokenDTO createJwtToken(User user) {
         // JWT 토큰 생성을 위한 claims 생성
         HashMap<String, String> claims = new HashMap<>();
         claims.put(ROLE_CLAIM, user.getRole().name());
@@ -106,15 +116,23 @@ public class AuthService {
 
         // Access Token 생성
         final String accessToken = jwtService.generateAccessToken(claims, user);
-
         // Refresh Token 생성
         final String refreshToken = jwtService.generateRefreshToken(claims, user);
 
-        // Refresh Token 저장
+        log.info(">>>> {} generate Tokens", user.getName());
+
+        // Refresh Token 저장 - REDIS
+        RefreshToken rt = RefreshToken.builder()
+                .refreshToken(refreshToken)
+                .email(user.getEmail())
+                .build();
+        refreshTokenService.saveRefreshToken(rt);
 
 
-        // 로그인 반환 객체 생성
-        return accessToken;
+        return JwtTokenDTO.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     @Transactional
@@ -131,5 +149,27 @@ public class AuthService {
             log.error(">>>> ID = {} : 계정 삭제에 실패했습니다.", user.getId());
             throw new AuthException(ExceptionMessage.AUTH_DELETE_FAIL);
         }
+    }
+
+    @Transactional
+    public ReissueAccessTokenResponse reissueAccessToken(String refreshToken) {
+        Claims claims = jwtService.extractAllClaims(refreshToken);
+
+        // 토큰 검증
+        if (jwtService.isTokenValid(refreshToken, claims.getSubject())) {
+            // 리프레시 토큰을 이용해 새로운 엑세스 토큰 발급
+            String accessToken = refreshTokenService.reissue(claims, refreshToken);
+            log.info(">>>> {} reissue AccessToken.", claims.getSubject());
+
+            return ReissueAccessTokenResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .build();
+
+        } else {
+            log.warn(">>>> Token Validation Fail : {}", ExceptionMessage.JWT_INVALID_RTK.getText());
+            throw new JwtException(ExceptionMessage.JWT_INVALID_RTK);
+        }
+
     }
 }

@@ -80,7 +80,7 @@ class AuthServiceTest extends TestConfig {
 
         AuthServiceLoginResponse login = authService.login(platformType, code, state);     // 로그인 프로세스
         User findUser = userRepository.findByEmail(email).get();                  // 로그인한 사용자 찾기
-        boolean tokenValid = jwtService.isTokenValid(login.getToken(), findUser.getUsername());   // 발행한 토큰 검증
+        boolean tokenValid = jwtService.isTokenValid(login.getAccessToken(), findUser.getUsername());   // 발행한 토큰 검증
 
         // then
         assertThat(tokenValid).isTrue();
@@ -140,9 +140,9 @@ class AuthServiceTest extends TestConfig {
         AuthServiceLoginResponse abc2 = authService.login(platformType, "abc2", "abc2");        // 김민목
         AuthServiceLoginResponse abc3 = authService.login(platformType, "abc3", "abc3");        // 김민금
 
-        Claims claims1 = jwtService.extractAllClaims(abc1.getToken());
-        Claims claims2 = jwtService.extractAllClaims(abc2.getToken());
-        Claims claims3 = jwtService.extractAllClaims(abc3.getToken());
+        Claims claims1 = jwtService.extractAllClaims(abc1.getAccessToken());
+        Claims claims2 = jwtService.extractAllClaims(abc2.getAccessToken());
+        Claims claims3 = jwtService.extractAllClaims(abc3.getAccessToken());
 
         // then
         assertAll(
@@ -228,7 +228,7 @@ class AuthServiceTest extends TestConfig {
         AuthServiceLoginResponse response = authService.register(request);
 
         User savedUser = userRepository.findByEmail(request.getEmail()).get();
-        boolean tokenValid = jwtService.isTokenValid(response.getToken(), savedUser.getUsername());   // 발행한 토큰 검증
+        boolean tokenValid = jwtService.isTokenValid(response.getAccessToken(), savedUser.getUsername());   // 발행한 토큰 검증
 
 
         // then
