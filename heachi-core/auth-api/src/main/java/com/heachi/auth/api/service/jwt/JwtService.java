@@ -8,7 +8,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +16,6 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Service
@@ -26,6 +24,9 @@ public class JwtService {
     @Value("${jwt.secretKey}")
     private String secretKey;
 
+    /*
+    *   Token에서 사용자 이름 추출
+    */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -36,15 +37,18 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
+    /*
+    *   AccessToken 생성
+    */
+    public String generateAccessToken(UserDetails userDetails) {
+        return generateAccessToken(new HashMap<>(), userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
     }
 
-    public String generateToken(Map<String, String> extraClaims, UserDetails userDetails) {
-        return generateToken(extraClaims, userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
+    public String generateAccessToken(Map<String, String> extraClaims, UserDetails userDetails) {
+        return generateAccessToken(extraClaims, userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
     }
 
-    public String generateToken(Map<String, String> extraClaims, UserDetails userDetails, Date expiredTime) {
+    public String generateAccessToken(Map<String, String> extraClaims, UserDetails userDetails, Date expiredTime) {
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
@@ -54,6 +58,31 @@ public class JwtService {
                 .compact();
     }
 
+    /*
+    *   RefreshToken 생성
+    */
+    public String generateRefreshToken(UserDetails userDetails) {
+        return generateAccessToken(new HashMap<>(), userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7));
+    }
+
+    public String generateRefreshToken(Map<String, String> extraClaims, UserDetails userDetails) {
+        return generateRefreshToken(extraClaims, userDetails, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7));
+    }
+
+    public String generateRefreshToken(Map<String, String> extraClaims, UserDetails userDetails, Date expiredTime) {
+        return Jwts.builder()
+                .setClaims(extraClaims)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(expiredTime)
+                .signWith(getSignInkey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+
+    /*
+    *   Token 검증
+    */
     public boolean isTokenValid(String token, String username) {
         Claims claims = extractAllClaims(token);
 
@@ -73,11 +102,15 @@ public class JwtService {
         return (claimsSubject.equals(username)) && !isTokenExpired(token);
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
-    private Date extractExpiration(String token) {
+
+    /*
+    *   Token 정보 추출
+    */
+    public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
@@ -93,5 +126,20 @@ public class JwtService {
         byte[] keyBytes = Base64.getDecoder().decode(secretKey);
 
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String generateExpiredAccessToken(Map<String, String> claims, UserDetails user) {
+        Date now = new Date();
+
+        // 만료기간을 현재 시각보다 이전으로
+        Date expiryTime = new Date(now.getTime() - 1000);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(user.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(expiryTime)
+                .signWith(getSignInkey(), SignatureAlgorithm.HS256)
+                .compact();
     }
 }

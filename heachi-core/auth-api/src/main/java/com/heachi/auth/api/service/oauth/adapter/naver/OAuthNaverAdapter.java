@@ -8,7 +8,6 @@ import com.heachi.external.clients.oauth2.naver.NaverProfileClients;
 import com.heachi.external.clients.oauth2.naver.NaverTokenClients;
 import com.heachi.external.clients.oauth2.naver.response.NaverProfileResponse;
 import com.heachi.external.clients.oauth2.naver.response.NaverTokenResponse;
-import com.heachi.mysql.define.user.constant.UserPlatformType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

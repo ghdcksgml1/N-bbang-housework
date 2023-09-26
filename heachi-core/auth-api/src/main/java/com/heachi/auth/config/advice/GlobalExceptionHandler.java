@@ -1,7 +1,6 @@
 package com.heachi.auth.config.advice;
 
 import com.heachi.admin.common.response.JsonResult;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

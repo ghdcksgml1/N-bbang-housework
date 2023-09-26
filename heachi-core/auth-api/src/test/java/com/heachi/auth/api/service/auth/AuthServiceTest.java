@@ -1,5 +1,6 @@
 package com.heachi.auth.api.service.auth;
 
+import com.heachi.admin.common.exception.auth.AuthException;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.auth.TestConfig;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
@@ -79,7 +80,7 @@ class AuthServiceTest extends TestConfig {
 
         AuthServiceLoginResponse login = authService.login(platformType, code, state);     // 로그인 프로세스
         User findUser = userRepository.findByEmail(email).get();                  // 로그인한 사용자 찾기
-        boolean tokenValid = jwtService.isTokenValid(login.getToken(), findUser.getUsername());   // 발행한 토큰 검증
+        boolean tokenValid = jwtService.isTokenValid(login.getAccessToken(), findUser.getUsername());   // 발행한 토큰 검증
 
         // then
         assertThat(tokenValid).isTrue();
@@ -139,9 +140,9 @@ class AuthServiceTest extends TestConfig {
         AuthServiceLoginResponse abc2 = authService.login(platformType, "abc2", "abc2");        // 김민목
         AuthServiceLoginResponse abc3 = authService.login(platformType, "abc3", "abc3");        // 김민금
 
-        Claims claims1 = jwtService.extractAllClaims(abc1.getToken());
-        Claims claims2 = jwtService.extractAllClaims(abc2.getToken());
-        Claims claims3 = jwtService.extractAllClaims(abc3.getToken());
+        Claims claims1 = jwtService.extractAllClaims(abc1.getAccessToken());
+        Claims claims2 = jwtService.extractAllClaims(abc2.getAccessToken());
+        Claims claims3 = jwtService.extractAllClaims(abc3.getAccessToken());
 
         // then
         assertAll(
@@ -227,7 +228,7 @@ class AuthServiceTest extends TestConfig {
         AuthServiceLoginResponse response = authService.register(request);
 
         User savedUser = userRepository.findByEmail(request.getEmail()).get();
-        boolean tokenValid = jwtService.isTokenValid(response.getToken(), savedUser.getUsername());   // 발행한 토큰 검증
+        boolean tokenValid = jwtService.isTokenValid(response.getAccessToken(), savedUser.getUsername());   // 발행한 토큰 검증
 
 
         // then
@@ -269,5 +270,38 @@ class AuthServiceTest extends TestConfig {
         assertThrows(RuntimeException.class, () -> {
             authService.register(request);
         });
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 Email로 계정삭제를 진행할 수 없다.")
+    void isNotProcessingWhenEmailIsNotExist() {
+        // given
+        String invalidEmail = "abcdd@abc.com";
+
+        // when
+        assertThrows(AuthException.class,
+                () -> authService.userDelete(invalidEmail));
+    }
+
+    @Test
+    @DisplayName("존재하는 계정의 Email로 계정삭제를 진행할 수 있다.")
+    void successProcessingWhenEmailIsExistInDB() {
+        // given
+        User user = User.builder()
+                .platformId("12345")
+                .platformType(KAKAO)
+                .email("kms@kakao.com")
+                .name("김민수")
+                .profileImageUrl("google.co.kr")
+                .role(UserRole.USER)
+                .build();
+        userRepository.save(user);
+
+        // when
+        authService.userDelete("kms@kakao.com");
+        Optional<User> byEmail = userRepository.findByEmail("kms@kakao.com");
+
+        // then
+        assertThat(byEmail.isEmpty()).isTrue();
     }
 }

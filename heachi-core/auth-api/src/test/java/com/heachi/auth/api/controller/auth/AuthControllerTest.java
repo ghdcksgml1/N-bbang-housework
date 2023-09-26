@@ -24,9 +24,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
 import java.util.HashMap;
-
 import static com.heachi.mysql.define.user.constant.UserPlatformType.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -101,10 +102,10 @@ class AuthControllerTest extends TestConfig {
     }
 
     @Test
-    @DisplayName("카카오 로그인시 State 값이 현재 session Id와 일치하지 않으면, OAuthException 예외가 발생한다.")
+    @DisplayName("카카오 로그인시 State 값이 redis의 키로 존재하지 않으면, LoginStateException 예외가 발생한다.")
     void kakaoLoginFailWhenInvalidState() throws Exception {
         String code = "code";
-        String state = "invalidState";
+        String state = UUID.randomUUID().toString();
 
         // invalidState 값을 사용해 login을 시도하면 Exception 발생함
         given(oAuthService.login(KAKAO, code, state))
@@ -120,7 +121,7 @@ class AuthControllerTest extends TestConfig {
                 // then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(400))
-                .andExpect(jsonPath("$.resMsg").value(ExceptionMessage.OAUTH_INVALID_STATE.getText()))
+                .andExpect(jsonPath("$.resMsg").value(ExceptionMessage.LOGINSTATE_NOT_FOUND.getText()))
                 .andDo(print());
     }
 
@@ -223,12 +224,14 @@ class AuthControllerTest extends TestConfig {
         map.put("role", savedUser.getRole().name());
         map.put("name", savedUser.getName());
         map.put("profileImageUrl", savedUser.getProfileImageUrl());
-        String token = jwtService.generateToken(map, savedUser);
+        String accessToken = jwtService.generateAccessToken(map, savedUser);
+        String refreshToken = jwtService.generateRefreshToken(map, savedUser);
+
 
         // when
         mockMvc.perform(get("/auth/info")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + accessToken + " " + refreshToken))
                 // then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(200))
@@ -242,14 +245,103 @@ class AuthControllerTest extends TestConfig {
     @DisplayName("userSimpleInfo 실패 테스트, 잘못된 Token을 넣으면 오류를 뱉는다.")
     void userSimpleInfoTestWhenInvalidToken() throws Exception {
         // given
-        String token = "strangeToken";
+        String accessToken = "strangeToken";
+        String refreshToken = "strangeToken";
 
         // when
         mockMvc.perform(get("/auth/info")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + token))
+                        .header("Authorization", "Bearer " + accessToken + " " + refreshToken))
                 // then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resCode").value(400));
+    }
+
+    @Test
+
+    @DisplayName("로그아웃 실패 테스트 - 잘못된 토큰으로 요청시 예외 발생")
+    void logoutTestWhenInvalidToken() throws Exception {
+        String accessToken = "strangeToken";
+        String refreshToken = "strangeToken";
+
+        // when
+        mockMvc.perform(
+                        get("/auth/logout")
+                                .header("Authorization", "Bearer " + accessToken + " " + refreshToken))
+
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(400));
+    }
+
+    @Test
+    @DisplayName("로그아웃 성공 테스트")
+    void logoutSuccessTest() throws Exception {
+        // given
+        User user = User.builder()
+                .name("김민수")
+                .role(UserRole.USER)
+                .email("kimminsu@dankook.ac.kr")
+                .profileImageUrl("https://google.com")
+                .build();
+        User savedUser = userRepository.save(user);
+
+        HashMap<String, String> map = new HashMap<>();
+        map.put("role", savedUser.getRole().name());
+        map.put("name", savedUser.getName());
+        map.put("profileImageUrl", savedUser.getProfileImageUrl());
+        String accessToken = jwtService.generateAccessToken(map, savedUser);
+        String refreshToken = jwtService.generateRefreshToken(map, savedUser);
+
+
+        // when
+        mockMvc.perform(get("/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken + " " + refreshToken))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(200))
+                .andExpect(jsonPath("$.resObj").value("Logout successfully."));
+    }
+
+    @DisplayName("올바른 사용자의 토큰으로 사용자 계정 탈퇴 요청을 하면, 계정이 삭제된다.")
+    void validUserTokenRequestWithDrawThenUserDelete() throws Exception {
+        // given
+        User user = User.builder()
+                .platformId("12345")
+                .platformType(KAKAO)
+                .email("kms@kakao.com")
+                .name("김민수")
+                .profileImageUrl("google.co.kr")
+                .role(UserRole.USER)
+                .build();
+        userRepository.saveAndFlush(user);
+
+        AuthServiceRegisterRequest request = AuthServiceRegisterRequest.builder()
+                .role(UserRole.USER)
+                .phoneNumber("010-0000-0000")
+                .email(user.getEmail())
+                .build();
+        String token = authService.register(request).getAccessToken();
+
+        // when
+        mockMvc.perform(get("/auth/delete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + token))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(200));
+
+    }
+
+    @Test
+    @DisplayName("잘못된 Header로 logout 요청시 에러 발생")
+    void logoutWhenInvalidHeader() throws Exception {
+        mockMvc.perform(get("/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "aa bb cc dd"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resCode").value(400))
+                .andExpect(jsonPath("$.resMsg").value(ExceptionMessage.JWT_INVALID_HEADER.getText()));
     }
 }
