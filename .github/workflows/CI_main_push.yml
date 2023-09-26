@@ -35,6 +35,7 @@ jobs:
         echo "${{ secrets.HEACHINOTIFY_APPLICATION }}" > ./heachi-notify/src/main/resources/application.yml
         echo "${{ secrets.HEACHISUPPORT_COMMON_COMMON }}" > ./heachi-support/common/src/main/resources/common.yml
         echo "${{ secrets.HEACHISUPPORT_EXTERNALCLIENTS_APPLICATION }}" > ./heachi-support/external-clients/src/main/resources/application.yml
+        echo "${{ secrets.HEACHIDOMAINREDIS_DATABASE }}" > ./heachi-domain-redis/src/main/resources/redis.yml
 
     # docker Build에 필요한 gradle.properties 설정
     - name: gradle.properties 생성
