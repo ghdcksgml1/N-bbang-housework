@@ -1,12 +1,11 @@
 package com.heachi.auth.api.controller.auth;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
-import com.heachi.admin.common.exception.jwt.JwtException;
 import com.heachi.admin.common.exception.oauth.OAuthException;
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.auth.api.controller.auth.request.AuthRegisterRequest;
 import com.heachi.auth.api.controller.auth.response.UserSimpleInfoResponse;
-import com.heachi.auth.api.controller.token.response.ReissueAccessTokenResponse;
+import com.heachi.auth.api.controller.auth.response.ReissueAccessTokenResponse;
 import com.heachi.auth.api.service.auth.AuthService;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
@@ -14,7 +13,6 @@ import com.heachi.auth.api.service.oauth.OAuthService;
 import com.heachi.auth.api.service.state.LoginStateService;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
-import io.swagger.v3.core.util.Json;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

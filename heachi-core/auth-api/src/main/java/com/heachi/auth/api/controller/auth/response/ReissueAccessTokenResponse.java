@@ -1,4 +1,4 @@
-package com.heachi.auth.api.controller.token.response;
+package com.heachi.auth.api.controller.auth.response;
 
 import lombok.Builder;
 import lombok.Getter;

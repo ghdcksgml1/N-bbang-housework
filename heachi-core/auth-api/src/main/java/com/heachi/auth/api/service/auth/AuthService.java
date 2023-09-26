@@ -3,7 +3,7 @@ package com.heachi.auth.api.service.auth;
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.auth.AuthException;
 import com.heachi.admin.common.exception.jwt.JwtException;
-import com.heachi.auth.api.controller.token.response.ReissueAccessTokenResponse;
+import com.heachi.auth.api.controller.auth.response.ReissueAccessTokenResponse;
 import com.heachi.auth.api.service.auth.request.AuthServiceRegisterRequest;
 import com.heachi.auth.api.service.auth.response.AuthServiceLoginResponse;
 import com.heachi.auth.api.service.jwt.JwtService;
@@ -16,7 +16,6 @@ import com.heachi.mysql.define.user.constant.UserPlatformType;
 import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
 import com.heachi.redis.define.refreshToken.RefreshToken;
-import com.heachi.redis.define.refreshToken.repository.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
-import java.util.Map;
 
 
 @Slf4j

@@ -3,7 +3,6 @@ package com.heachi.auth.api.service.token;
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.jwt.JwtException;
 import com.heachi.auth.api.service.jwt.JwtService;
-import com.heachi.auth.api.service.jwt.JwtTokenDTO;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.redis.define.refreshToken.RefreshToken;
@@ -14,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 

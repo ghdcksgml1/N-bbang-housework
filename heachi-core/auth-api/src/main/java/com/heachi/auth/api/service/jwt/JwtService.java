@@ -2,7 +2,6 @@ package com.heachi.auth.api.service.jwt;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.jwt.JwtException;
-import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

@@ -6,7 +6,6 @@ import com.heachi.auth.api.service.oauth.adapter.naver.OAuthNaverAdapter;
 import com.heachi.auth.api.service.oauth.builder.KakaoURLBuilder;
 import com.heachi.auth.api.service.oauth.builder.NaverURLBuilder;
 import com.heachi.auth.api.service.oauth.builder.OAuthURLBuilder;
-import com.heachi.auth.api.service.oauth.request.OAuthRegisterRequest;
 import com.heachi.auth.api.service.oauth.response.OAuthResponse;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
 import lombok.extern.slf4j.Slf4j;
