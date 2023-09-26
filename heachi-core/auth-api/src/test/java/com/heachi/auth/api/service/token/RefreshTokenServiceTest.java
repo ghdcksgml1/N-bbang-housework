@@ -8,6 +8,7 @@ import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
 import com.heachi.redis.define.refreshToken.RefreshToken;
 import com.heachi.redis.define.refreshToken.repository.RefreshTokenRepository;
+import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,9 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class RefreshTokenServiceTest {
@@ -151,14 +154,11 @@ class RefreshTokenServiceTest {
                 .email("invalidEmail@naver.com")
                 .build());
 
-        refreshTokenRepository.deleteById(refreshToken);
-
-
         // when
         JwtException exception = assertThrows(JwtException.class,
                 () -> refreshTokenService.logout(refreshToken));
 
-        assertThat(exception.getMessage()).isEqualTo(ExceptionMessage.JWT_NOT_EXIST_RTK.getText());
+        assertThat(exception.getMessage()).isEqualTo(ExceptionMessage.JWT_INVALID_RTK.getText());
     }
 
 }
