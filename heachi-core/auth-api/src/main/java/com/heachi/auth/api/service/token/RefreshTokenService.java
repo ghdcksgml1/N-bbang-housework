@@ -28,16 +28,16 @@ public class RefreshTokenService {
 
         String email = jwtService.extractAllClaims(refreshToken).getSubject();
 
-        // refreshToken 유효성 검사
-        if (!jwtService.isTokenValid(refreshToken, email)) {
-            log.warn(">>>> Token Validation Fail : {}", ExceptionMessage.JWT_INVALID_RTK.getText());
-            throw new JwtException(ExceptionMessage.JWT_INVALID_RTK);
-        }
-
         RefreshToken rtk = refreshTokenRepository.findById(refreshToken).orElseThrow(() -> {
             log.warn(">>>> Token Not Exist : {}", ExceptionMessage.JWT_NOT_EXIST_RTK.getText());
             throw new JwtException(ExceptionMessage.JWT_NOT_EXIST_RTK);
         });
+
+        // refreshToken 유효성 검사
+        if (!jwtService.isTokenValid(refreshToken, rtk.getEmail())) {
+            log.warn(">>>> Token Validation Fail : {}", ExceptionMessage.JWT_INVALID_RTK.getText());
+            throw new JwtException(ExceptionMessage.JWT_INVALID_RTK);
+        }
 
         refreshTokenRepository.delete(rtk);
         log.info(">>>> {}'s RefreshToken id deleted.", email);
