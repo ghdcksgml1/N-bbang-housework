@@ -41,6 +41,8 @@ public class QUser extends EntityPathBase<User> {
 
     public final StringPath profileImageUrl = createString("profileImageUrl");
 
+    public final BooleanPath pushAlarmYn = createBoolean("pushAlarmYn");
+
     public final EnumPath<com.heachi.mysql.define.user.constant.UserRole> role = createEnum("role", com.heachi.mysql.define.user.constant.UserRole.class);
 
     public QUser(String variable) {
