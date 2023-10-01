@@ -26,7 +26,7 @@ public class AuthService {
                         throw new JwtException(ExceptionMessage.JWT_USER_NOT_FOUND);
                     }
 
-                    return userInfoResponseJsonResult.getResObj().getPlatformId();
+                    return userInfoResponseJsonResult.getResObj().getEmail();
                 });
     }
 }

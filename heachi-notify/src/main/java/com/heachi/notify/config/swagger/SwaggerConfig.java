@@ -1,4 +1,4 @@
-package com.heachi.auth.config.swagger;
+package com.heachi.notify.config.swagger;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -20,11 +20,11 @@ import java.util.stream.Collectors;
 public class SwaggerConfig {
 
     @Bean
-    public OpenAPI openAPI(@Value("${heachiCoreAuthUrls}") String[] serverList) {
+    public OpenAPI openAPI(@Value("${heachiNotifyUrls}") String[] serverList) {
         Info info = new Info()
-                .title("Heachi-Auth Server")
+                .title("Heachi-Notify Server")
                 .version("0.1")
-                .description("N빵 집안일 인증서버 API 문서입니다.")
+                .description("N빵 집안일 알림서버 API 문서입니다.")
                 .contact(new Contact()
                         .name("📍 N-bbang-housework Backend GitHub Link")
                         .url("https://github.com/ghdcksgml1/N-bbang-housework"))
