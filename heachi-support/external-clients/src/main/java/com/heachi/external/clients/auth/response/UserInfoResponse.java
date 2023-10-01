@@ -1,5 +1,6 @@
 package com.heachi.external.clients.auth.response;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -8,15 +9,16 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class UserInfoResponse {
-    private String platformId;
-    private String platformType;
     private String role;
     private String name;
+    private String email;
+    private String profileImageUrl;
 
-    public UserInfoResponse(String platformId, String platformType, String role, String name) {
-        this.platformId = platformId;
-        this.platformType = platformType;
+    @Builder
+    public UserInfoResponse(String role, String name, String email, String profileImageUrl) {
         this.role = role;
         this.name = name;
+        this.email = email;
+        this.profileImageUrl = profileImageUrl;
     }
 }

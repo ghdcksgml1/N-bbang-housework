@@ -25,7 +25,7 @@ public class NotifyController {
     /**
      * 알림 받기
      */
-    @GetMapping(value = "/", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value = "/")
     public Flux<JsonResult> receive(
             @RequestHeader(value = "Authorization", required = false, defaultValue = "token") String headers,
             @RequestParam(name = "page", defaultValue = "0") int page) {
