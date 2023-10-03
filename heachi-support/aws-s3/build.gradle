@@ -1,0 +1,10 @@
+bootJar.enabled = false
+jar.enabled = true
+
+dependencies {
+    // 추가 모듈
+    implementation project(":heachi-support:common")
+
+    implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Boot
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE' // AWS S3
+}

@@ -8,5 +8,6 @@ include(
     "heachi-notify",
     "heachi-support:common",
     "heachi-support:logging",
-    "heachi-support:external-clients"
+    "heachi-support:external-clients",
+    "heachi-support:aws-s3"
 )
