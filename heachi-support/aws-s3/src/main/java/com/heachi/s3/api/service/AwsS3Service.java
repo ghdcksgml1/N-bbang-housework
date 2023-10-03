@@ -20,7 +20,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AwsService {
+public class AwsS3Service {
 
     private final AmazonS3 amazonS3;
 
