@@ -64,7 +64,7 @@ class SecurityConfigTest extends TestConfig {
     @DisplayName("인증받은 사용자는 접근할 수 있다. 인증받지 않은 사용자의 접근 가능 URI는 \"/auth/**\"이다.")
     void authUserTest() throws Exception {
         // given
-        String uri = "/auth/";
+        String uri = "/auth/info";
 
         User user = User.builder()
                 .name("김민수")
