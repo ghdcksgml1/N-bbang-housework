@@ -40,6 +40,11 @@ public enum ExceptionMessage {
     // NotifyException
     NOTIFY_NOT_FOUND("해당 아이디의 알림을 찾을 수 없습니다."),
     NOTIFY_DUPLICATE_ID("SendUser와 ReceiveUser가 같습니다."),
+
+    // AwsS3Exception
+    S3_FILE_SIZE_LIMIT_EXCEEDED("파일 크기가 너무 큽니다."),
+    S3_FILE_UPLOAD_FAILED("파일을 업로드하는데 실패했습니다."),
+    S3_MALFORMED_FILE("잘못된 파일 확장자 입니다."),
     ;
 
     private final String text;
