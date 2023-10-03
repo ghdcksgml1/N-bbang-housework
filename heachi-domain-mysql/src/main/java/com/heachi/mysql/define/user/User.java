@@ -8,6 +8,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,30 +18,43 @@ import java.util.Collection;
 import java.util.List;
 
 @Getter
+@DynamicInsert // Entity save 시점에 null 값은 배제하고 Insert Query를 날려줌
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "USERS")
 public class User extends BaseEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "USER_ID")
+    private Long id;                        // 아이디
 
-    private String platformId;
+    @Column(name = "PLATFORM_ID")
+    private String platformId;              // 플랫폼 아이디
 
     @Enumerated(EnumType.STRING)
-    private UserPlatformType platformType;
+    @Column(name = "PLATFORM_TYPE")
+    @ColumnDefault(value = "'KAKAO'")
+    private UserPlatformType platformType;  // 플랫폼 타입
 
     @Enumerated(EnumType.STRING)
-    private UserRole role;
+    @Column(name = "ROLE")
+    @ColumnDefault(value = "'UNAUTH'")
+    private UserRole role;                  // 역할
 
-    private String name;
+    @Column(name = "NAME")
+    private String name;                    // 이름
 
-    @Column(unique = true)
-    private String email;
+    @Column(name = "EMAIL", unique = true)
+    private String email;                   // 이메일
 
-    private String phoneNumber;
+    @Column(name = "PHONE_NUMBER")
+    private String phoneNumber;             // 전화번호
 
-    private String profileImageUrl;
+    @Column(name = "PROFILE_IMAGE_URL")
+    private String profileImageUrl;         // 프로필 사진
+
+    @Column(name = "PUSH_ALARM_YN")
+    private boolean pushAlarmYn = false;    // 알림 수신 동의
 
     public void updateProfile(String name, String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
@@ -98,4 +113,5 @@ public class User extends BaseEntity implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
 }

@@ -1,5 +1,6 @@
 package com.heachi.mysql.define;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
@@ -15,9 +16,11 @@ import java.time.LocalDateTime;
 public class BaseEntity {
 
     @CreatedDate
+    @Column(name = "CREATED_DATE_TIME")
     private LocalDateTime createdDateTime;
 
     @LastModifiedDate
+    @Column(name = "MODIFIED_DATE_TIME")
     private LocalDateTime modifiedDateTime;
 
 }
