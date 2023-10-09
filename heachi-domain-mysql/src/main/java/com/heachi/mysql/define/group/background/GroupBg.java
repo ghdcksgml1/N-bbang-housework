@@ -27,7 +27,7 @@ public class GroupBg extends BaseEntity {
     private String gradient;    // 그룹의 CSS 속성
 
     @Builder
-    public GroupBg(String bgColor, String colorCode, String gradient) {
+    private GroupBg(String bgColor, String colorCode, String gradient) {
         this.bgColor = bgColor;
         this.colorCode = colorCode;
         this.gradient = gradient;

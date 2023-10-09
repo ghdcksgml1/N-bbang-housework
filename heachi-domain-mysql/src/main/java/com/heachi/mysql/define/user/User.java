@@ -73,7 +73,8 @@ public class User extends BaseEntity implements UserDetails {
     }
 
     @Builder
-    private User(List<GroupInfo> groupInfoList, String platformId, UserPlatformType platformType, UserRole role, String name, String email, String phoneNumber, String profileImageUrl, boolean pushAlarmYn) {
+    private User(List<GroupInfo> groupInfoList, String platformId, UserPlatformType platformType, UserRole role,
+                 String name, String email, String phoneNumber, String profileImageUrl, boolean pushAlarmYn) {
         this.groupInfoList = groupInfoList;
         this.platformId = platformId;
         this.platformType = platformType;

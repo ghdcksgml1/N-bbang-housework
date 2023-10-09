@@ -48,7 +48,7 @@ public class GroupInfo extends BaseEntity {
     private String joinCode;    // 그룹 가입코드
 
     @Builder
-    public GroupInfo(User user, String bgColor, String colorCode, String gradient, String name, String info, String joinCode) {
+    private GroupInfo(User user, String bgColor, String colorCode, String gradient, String name, String info, String joinCode) {
         this.user = user;
         this.bgColor = bgColor;
         this.colorCode = colorCode;
