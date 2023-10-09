@@ -37,7 +37,7 @@ public class GroupMember extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS")
     @ColumnDefault(value = "'WAITING'")
-    private GroupMemberStatus status;   // 구성원 상태 (대기 중, 수락)
+    private GroupMemberStatus status;   // 구성원 상태 (대기 중, 수락, 탈퇴)
 
     @Builder
     private GroupMember(GroupInfo groupInfo, User user, GroupMemberRole role, GroupMemberStatus status) {

@@ -18,17 +18,15 @@ public class NotifyServiceRegistRequest {
     private List<String> receiveUserIds = new ArrayList<>();            // 알림을 받는 아이디
     private NotifyType type;                                            // 알림 종류
     private String message;                                             // 알림 내용
-    private String generatedUrl;                                        // 알림의 근원지
     private String url;                                                 // 알림 클릭 시 이동할 주소
 
     @Builder
-    private NotifyServiceRegistRequest(String sendUserId, List<String> receiveUserIds, NotifyType type, String message
-            , String generatedUrl, String url) {
+    private NotifyServiceRegistRequest(String sendUserId, List<String> receiveUserIds,
+                                       NotifyType type, String message, String url) {
         this.sendUserId = sendUserId;
         this.receiveUserIds = receiveUserIds;
         this.type = type;
         this.message = message;
-        this.generatedUrl = generatedUrl;
         this.url = url;
     }
 
@@ -38,7 +36,6 @@ public class NotifyServiceRegistRequest {
                 .receiveUserIds(request.getReceiveUserIds())
                 .type(request.getType())
                 .message(request.getMessage())
-                .generatedUrl(request.getGeneratedUrl())
                 .url(request.getUrl())
                 .build();
     }
@@ -49,7 +46,6 @@ public class NotifyServiceRegistRequest {
                 .receiveUserIds(this.receiveUserIds)
                 .type(this.type)
                 .message(this.message)
-                .generatedUrl(this.generatedUrl)
                 .createdTime(LocalDateTime.now())
                 .checkedTime(new HashMap<>())
                 .checked(new HashSet<>())
