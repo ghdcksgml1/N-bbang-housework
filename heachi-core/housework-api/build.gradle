@@ -14,7 +14,6 @@ dependencies {
     implementation project(':heachi-support:external-clients')
     implementation project(':heachi-domain-mysql')
     implementation project(':heachi-domain-redis')
-    implementation project(':heachi-core:auth-api')
 
     implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web
     implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation

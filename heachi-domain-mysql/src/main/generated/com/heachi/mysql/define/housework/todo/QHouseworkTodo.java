@@ -41,7 +41,7 @@ public class QHouseworkTodo extends EntityPathBase<HouseworkTodo> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final NumberPath<Integer> index = createNumber("index", Integer.class);
+    public final NumberPath<Integer> idx = createNumber("idx", Integer.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedDateTime = _super.modifiedDateTime;
