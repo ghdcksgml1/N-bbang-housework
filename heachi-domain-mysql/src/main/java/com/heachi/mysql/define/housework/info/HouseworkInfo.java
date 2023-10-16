@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,12 +53,12 @@ public class HouseworkInfo extends BaseEntity {
     private String monthDate;                                           // 매달: 일 정보 (1,23,25)
 
     @Column(name = "END_TIME")
-    private LocalDateTime endTime;                                       // 집안일 마감 시간 (시간정보만)
+    private LocalTime endTime;                                       // 집안일 마감 시간 (시간정보만)
 
     @Builder
     private HouseworkInfo(List<HouseworkMember> houseworkMembers, HouseworkCategory houseworkCategory, String title,
                           String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate, String monthDate,
-                          LocalDateTime endTime) {
+                          LocalTime endTime) {
         this.houseworkMembers = houseworkMembers;
         this.houseworkCategory = houseworkCategory;
         this.title = title;
