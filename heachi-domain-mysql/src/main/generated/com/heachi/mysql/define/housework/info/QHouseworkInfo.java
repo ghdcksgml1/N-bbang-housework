@@ -27,11 +27,11 @@ public class QHouseworkInfo extends EntityPathBase<HouseworkInfo> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdDateTime = _super.createdDateTime;
 
-    public final DatePath<java.util.Date> dayDate = createDate("dayDate", java.util.Date.class);
+    public final DatePath<java.time.LocalDate> dayDate = createDate("dayDate", java.time.LocalDate.class);
 
     public final StringPath detail = createString("detail");
 
-    public final TimePath<java.util.Date> endTime = createTime("endTime", java.util.Date.class);
+    public final TimePath<java.time.LocalTime> endTime = createTime("endTime", java.time.LocalTime.class);
 
     public final com.heachi.mysql.define.housework.category.QHouseworkCategory houseworkCategory;
 

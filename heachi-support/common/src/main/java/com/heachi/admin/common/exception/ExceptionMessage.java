@@ -37,6 +37,9 @@ public enum ExceptionMessage {
     AUTH_NOT_FOUND("계정 정보를 찾을 수 없습니다."),
     AUTH_DELETE_FAIL("계정 삭제에 실패했습니다."),
 
+    // GroupException
+    GROUP_NOT_FOUND("그룹을 찾지 못했습니다."),
+
     // GroupMemberException
     GROUP_MEMBER_NOT_FOUND("그룹 멤버를 찾지 못했습니다."),
 
@@ -53,11 +56,6 @@ public enum ExceptionMessage {
     HOUSEWORK_NOT_FOUND("집안일 정보를 찾을 수 없습니다."),
     HOUSEWORK_ADD_FAIL("집안일 추가에 실패했습니다."),
     HOUSEWORK_ADD_PERMISSION_DENIED("집안일을 추가할 권한이 없습니다."),
-
-    // GroupException
-    GROUP_NOT_FOUND("그룹 정보를 찾을 수 없습니다."),
-    GROUP_MEMBER_NOT_FOUND("그룹 구성원의 정보를 찾을 수 없습니다."),
-
 
     ;
 

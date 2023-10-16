@@ -25,15 +25,19 @@ public class HouseworkController {
             @RequestHeader(name = "Authorization") String token,
             @RequestBody HouseworkAddRequestDTO request
     ) {
-        List<String> tokens = Arrays.asList(token.split(" "));
+//        List<String> tokens = Arrays.asList(token.split(" "));
+//
+//        if (tokens.size() == 3) {
+//            HouseworkAddResponseDTO addResponse = houseworkService.houseworkAdd(tokens.get(2), HouseworkServiceAddRequestDTO.of(request));
+//
+//            return JsonResult.successOf(addResponse);
+//        } else {
+//            log.warn(">>>> Invalid Header Access : {}", ExceptionMessage.JWT_INVALID_HEADER.getText());
+//            return JsonResult.failOf(ExceptionMessage.JWT_INVALID_HEADER.getText());
+//        }
 
-        if (tokens.size() == 3) {
-            HouseworkAddResponseDTO addResponse = houseworkService.houseworkAdd(tokens.get(2), HouseworkServiceAddRequestDTO.of(request));
+        HouseworkAddResponseDTO addResponse = houseworkService.houseworkAdd(token, HouseworkServiceAddRequestDTO.of(request));
 
-            return JsonResult.successOf(addResponse);
-        } else {
-            log.warn(">>>> Invalid Header Access : {}", ExceptionMessage.JWT_INVALID_HEADER.getText());
-            return JsonResult.failOf(ExceptionMessage.JWT_INVALID_HEADER.getText());
-        }
+        return JsonResult.successOf(addResponse);
     }
 }
