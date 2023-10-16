@@ -71,4 +71,13 @@ public class RefreshTokenService {
 
         return jwtService.generateAccessToken(map, userDetails);
     }
+
+    public String getEmailWithRTK(String refreshToken) {
+        RefreshToken findToken = refreshTokenRepository.findById(refreshToken).orElseThrow(() -> {
+            log.warn(">>>> Token Not Exist : {}", ExceptionMessage.JWT_NOT_EXIST_RTK.getText());
+            throw new JwtException(ExceptionMessage.JWT_NOT_EXIST_RTK);
+        });
+
+        return findToken.getEmail();
+    }
 }
