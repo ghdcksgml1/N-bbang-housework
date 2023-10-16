@@ -14,6 +14,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
@@ -37,7 +39,7 @@ public class HouseworkAddRequestDTO {
     @NotNull
     private HouseworkPeriodType type; // 집안일 주기 타입 (한번, 매일, 매주, 매달)
 
-    private Date dayDate; // 단건: 날짜 정보
+    private LocalDate dayDate; // 단건: 날짜 정보
 
     @Pattern(regexp = "^[0-6]$",
             message = "요일 정보는 0~6 사이의 문자열이어야 합니다.")  // (0~6)
@@ -48,5 +50,5 @@ public class HouseworkAddRequestDTO {
     private String monthDate;
 
     @NotNull
-    private Date endTime;
+    private LocalTime endTime;
 }

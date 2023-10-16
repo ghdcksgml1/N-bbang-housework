@@ -14,8 +14,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
 
 import javax.swing.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
@@ -29,10 +32,10 @@ public class HouseworkServiceAddRequestDTO {
     private String title;
     private String detail;
     private HouseworkPeriodType type;
-    private Date dayDate;
+    private LocalDate dayDate;
     private String weekDate;
     private String monthDate;
-    private Date endTime;
+    private LocalTime endTime;
 
     public static HouseworkServiceAddRequestDTO of(HouseworkAddRequestDTO request) {
         return HouseworkServiceAddRequestDTO.builder()

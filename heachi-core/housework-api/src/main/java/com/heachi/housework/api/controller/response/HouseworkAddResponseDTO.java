@@ -6,6 +6,8 @@ import com.heachi.mysql.define.housework.member.HouseworkMember;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
@@ -16,13 +18,13 @@ public class HouseworkAddResponseDTO {
     private String title;
     private String detail;
     private HouseworkPeriodType type;
-    private Date dayDate;
+    private LocalDate dayDate;
     private String weekDate;
     private String monthDate;
-    private Date endTime;
+    private LocalTime endTime;
 
     @Builder
-    public HouseworkAddResponseDTO(List<HouseworkMember> houseworkMembers, HouseworkCategory houseworkCategory, String title, String detail, HouseworkPeriodType type, Date dayDate, String weekDate, String monthDate, Date endTime) {
+    public HouseworkAddResponseDTO(List<HouseworkMember> houseworkMembers, HouseworkCategory houseworkCategory, String title, String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate, String monthDate, LocalTime endTime) {
         this.houseworkMembers = houseworkMembers;
         this.houseworkCategory = houseworkCategory;
         this.title = title;
