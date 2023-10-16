@@ -14,9 +14,11 @@ dependencies {
     implementation project(':heachi-support:external-clients')
     implementation project(':heachi-domain-mysql')
     implementation project(':heachi-domain-redis')
+    implementation project(':heachi-core:auth-api')
 
     implementation 'org.springframework.boot:spring-boot-starter-web' // Spring Web
     implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation
+    implementation 'org.springframework.boot:spring-boot-starter-security' // Spring Security
 
     // Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
@@ -25,6 +27,7 @@ dependencies {
     testCompileOnly project(':heachi-support:logging')
     testCompileOnly project(':heachi-domain-mysql')
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
 }
 
 jib {
