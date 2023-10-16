@@ -3,7 +3,6 @@ package com.heachi.mysql.define.housework.info;
 import com.heachi.mysql.define.BaseEntity;
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
 import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
-import com.heachi.mysql.define.housework.todo.constant.HouseworkTodoStatus;
 import com.heachi.mysql.define.housework.member.HouseworkMember;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -11,8 +10,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -44,7 +44,7 @@ public class HouseworkInfo extends BaseEntity {
 
     @Temporal(TemporalType.DATE)
     @Column(name = "DAY_DATE")
-    private Date dayDate;                                               // 단건: 날짜 정보
+    private LocalDate dayDate;                                          // 단건: 날짜 정보
 
     @Column(name = "WEEK_DATE")
     private String weekDate;                                            // 매주: 요일 정보 (일~토: 0~6)
@@ -52,12 +52,13 @@ public class HouseworkInfo extends BaseEntity {
     @Column(name = "MONTH_DATE")
     private String monthDate;                                           // 매달: 일 정보 (1,23,25)
 
-    @Temporal(TemporalType.TIME)
     @Column(name = "END_TIME")
-    private Date endTime;                                               // 집안일 마감 시간 (시간정보만)
+    private LocalDateTime endTime;                                       // 집안일 마감 시간 (시간정보만)
 
     @Builder
-    private HouseworkInfo(List<HouseworkMember> houseworkMembers, HouseworkCategory houseworkCategory, String title, String detail, HouseworkPeriodType type, Date dayDate, String weekDate, String monthDate, Date endTime) {
+    private HouseworkInfo(List<HouseworkMember> houseworkMembers, HouseworkCategory houseworkCategory, String title,
+                          String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate, String monthDate,
+                          LocalDateTime endTime) {
         this.houseworkMembers = houseworkMembers;
         this.houseworkCategory = houseworkCategory;
         this.title = title;

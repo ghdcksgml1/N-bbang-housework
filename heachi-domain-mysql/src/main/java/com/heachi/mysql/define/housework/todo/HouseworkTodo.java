@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Getter
 @DynamicInsert
@@ -57,7 +57,7 @@ public class HouseworkTodo extends BaseEntity {
 
     @Temporal(TemporalType.DATE)
     @Column(name = "DATE", nullable = false)
-    private Date date;                  // 집안일 지정 날짜
+    private LocalDate date;                  // 집안일 지정 날짜
 
     @Column(name = "VERIFICATION_PHOTO_URL")
     private String verificationPhotoURL;    // 다른 사용자가 확인할 수 있는 인증 사진 URL
@@ -70,7 +70,7 @@ public class HouseworkTodo extends BaseEntity {
 
     @Builder
     private HouseworkTodo(HouseworkInfo houseworkInfo, GroupInfo groupInfo, String houseworkMember, String category,
-                         String title, String detail, Integer idx, HouseworkTodoStatus status, Date date,
+                         String title, String detail, Integer idx, HouseworkTodoStatus status, LocalDate date,
                          String verificationPhotoURL, String verifierId, LocalDateTime verificationTime) {
         this.houseworkInfo = houseworkInfo;
         this.groupInfo = groupInfo;
