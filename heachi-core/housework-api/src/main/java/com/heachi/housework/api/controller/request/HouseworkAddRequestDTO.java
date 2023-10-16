@@ -1,5 +1,6 @@
 package com.heachi.housework.api.controller.request;
 
+import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
 import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
 import com.heachi.mysql.define.housework.member.HouseworkMember;
@@ -22,7 +23,7 @@ import java.util.List;
 @AllArgsConstructor
 public class HouseworkAddRequestDTO {
     @NotEmpty
-    private List<HouseworkMember> houseworkMembers;
+    private List<GroupMember> groupMembers;
 
     @Enumerated(EnumType.STRING)
     @NotNull

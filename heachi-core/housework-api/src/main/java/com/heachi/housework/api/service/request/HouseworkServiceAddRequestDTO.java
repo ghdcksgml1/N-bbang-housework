@@ -1,6 +1,7 @@
 package com.heachi.housework.api.service.request;
 
 import com.heachi.housework.api.controller.request.HouseworkAddRequestDTO;
+import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
 import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
 import com.heachi.mysql.define.housework.member.HouseworkMember;
@@ -14,6 +15,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.swing.*;
 import java.util.Date;
 import java.util.List;
 
@@ -22,7 +24,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HouseworkServiceAddRequestDTO {
-    private List<HouseworkMember> houseworkMembers;
+    private List<GroupMember> groupMembers;
     private HouseworkCategory houseworkCategory;
     private String title;
     private String detail;
@@ -34,7 +36,7 @@ public class HouseworkServiceAddRequestDTO {
 
     public static HouseworkServiceAddRequestDTO of(HouseworkAddRequestDTO request) {
         return HouseworkServiceAddRequestDTO.builder()
-                .houseworkMembers(request.getHouseworkMembers())
+                .groupMembers(request.getGroupMembers())
                 .houseworkCategory(request.getHouseworkCategory())
                 .title(request.getTitle())
                 .detail(request.getDetail())
