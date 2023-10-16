@@ -1,4 +1,4 @@
-package com.heachi.auth.config.querydsl;
+package com.heachi.mysql.config.querydsl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class QuerydslConfig {
+public class QueryDslConfig {
 
     @PersistenceContext
     private EntityManager em;
