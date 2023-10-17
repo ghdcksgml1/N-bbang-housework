@@ -1,6 +1,7 @@
 package com.heachi.housework.api.service.housework.info;
 
 import com.heachi.admin.common.exception.housework.HouseworkException;
+import com.heachi.external.clients.auth.response.UserInfoResponse;
 import com.heachi.housework.TestConfig;
 import com.heachi.housework.api.controller.housework.info.response.HouseworkInfoAddResponse;
 import com.heachi.housework.api.service.housework.info.HouseworkInfoService;
@@ -49,10 +50,10 @@ class HouseworkInfoServiceTest extends TestConfig {
         // given
         HouseworkInfoAddResponse response = generateHouseworkAddResponse();
 
-        when(houseworkInfoService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkInfoAddServiceRequest.class)))
+        when(houseworkInfoService.houseworkAdd(any(UserInfoResponse.class), any(HouseworkInfoAddServiceRequest.class)))
                 .thenReturn(response);
 
-        HouseworkInfoAddResponse addResponseDTO = houseworkInfoService.houseworkAdd("token", 1L, HouseworkInfoAddServiceRequest.builder().build());
+        HouseworkInfoAddResponse addResponseDTO = houseworkInfoService.houseworkAdd(UserInfoResponse.builder().build(), HouseworkInfoAddServiceRequest.builder().build());
 
         assertEquals(response, addResponseDTO);
     }
@@ -61,11 +62,11 @@ class HouseworkInfoServiceTest extends TestConfig {
     @DisplayName("집안일 추가 실패 테스트")
     void houseworkAddServiceFailTest() throws Exception {
         // when
-        when(houseworkInfoService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkInfoAddServiceRequest.class)))
+        when(houseworkInfoService.houseworkAdd(any(UserInfoResponse.class), any(HouseworkInfoAddServiceRequest.class)))
                 .thenThrow(HouseworkException.class);
         // then
         assertThrows(HouseworkException.class, () -> {
-            houseworkInfoService.houseworkAdd("token", 1L, HouseworkInfoAddServiceRequest.builder().build());
+            houseworkInfoService.houseworkAdd(UserInfoResponse.builder().build(), HouseworkInfoAddServiceRequest.builder().build());
         });
     }
 
