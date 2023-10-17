@@ -20,9 +20,10 @@ import java.util.List;
 public class HouseworkController {
     private final HouseworkService houseworkService;
 
-    @PostMapping("/add")
+    @PostMapping("/add/{groupId}")
     public JsonResult<HouseworkAddResponseDTO> houseworkAdd(
             @RequestHeader(name = "Authorization") String token,
+            @PathVariable(name = "groupId") Long groupId,
             @RequestBody HouseworkAddRequestDTO request
     ) {
 //        List<String> tokens = Arrays.asList(token.split(" "));
@@ -36,7 +37,7 @@ public class HouseworkController {
 //            return JsonResult.failOf(ExceptionMessage.JWT_INVALID_HEADER.getText());
 //        }
 
-        HouseworkAddResponseDTO addResponse = houseworkService.houseworkAdd(token, HouseworkServiceAddRequestDTO.of(request));
+        HouseworkAddResponseDTO addResponse = houseworkService.houseworkAdd(token, groupId, HouseworkServiceAddRequestDTO.of(request));
 
         return JsonResult.successOf(addResponse);
     }

@@ -43,16 +43,11 @@ public class HouseworkService {
     private final AuthExternalService authExternalService;
 
     @Transactional
-    public HouseworkAddResponseDTO houseworkAdd(String token, HouseworkServiceAddRequestDTO request) {
+    public HouseworkAddResponseDTO houseworkAdd(String token, Long groupId, HouseworkServiceAddRequestDTO request) {
         try {
-            // Auth 서버에 외부 요청을 보내 유저 정보 조회
-//            UserInfoResponse userResponse = authExternalService.userAuthenticate(token);
-
-            // GroupInfo Id 추출
-            Long groupInfoId = request.getGroupMembers().get(0).getGroupInfo().getId();
             
             // 요청자가 그룹 구성원인지 조회 - ACCEPT 상태인지까지 확인
-            UserInfoResponse userInfoResponse = authExternalService.userAuthenticateAndGroupMatch(token, groupInfoId);
+            UserInfoResponse userInfoResponse = authExternalService.userAuthenticateAndGroupMatch(token, groupId);
 
             // 집안일 추가 권한이 있는 구성원인지 확인
             // 그룹장인지 확인. role: GROUP_ADMIN

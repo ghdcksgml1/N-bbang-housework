@@ -48,10 +48,10 @@ class HouseworkServiceTest extends TestConfig {
         // given
         HouseworkAddResponseDTO response = generateHouseworkAddResponse();
 
-        when(houseworkService.houseworkAdd(any(String.class), any(HouseworkServiceAddRequestDTO.class)))
+        when(houseworkService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkServiceAddRequestDTO.class)))
                 .thenReturn(response);
 
-        HouseworkAddResponseDTO addResponseDTO = houseworkService.houseworkAdd("token", HouseworkServiceAddRequestDTO.builder().build());
+        HouseworkAddResponseDTO addResponseDTO = houseworkService.houseworkAdd("token", 1L, HouseworkServiceAddRequestDTO.builder().build());
 
         assertEquals(response, addResponseDTO);
     }
@@ -60,11 +60,11 @@ class HouseworkServiceTest extends TestConfig {
     @DisplayName("집안일 추가 실패 테스트")
     void houseworkAddServiceFailTest() throws Exception {
         // when
-        when(houseworkService.houseworkAdd(any(String.class), any(HouseworkServiceAddRequestDTO.class)))
+        when(houseworkService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkServiceAddRequestDTO.class)))
                 .thenThrow(HouseworkException.class);
         // then
         assertThrows(HouseworkException.class, () -> {
-            houseworkService.houseworkAdd("token", HouseworkServiceAddRequestDTO.builder().build());
+            houseworkService.houseworkAdd("token", 1L, HouseworkServiceAddRequestDTO.builder().build());
         });
     }
 

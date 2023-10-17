@@ -63,11 +63,11 @@ class HouseworkControllerTest extends TestConfig {
 
         HouseworkAddResponseDTO response = generateHouseworkAddResponse();
 
-        when(houseworkService.houseworkAdd(any(String.class), any(HouseworkServiceAddRequestDTO.class)))
+        when(houseworkService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkServiceAddRequestDTO.class)))
                 .thenReturn(response);
 
         mockMvc.perform(
-                        post("/housework/add")
+                        post("/housework/add/1")
                                 .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(JsonMapper.builder().build().writeValueAsString(HouseworkAddRequestDTO.builder().build())))
@@ -87,11 +87,11 @@ class HouseworkControllerTest extends TestConfig {
 
         HouseworkAddResponseDTO response = generateHouseworkAddResponse();
 
-        when(houseworkService.houseworkAdd(any(String.class), any(HouseworkServiceAddRequestDTO.class)))
+        when(houseworkService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkServiceAddRequestDTO.class)))
                 .thenThrow(new HouseworkException(ExceptionMessage.HOUSEWORK_ADD_FAIL));
 
         mockMvc.perform(
-                        post("/housework/add")
+                        post("/housework/add/1")
                                 .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(JsonMapper.builder().build().writeValueAsString(HouseworkAddRequestDTO.builder().build())))
