@@ -1,14 +1,18 @@
 package com.heachi.housework.api.service.housework.todo;
 
+import com.heachi.admin.common.utils.CachingStrategy;
 import com.heachi.admin.common.utils.DayOfWeekUtils;
 import com.heachi.housework.api.service.housework.todo.request.TodoSelectRequest;
 import com.heachi.housework.api.service.housework.todo.response.TodoResponse;
 import com.heachi.mysql.define.group.member.repository.GroupMemberRepository;
-import com.heachi.mysql.define.housework.info.HouseworkInfo;
 import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
 import com.heachi.mysql.define.housework.todo.HouseworkTodo;
 import com.heachi.mysql.define.housework.todo.repository.HouseworkTodoRepository;
 import com.heachi.mysql.define.user.User;
+import com.heachi.redis.define.housework.todo.Todo;
+import com.heachi.redis.define.housework.todo.TodoList;
+import com.heachi.redis.define.housework.todo.TodoUser;
+import com.heachi.redis.define.housework.todo.repository.TodoListRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,9 +30,44 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class TodoService {
 
+    private final TodoListRepository todoListRepository;
+
     private final GroupMemberRepository groupMemberRepository;
     private final HouseworkTodoRepository houseworkTodoRepository;
     private final HouseworkInfoRepository houseworkInfoRepository;
+
+    public TodoList cachedSelectTodo(TodoSelectRequest request) {
+
+        return CachingStrategy.cachingIfEmpty(request,
+                (req) -> todoListRepository.findByGroupInfoIdAndDate(req.getGroupId(), req.getDate()),
+                (req) -> {
+                    List<TodoResponse> todoResponseList = selectTodo(req);
+
+                    return todoListRepository.save(TodoList.builder() // List<TodoResponse> => TodoList 후 save
+                            .groupInfoId(req.getGroupId())
+                            .date(req.getDate())
+                            .todoList(todoResponseList.stream()
+                                    .map(todo -> Todo.builder()
+                                            .id(todo.getId())
+                                            .houseworkMembers(todo.getHouseworkMembers().stream()
+                                                    .map(u -> TodoUser.builder()
+                                                            .name(u.getName())
+                                                            .email(u.getEmail())
+                                                            .profileImageUrl(u.getProfileImageUrl())
+                                                            .build())
+                                                    .collect(Collectors.toList()))
+                                            .category(todo.getCategory())
+                                            .title(todo.getTitle())
+                                            .detail(todo.getDetail())
+                                            .status(todo.getStatus().name())
+                                            .date(todo.getDate())
+                                            .endTime(todo.getEndTime())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .build());
+                },
+                (todo) -> todo.isDirtyBit() == false); // dirtyBit가 false가 아니면 캐시 업데이트
+    }
 
     // GroupInfoId와 Date를 통해 Todo List 가져오기
     public List<TodoResponse> selectTodo(TodoSelectRequest request) {

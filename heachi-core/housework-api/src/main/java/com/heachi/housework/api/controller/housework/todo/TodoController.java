@@ -27,7 +27,7 @@ public class TodoController {
                                     @RequestParam(value = "date") LocalDate date) {
         UserInfoResponse userInfo = authExternalService.userAuthenticateAndGroupMatch(authorization, groupId);
 
-        return JsonResult.successOf(todoService.selectTodo(
+        return JsonResult.successOf(todoService.cachedSelectTodo(
                 TodoSelectRequest.builder().groupId(groupId).date(date).build()));
     }
 }
