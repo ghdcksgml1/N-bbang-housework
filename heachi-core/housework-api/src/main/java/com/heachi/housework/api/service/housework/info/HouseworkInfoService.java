@@ -34,18 +34,13 @@ public class HouseworkInfoService {
     private final HouseworkSaveRepository houseworkSaveRepository;
     private final HouseworkInfoRepository houseworkInfoRepository;
     private final HouseworkMemberRepository houseworkMemberRepository;
-    private final AuthExternalService authExternalService;
 
     @Transactional
-    public HouseworkInfoAddResponse houseworkAdd(String token, Long groupId, HouseworkInfoAddServiceRequest request) {
+    public HouseworkInfoAddResponse houseworkAdd(UserInfoResponse requestUser, HouseworkInfoAddServiceRequest request) {
         try {
-            
-            // 요청자가 그룹 구성원인지 조회 - ACCEPT 상태인지까지 확인
-            UserInfoResponse userInfoResponse = authExternalService.userAuthenticateAndGroupMatch(token, groupId);
-
             // 집안일 추가 권한이 있는 구성원인지 확인
             // 그룹장인지 확인. role: GROUP_ADMIN
-            if (!(userInfoResponse.getRole().equals(GroupMemberRole.GROUP_ADMIN.name()))) {
+            if (!(requestUser.getRole().equals(GroupMemberRole.GROUP_ADMIN.name()))) {
 
                 log.warn(">>>> Housework Add Permission Denied : {}", ExceptionMessage.HOUSEWORK_ADD_PERMISSION_DENIED);
                 throw new AuthException(ExceptionMessage.HOUSEWORK_ADD_PERMISSION_DENIED);
@@ -79,7 +74,7 @@ public class HouseworkInfoService {
 
 
             // 그룹장 정보 조회
-            User findGroupAdmin = userRepository.findByEmail(userInfoResponse.getEmail()).orElseThrow(() -> {
+            User findGroupAdmin = userRepository.findByEmail(requestUser.getEmail()).orElseThrow(() -> {
                 log.warn(">>>> User Not Found : {}", ExceptionMessage.AUTH_NOT_FOUND);
                 throw new AuthException(ExceptionMessage.AUTH_NOT_FOUND);
             });
@@ -116,12 +111,5 @@ public class HouseworkInfoService {
             log.warn(">>>> Housework Add Fail : {}", ExceptionMessage.HOUSEWORK_ADD_FAIL);
             throw new HouseworkException(ExceptionMessage.HOUSEWORK_ADD_FAIL);
         }
-//        catch (AuthException e) {
-//            log.warn(">>>> Authentication Fail : {}", ExceptionMessage.AUTH_SERVER_NOT_RESPOND);
-//            throw new AuthException(ExceptionMessage.AUTH_SERVER_NOT_RESPOND);
-//        } catch (GroupMemberException e) {
-//            log.warn(">>>> Not Found Group Member: {}", ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
-//            throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
-//        }
     }
 }
