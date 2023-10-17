@@ -23,7 +23,7 @@ import java.util.List;
 @AllArgsConstructor
 public class HouseworkInfoAddRequest {
     @NotEmpty
-    private List<GroupMember> groupMembers;
+    private List<Long> groupMemberIdList;
 
     @Enumerated(EnumType.STRING)
     @NotNull

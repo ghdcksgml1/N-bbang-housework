@@ -20,6 +20,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -75,7 +76,10 @@ class HouseworkInfoServiceTest extends TestConfig {
         houseworkMembers.add(HouseworkMember.builder().build());
 
         return HouseworkInfoAddResponse.builder()
-                .houseworkMembers(houseworkMembers)
+                .houseworkMemberIdList(houseworkMembers
+                        .stream()
+                        .map(HouseworkMember::getId)
+                        .collect(Collectors.toList()))
                 .houseworkCategory(HouseworkCategory.builder().build())
                 .title("title")
                 .detail("detail")

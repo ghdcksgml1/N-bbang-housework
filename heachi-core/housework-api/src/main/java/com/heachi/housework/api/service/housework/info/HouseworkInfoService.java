@@ -2,6 +2,7 @@ package com.heachi.housework.api.service.housework.info;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.auth.AuthException;
+import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.admin.common.exception.housework.HouseworkException;
 import com.heachi.external.clients.auth.response.UserInfoResponse;
 import com.heachi.housework.api.controller.housework.info.response.HouseworkInfoAddResponse;
@@ -11,6 +12,7 @@ import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.group.member.constant.GroupMemberRole;
+import com.heachi.mysql.define.group.member.repository.GroupMemberRepository;
 import com.heachi.mysql.define.housework.info.HouseworkInfo;
 import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
 import com.heachi.mysql.define.housework.member.HouseworkMember;
@@ -24,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -34,6 +38,7 @@ public class HouseworkInfoService {
     private final HouseworkSaveRepository houseworkSaveRepository;
     private final HouseworkInfoRepository houseworkInfoRepository;
     private final HouseworkMemberRepository houseworkMemberRepository;
+    private final GroupMemberRepository groupMemberRepository;
 
     @Transactional
     public HouseworkInfoAddResponse houseworkAdd(UserInfoResponse requestUser, HouseworkInfoAddServiceRequest request) {
@@ -59,7 +64,11 @@ public class HouseworkInfoService {
                     .build();
 
             // 담당자 지정 - HOUSEWORK_MEMBER 생성
-            for (GroupMember gm : request.getGroupMembers()) {
+            for (Long groupMemberId : request.getGroupMemberIdList()) {
+                GroupMember gm = groupMemberRepository.findById(groupMemberId).orElseThrow(() -> {
+                    throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
+                });
+
                 HouseworkMember hm = HouseworkMember.builder()
                         .groupMember(gm)
                         .houseworkInfo(houseworkInfo)
@@ -96,7 +105,10 @@ public class HouseworkInfoService {
 
             // HouseworkAddResponseDTO 반환
             return HouseworkInfoAddResponse.builder()
-                    .houseworkMembers(savedHousework.getHouseworkMembers())
+                    .houseworkMemberIdList(savedHousework.getHouseworkMembers()
+                            .stream()
+                            .map(HouseworkMember::getId)
+                            .collect(Collectors.toList()))
                     .houseworkCategory(savedHousework.getHouseworkCategory())
                     .title(savedHousework.getTitle())
                     .detail(savedHousework.getDetail())

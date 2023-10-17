@@ -12,7 +12,7 @@ import java.util.List;
 
 @Getter
 public class HouseworkInfoAddResponse {
-    private List<HouseworkMember> houseworkMembers;
+    private List<Long> houseworkMemberIdList;
     private HouseworkCategory houseworkCategory;
     private String title;
     private String detail;
@@ -23,8 +23,8 @@ public class HouseworkInfoAddResponse {
     private LocalTime endTime;
 
     @Builder
-    public HouseworkInfoAddResponse(List<HouseworkMember> houseworkMembers, HouseworkCategory houseworkCategory, String title, String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate, String monthDate, LocalTime endTime) {
-        this.houseworkMembers = houseworkMembers;
+    public HouseworkInfoAddResponse(List<Long> houseworkMemberIdList, HouseworkCategory houseworkCategory, String title, String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate, String monthDate, LocalTime endTime) {
+        this.houseworkMemberIdList = houseworkMemberIdList;
         this.houseworkCategory = houseworkCategory;
         this.title = title;
         this.detail = detail;
