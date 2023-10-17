@@ -39,32 +39,14 @@ public class TodoService {
     public TodoList cachedSelectTodo(TodoSelectRequest request) {
 
         return CachingStrategy.cachingIfEmpty(request,
-                (req) -> todoListRepository.findByGroupInfoIdAndDate(req.getGroupId(), req.getDate()),
+                (req) -> todoListRepository.findById(TodoList.makeId(req.getGroupId(), req.getDate())).orElse(null),
                 (req) -> {
                     List<TodoResponse> todoResponseList = selectTodo(req);
 
-                    return todoListRepository.save(TodoList.builder() // List<TodoResponse> => TodoList 후 save
-                            .groupInfoId(req.getGroupId())
-                            .date(req.getDate())
-                            .todoList(todoResponseList.stream()
-                                    .map(todo -> Todo.builder()
-                                            .id(todo.getId())
-                                            .houseworkMembers(todo.getHouseworkMembers().stream()
-                                                    .map(u -> TodoUser.builder()
-                                                            .name(u.getName())
-                                                            .email(u.getEmail())
-                                                            .profileImageUrl(u.getProfileImageUrl())
-                                                            .build())
-                                                    .collect(Collectors.toList()))
-                                            .category(todo.getCategory())
-                                            .title(todo.getTitle())
-                                            .detail(todo.getDetail())
-                                            .status(todo.getStatus().name())
-                                            .date(todo.getDate())
-                                            .endTime(todo.getEndTime())
-                                            .build())
-                                    .collect(Collectors.toList()))
-                            .build());
+                    TodoList todoList = caching(req, todoResponseList);
+                    log.info(">>>> [{}]의 캐싱이 완료 되었습니다.", todoList.getId());
+
+                    return todoList;
                 },
                 (todo) -> todo.isDirtyBit() == false); // dirtyBit가 false가 아니면 캐시 업데이트
     }
@@ -102,5 +84,31 @@ public class TodoService {
         return houseworkTodoRepository.findByGroupInfoAndDate(groupId, date).stream() // 최신 Todo 불러와 리턴
                 .map(todo -> TodoResponse.of(todo, userMap))
                 .collect(Collectors.toList());
+    }
+
+    private TodoList caching(TodoSelectRequest req, List<TodoResponse> todoResponseList) {
+
+        return todoListRepository.save(TodoList.builder() // List<TodoResponse> => TodoList 후 save
+                .groupInfoId(req.getGroupId())
+                .date(req.getDate())
+                .todoList(todoResponseList.stream()
+                        .map(todo -> Todo.builder()
+                                .id(todo.getId())
+                                .houseworkMembers(todo.getHouseworkMembers().stream()
+                                        .map(u -> TodoUser.builder()
+                                                .name(u.getName())
+                                                .email(u.getEmail())
+                                                .profileImageUrl(u.getProfileImageUrl())
+                                                .build())
+                                        .collect(Collectors.toList()))
+                                .category(todo.getCategory())
+                                .title(todo.getTitle())
+                                .detail(todo.getDetail())
+                                .status(todo.getStatus().name())
+                                .date(todo.getDate())
+                                .endTime(todo.getEndTime())
+                                .build())
+                        .collect(Collectors.toList()))
+                .build());
     }
 }

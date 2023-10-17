@@ -21,11 +21,15 @@ public class TodoList {
     private boolean dirtyBit = false;
 
     @Builder
-    private TodoList(String id, Long groupInfoId, LocalDate date, List<Todo> todoList) {
-        this.id = id;
+    private TodoList(Long groupInfoId, LocalDate date, List<Todo> todoList) {
+        this.id = groupInfoId.toString() + "," + date.toString();
         this.groupInfoId = groupInfoId;
         this.date = date;
         this.todoList = todoList;
+    }
+
+    public static String makeId(Long groupInfoId, LocalDate date) {
+        return groupInfoId.toString() + "," + date.toString();
     }
 
     public void checkDirtyBit() {

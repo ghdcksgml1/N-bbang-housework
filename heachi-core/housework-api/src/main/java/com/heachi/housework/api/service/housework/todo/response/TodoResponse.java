@@ -10,6 +10,7 @@ import lombok.ToString;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -54,10 +55,10 @@ public class TodoResponse {
 
         return TodoResponse.builder()
                 .id(todo.getId())
-                .houseworkMembers(todo.getHouseworkMember() != "" ? Arrays.asList(todo.getHouseworkMember().split(",")).stream()
+                .houseworkMembers(!todo.getHouseworkMember().equals("") ? Arrays.asList(todo.getHouseworkMember().split(",")).stream()
                         .map(Long::parseLong)
                         .map(i -> TodoUser.of(userMap.get(i)))
-                        .collect(Collectors.toList()) : null)
+                        .collect(Collectors.toList()) : new ArrayList<>())
                 .category(todo.getCategory())
                 .title(todo.getTitle())
                 .detail(todo.getDetail())
