@@ -1,9 +1,10 @@
-package com.heachi.housework.api.service;
+package com.heachi.housework.api.service.housework.info;
 
 import com.heachi.admin.common.exception.housework.HouseworkException;
 import com.heachi.housework.TestConfig;
-import com.heachi.housework.api.controller.response.HouseworkAddResponseDTO;
-import com.heachi.housework.api.service.request.HouseworkServiceAddRequestDTO;
+import com.heachi.housework.api.controller.housework.info.response.HouseworkInfoAddResponse;
+import com.heachi.housework.api.service.housework.info.HouseworkInfoService;
+import com.heachi.housework.api.service.housework.info.request.HouseworkInfoAddServiceRequest;
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
 import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
 import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
@@ -26,9 +27,9 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class HouseworkServiceTest extends TestConfig {
+class HouseworkInfoServiceTest extends TestConfig {
     @MockBean
-    private HouseworkService houseworkService;
+    private HouseworkInfoService houseworkInfoService;
 
     @MockBean
     private UserRepository userRepository;
@@ -46,12 +47,12 @@ class HouseworkServiceTest extends TestConfig {
     @DisplayName("집안일 추가 성공 테스트")
     void houseworkAddServiceSuccessTest() throws Exception {
         // given
-        HouseworkAddResponseDTO response = generateHouseworkAddResponse();
+        HouseworkInfoAddResponse response = generateHouseworkAddResponse();
 
-        when(houseworkService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkServiceAddRequestDTO.class)))
+        when(houseworkInfoService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkInfoAddServiceRequest.class)))
                 .thenReturn(response);
 
-        HouseworkAddResponseDTO addResponseDTO = houseworkService.houseworkAdd("token", 1L, HouseworkServiceAddRequestDTO.builder().build());
+        HouseworkInfoAddResponse addResponseDTO = houseworkInfoService.houseworkAdd("token", 1L, HouseworkInfoAddServiceRequest.builder().build());
 
         assertEquals(response, addResponseDTO);
     }
@@ -60,19 +61,19 @@ class HouseworkServiceTest extends TestConfig {
     @DisplayName("집안일 추가 실패 테스트")
     void houseworkAddServiceFailTest() throws Exception {
         // when
-        when(houseworkService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkServiceAddRequestDTO.class)))
+        when(houseworkInfoService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkInfoAddServiceRequest.class)))
                 .thenThrow(HouseworkException.class);
         // then
         assertThrows(HouseworkException.class, () -> {
-            houseworkService.houseworkAdd("token", 1L, HouseworkServiceAddRequestDTO.builder().build());
+            houseworkInfoService.houseworkAdd("token", 1L, HouseworkInfoAddServiceRequest.builder().build());
         });
     }
 
-    public static HouseworkAddResponseDTO generateHouseworkAddResponse() {
+    public static HouseworkInfoAddResponse generateHouseworkAddResponse() {
         List<HouseworkMember> houseworkMembers = new ArrayList<>();
         houseworkMembers.add(HouseworkMember.builder().build());
 
-        return HouseworkAddResponseDTO.builder()
+        return HouseworkInfoAddResponse.builder()
                 .houseworkMembers(houseworkMembers)
                 .houseworkCategory(HouseworkCategory.builder().build())
                 .title("title")

@@ -1,14 +1,13 @@
-package com.heachi.housework.api.controller.housework;
+package com.heachi.housework.api.controller.housework.info;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.housework.HouseworkException;
 import com.heachi.housework.TestConfig;
-import com.heachi.housework.api.controller.request.HouseworkAddRequestDTO;
-import com.heachi.housework.api.controller.response.HouseworkAddResponseDTO;
-import com.heachi.housework.api.service.HouseworkService;
-import com.heachi.housework.api.service.request.HouseworkServiceAddRequestDTO;
-import com.heachi.mysql.define.group.member.GroupMember;
+import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoAddRequest;
+import com.heachi.housework.api.controller.housework.info.response.HouseworkInfoAddResponse;
+import com.heachi.housework.api.service.housework.info.HouseworkInfoService;
+import com.heachi.housework.api.service.housework.info.request.HouseworkInfoAddServiceRequest;
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
 import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
 import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
@@ -24,7 +23,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,12 +34,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @SpringBootTest
-class HouseworkControllerTest extends TestConfig {
+class HouseworkInfoControllerTest extends TestConfig {
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private HouseworkService houseworkService;
+    private HouseworkInfoService houseworkInfoService;
 
     @MockBean
     private UserRepository userRepository;
@@ -61,16 +59,16 @@ class HouseworkControllerTest extends TestConfig {
         // given
         String token = "token";
 
-        HouseworkAddResponseDTO response = generateHouseworkAddResponse();
+        HouseworkInfoAddResponse response = generateHouseworkAddResponse();
 
-        when(houseworkService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkServiceAddRequestDTO.class)))
+        when(houseworkInfoService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkInfoAddServiceRequest.class)))
                 .thenReturn(response);
 
         mockMvc.perform(
                         post("/housework/add/1")
                                 .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(JsonMapper.builder().build().writeValueAsString(HouseworkAddRequestDTO.builder().build())))
+                                .content(JsonMapper.builder().build().writeValueAsString(HouseworkInfoAddRequest.builder().build())))
 
                 // then
                 .andExpect(status().isOk())
@@ -85,16 +83,16 @@ class HouseworkControllerTest extends TestConfig {
         // given
         String token = "token";
 
-        HouseworkAddResponseDTO response = generateHouseworkAddResponse();
+        HouseworkInfoAddResponse response = generateHouseworkAddResponse();
 
-        when(houseworkService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkServiceAddRequestDTO.class)))
+        when(houseworkInfoService.houseworkAdd(any(String.class), any(Long.class), any(HouseworkInfoAddServiceRequest.class)))
                 .thenThrow(new HouseworkException(ExceptionMessage.HOUSEWORK_ADD_FAIL));
 
         mockMvc.perform(
                         post("/housework/add/1")
                                 .header("Authorization", "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(JsonMapper.builder().build().writeValueAsString(HouseworkAddRequestDTO.builder().build())))
+                                .content(JsonMapper.builder().build().writeValueAsString(HouseworkInfoAddRequest.builder().build())))
 
                 // then
                 .andExpect(status().isOk())
@@ -104,11 +102,11 @@ class HouseworkControllerTest extends TestConfig {
 
     }
 
-    public static HouseworkAddResponseDTO generateHouseworkAddResponse() {
+    public static HouseworkInfoAddResponse generateHouseworkAddResponse() {
         List<HouseworkMember> houseworkMembers = new ArrayList<>();
         houseworkMembers.add(HouseworkMember.builder().build());
 
-        return HouseworkAddResponseDTO.builder()
+        return HouseworkInfoAddResponse.builder()
                 .houseworkMembers(houseworkMembers)
                 .houseworkCategory(HouseworkCategory.builder().build())
                 .title("title")

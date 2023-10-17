@@ -1,19 +1,16 @@
-package com.heachi.housework.api.service;
+package com.heachi.housework.api.service.housework.info;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.auth.AuthException;
-import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.admin.common.exception.housework.HouseworkException;
 import com.heachi.external.clients.auth.response.UserInfoResponse;
-import com.heachi.housework.api.controller.response.HouseworkAddResponseDTO;
+import com.heachi.housework.api.controller.housework.info.response.HouseworkInfoAddResponse;
 import com.heachi.housework.api.service.auth.AuthExternalService;
-import com.heachi.housework.api.service.request.HouseworkServiceAddRequestDTO;
+import com.heachi.housework.api.service.housework.info.request.HouseworkInfoAddServiceRequest;
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.group.member.constant.GroupMemberRole;
-import com.heachi.mysql.define.group.member.constant.GroupMemberStatus;
-import com.heachi.mysql.define.group.member.repository.GroupMemberRepository;
 import com.heachi.mysql.define.housework.info.HouseworkInfo;
 import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
 import com.heachi.mysql.define.housework.member.HouseworkMember;
@@ -27,14 +24,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class HouseworkService {
+public class HouseworkInfoService {
     private final UserRepository userRepository;
     private final GroupInfoRepository groupInfoRepository;
     private final HouseworkSaveRepository houseworkSaveRepository;
@@ -43,7 +37,7 @@ public class HouseworkService {
     private final AuthExternalService authExternalService;
 
     @Transactional
-    public HouseworkAddResponseDTO houseworkAdd(String token, Long groupId, HouseworkServiceAddRequestDTO request) {
+    public HouseworkInfoAddResponse houseworkAdd(String token, Long groupId, HouseworkInfoAddServiceRequest request) {
         try {
             
             // 요청자가 그룹 구성원인지 조회 - ACCEPT 상태인지까지 확인
@@ -106,7 +100,7 @@ public class HouseworkService {
             log.info(">>>> HouseworkSave Add: {}", houseworkSave);
 
             // HouseworkAddResponseDTO 반환
-            return HouseworkAddResponseDTO.builder()
+            return HouseworkInfoAddResponse.builder()
                     .houseworkMembers(savedHousework.getHouseworkMembers())
                     .houseworkCategory(savedHousework.getHouseworkCategory())
                     .title(savedHousework.getTitle())

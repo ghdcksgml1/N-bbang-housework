@@ -1,32 +1,23 @@
-package com.heachi.housework.api.service.request;
+package com.heachi.housework.api.service.housework.info.request;
 
-import com.heachi.housework.api.controller.request.HouseworkAddRequestDTO;
+import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoAddRequest;
 import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
 import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
-import com.heachi.mysql.define.housework.member.HouseworkMember;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
 
-import javax.swing.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Date;
 import java.util.List;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HouseworkServiceAddRequestDTO {
+public class HouseworkInfoAddServiceRequest {
     private List<GroupMember> groupMembers;
     private HouseworkCategory houseworkCategory;
     private String title;
@@ -37,8 +28,8 @@ public class HouseworkServiceAddRequestDTO {
     private String monthDate;
     private LocalTime endTime;
 
-    public static HouseworkServiceAddRequestDTO of(HouseworkAddRequestDTO request) {
-        return HouseworkServiceAddRequestDTO.builder()
+    public static HouseworkInfoAddServiceRequest of(HouseworkInfoAddRequest request) {
+        return HouseworkInfoAddServiceRequest.builder()
                 .groupMembers(request.getGroupMembers())
                 .houseworkCategory(request.getHouseworkCategory())
                 .title(request.getTitle())

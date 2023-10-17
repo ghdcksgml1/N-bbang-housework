@@ -1,4 +1,4 @@
-package com.heachi.housework.api.controller.response;
+package com.heachi.housework.api.controller.housework.info.response;
 
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
 import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
@@ -8,11 +8,10 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Date;
 import java.util.List;
 
 @Getter
-public class HouseworkAddResponseDTO {
+public class HouseworkInfoAddResponse {
     private List<HouseworkMember> houseworkMembers;
     private HouseworkCategory houseworkCategory;
     private String title;
@@ -24,7 +23,7 @@ public class HouseworkAddResponseDTO {
     private LocalTime endTime;
 
     @Builder
-    public HouseworkAddResponseDTO(List<HouseworkMember> houseworkMembers, HouseworkCategory houseworkCategory, String title, String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate, String monthDate, LocalTime endTime) {
+    public HouseworkInfoAddResponse(List<HouseworkMember> houseworkMembers, HouseworkCategory houseworkCategory, String title, String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate, String monthDate, LocalTime endTime) {
         this.houseworkMembers = houseworkMembers;
         this.houseworkCategory = houseworkCategory;
         this.title = title;
