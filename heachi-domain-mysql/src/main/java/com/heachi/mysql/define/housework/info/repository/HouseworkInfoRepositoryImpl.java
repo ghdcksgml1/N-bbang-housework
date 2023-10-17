@@ -35,7 +35,7 @@ public class HouseworkInfoRepositoryImpl implements HouseworkInfoRepositoryCusto
     public List<HouseworkInfo> findHouseworkInfoByGroupInfoId(Long groupId) {
 
         return queryFactory.selectFrom(houseworkInfo)
-                .innerJoin(houseworkInfo.houseworkMembers, houseworkMember).fetchJoin()
+                .leftJoin(houseworkInfo.houseworkMembers, houseworkMember).fetchJoin()
                 .innerJoin(houseworkInfo.houseworkCategory, houseworkCategory).fetchJoin()
                 .innerJoin(houseworkInfo.groupInfo, groupInfo).fetchJoin()
                 .where(houseworkInfo.groupInfo.id.eq(groupId))

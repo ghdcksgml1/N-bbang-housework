@@ -18,6 +18,8 @@ import com.heachi.mysql.define.housework.todo.constant.HouseworkTodoStatus;
 import com.heachi.mysql.define.housework.todo.repository.HouseworkTodoRepository;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.repository.UserRepository;
+import com.heachi.redis.define.housework.todo.TodoList;
+import com.heachi.redis.define.housework.todo.repository.TodoListRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,6 +43,7 @@ class TodoServiceTest extends TestConfig {
     @Autowired private HouseworkMemberRepository houseworkMemberRepository;
 
     @Autowired private TodoService todoService;
+    @Autowired private TodoListRepository todoListRepository;
 
     @AfterEach
     void tearDown() {
@@ -51,6 +54,8 @@ class TodoServiceTest extends TestConfig {
         groupMemberRepository.deleteAllInBatch();
         groupInfoRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
+
+        todoListRepository.deleteAll();
     }
 
     @Test
@@ -119,5 +124,57 @@ class TodoServiceTest extends TestConfig {
             assertThat(todoResponse.getStatus()).isEqualTo(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE);
             assertThat(todoResponse.getTitle()).isEqualTo("빨래");
         });
+    }
+
+    @Test
+    @DisplayName("캐싱되어 있는 데이터가 있으면 그대로 가져와 리턴한다.")
+    void test3() {
+        // given
+        User user = userRepository.save(generateUser());
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(user));
+        GroupMember groupMember = groupMemberRepository.save(generateGroupMember(user, groupInfo));
+
+        HouseworkCategory houseworkCategory = houseworkCategoryRepository.save(generateHouseworkCategory());
+        HouseworkInfo houseworkInfo = houseworkInfoRepository.save(generateHouseworkInfo(groupInfo, houseworkCategory));
+
+        HouseworkMember houseworkMember = houseworkMemberRepository.save(generateHouseworkMember(groupMember, houseworkInfo));
+
+        // when
+        todoService.cachedSelectTodo(TodoSelectRequest.builder().groupId(groupInfo.getId()).date(LocalDate.now()).build());
+
+        // then
+        todoService.cachedSelectTodo(TodoSelectRequest.builder().groupId(groupInfo.getId()).date(LocalDate.now()).build());
+    }
+
+    @Test
+    @DisplayName("캐싱되어 있는 데이터가 있지만, dirtyBit가 true라면 HOUSEWORK_TODO를 최신화 시켜 캐싱한다.")
+    void test4() {
+        // given
+        User user = userRepository.save(generateUser());
+        User user2 = userRepository.save(generateUser("kmm@kakao.com", "010-1111-1111"));
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(user));
+        GroupMember groupMember = groupMemberRepository.save(generateGroupMember(user, groupInfo));
+        GroupMember groupMember2 = groupMemberRepository.save(generateGroupMember(user2, groupInfo));
+
+        HouseworkCategory houseworkCategory = houseworkCategoryRepository.save(generateHouseworkCategory());
+        HouseworkInfo houseworkInfo = houseworkInfoRepository.save(generateHouseworkInfo(groupInfo, houseworkCategory));
+
+        HouseworkMember houseworkMember = houseworkMemberRepository.save(generateHouseworkMember(groupMember, houseworkInfo));
+        HouseworkMember houseworkMember2 = houseworkMemberRepository.save(generateHouseworkMember(groupMember2, houseworkInfo));
+
+        // when
+        TodoList todoList = todoService.cachedSelectTodo(TodoSelectRequest.builder().groupId(groupInfo.getId()).date(LocalDate.now()).build());
+
+        // HOUSEWORK_INFO 추가
+        HouseworkInfo houseworkInfo1 = houseworkInfoRepository.save(generateHouseworkInfo(groupInfo, houseworkCategory));
+        todoList.checkDirtyBit();
+        todoListRepository.save(todoList);
+
+        TodoList result = todoService.cachedSelectTodo(TodoSelectRequest.builder().groupId(groupInfo.getId()).date(LocalDate.now()).build());
+
+        // then
+        assertThat(result.isDirtyBit()).isFalse();
+        assertThat(result.getTodoList().size()).isEqualTo(2);
+        System.out.println("result = " + result);
     }
 }

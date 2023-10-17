@@ -44,6 +44,20 @@ public class TestConfig {
                 .build();
     }
 
+    public static User generateUser(String email, String phoneNumber) {
+
+        return User.builder()
+                .platformId("123456")
+                .platformType(UserPlatformType.KAKAO)
+                .role(UserRole.USER)
+                .name("kms")
+                .email(email)
+                .phoneNumber(phoneNumber)
+                .profileImageUrl("https://google.com")
+                .pushAlarmYn(true)
+                .build();
+    }
+
     public static GroupInfo generateGroupInfo(User user) {
 
         return GroupInfo.builder()
