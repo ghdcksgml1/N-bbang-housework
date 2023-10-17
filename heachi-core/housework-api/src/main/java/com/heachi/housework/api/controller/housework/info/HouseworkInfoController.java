@@ -25,13 +25,13 @@ public class HouseworkInfoController {
 
     @PostMapping("/add/{groupId}")
     public JsonResult<?> houseworkAdd(
-            @RequestHeader(name = "Authorization") String token,
+            @RequestHeader(name = "Authorization") String authorization,
             @PathVariable(name = "groupId") Long groupId,
             @RequestBody HouseworkInfoAddRequest request
     ) {
         // Auth 서버로 요청자 인증 요청 - 해당 그룹원인지 판별하고 상태가 ACCEPT인지 확인
         try {
-            UserInfoResponse requestUser = authExternalService.userAuthenticateAndGroupMatch(token, groupId);
+            UserInfoResponse requestUser = authExternalService.userAuthenticateAndGroupMatch(authorization, groupId);
 
             HouseworkInfoAddResponse addResponse = houseworkInfoService.houseworkAdd(requestUser, HouseworkInfoAddServiceRequest.of(request));
 

@@ -45,7 +45,7 @@ public class HouseworkInfoService {
         try {
             // 집안일 추가 권한이 있는 구성원인지 확인
             // 그룹장인지 확인. role: GROUP_ADMIN
-            if (!(requestUser.getRole().equals(GroupMemberRole.GROUP_ADMIN.name()))) {
+            if (!(requestUser.getRole() == GroupMemberRole.GROUP_ADMIN.name())) {
 
                 log.warn(">>>> Housework Add Permission Denied : {}", ExceptionMessage.HOUSEWORK_ADD_PERMISSION_DENIED);
                 throw new AuthException(ExceptionMessage.HOUSEWORK_ADD_PERMISSION_DENIED);
