@@ -1,4 +1,4 @@
-package com.heachi.mysql;
+package com.heachi.housework;
 
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
@@ -73,10 +73,11 @@ public class TestConfig {
                 .build();
     }
 
-    public static HouseworkInfo generateHouseworkInfo(HouseworkCategory category) {
+    public static HouseworkInfo generateHouseworkInfo(GroupInfo groupInfo, HouseworkCategory category) {
 
         return HouseworkInfo.builder()
                 .houseworkCategory(category)
+                .groupInfo(groupInfo)
                 .title("빨래")
                 .detail("빨래 돌리기")
                 .type(HouseworkPeriodType.HOUSEWORK_PERIOD_EVERYDAY)
