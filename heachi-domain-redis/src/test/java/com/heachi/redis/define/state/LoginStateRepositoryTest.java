@@ -1,5 +1,6 @@
 package com.heachi.redis.define.state;
 
+import com.heachi.redis.define.state.repository.LoginStateRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

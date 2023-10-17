@@ -29,9 +29,11 @@ public class QHouseworkTodo extends EntityPathBase<HouseworkTodo> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdDateTime = _super.createdDateTime;
 
-    public final DatePath<java.util.Date> date = createDate("date", java.util.Date.class);
+    public final DatePath<java.time.LocalDate> date = createDate("date", java.time.LocalDate.class);
 
     public final StringPath detail = createString("detail");
+
+    public final TimePath<java.time.LocalTime> endTime = createTime("endTime", java.time.LocalTime.class);
 
     public final com.heachi.mysql.define.group.info.QGroupInfo groupInfo;
 
@@ -41,7 +43,7 @@ public class QHouseworkTodo extends EntityPathBase<HouseworkTodo> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final NumberPath<Integer> index = createNumber("index", Integer.class);
+    public final NumberPath<Integer> idx = createNumber("idx", Integer.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedDateTime = _super.modifiedDateTime;

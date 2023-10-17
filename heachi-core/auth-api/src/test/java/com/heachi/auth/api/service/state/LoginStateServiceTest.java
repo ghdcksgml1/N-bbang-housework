@@ -3,7 +3,7 @@ package com.heachi.auth.api.service.state;
 import com.heachi.admin.common.exception.state.LoginStateException;
 import com.heachi.auth.TestConfig;
 import com.heachi.redis.define.state.LoginState;
-import com.heachi.redis.define.state.LoginStateRepository;
+import com.heachi.redis.define.state.repository.LoginStateRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
