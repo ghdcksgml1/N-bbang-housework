@@ -32,8 +32,11 @@ public class QHouseworkInfo extends EntityPathBase<HouseworkInfo> {
     public final StringPath detail = createString("detail");
 
     public final TimePath<java.time.LocalTime> endTime = createTime("endTime", java.time.LocalTime.class);
+<<<<<<< HEAD
 
     public final com.heachi.mysql.define.group.info.QGroupInfo groupInfo;
+=======
+>>>>>>> feat(#69)-housework-add
 
     public final com.heachi.mysql.define.housework.category.QHouseworkCategory houseworkCategory;
 

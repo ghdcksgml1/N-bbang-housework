@@ -1,5 +1,6 @@
 package com.heachi.housework;
 
+<<<<<<< HEAD
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
@@ -25,11 +26,30 @@ import org.springframework.test.context.TestConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+=======
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestConstructor;
+
+/* static 모음 *
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+* Mocking *
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+ */
+>>>>>>> feat(#69)-housework-add
 
 @ActiveProfiles("test")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 public class TestConfig {
 
+<<<<<<< HEAD
     public static User generateUser() {
 
         return User.builder()
@@ -97,4 +117,6 @@ public class TestConfig {
 
         return HouseworkTodo.makeTodoReferInfo(houseworkInfo, groupInfo, date);
     }
+=======
+>>>>>>> feat(#69)-housework-add
 }
