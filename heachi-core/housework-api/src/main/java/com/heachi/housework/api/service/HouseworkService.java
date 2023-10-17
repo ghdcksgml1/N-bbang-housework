@@ -86,6 +86,8 @@ public class HouseworkService {
 
             // HOUSEWORK_INFO 저장
             HouseworkInfo savedHousework = houseworkInfoRepository.save(houseworkInfo);
+            log.info(">>>> Housework Add: {}", savedHousework);
+
 
             // 그룹장 정보 조회
             User findGroupAdmin = userRepository.findByEmail(userInfoResponse.getEmail()).orElseThrow(() -> {
@@ -105,6 +107,8 @@ public class HouseworkService {
                     .name(savedHousework.getTitle())
                     .build();
             houseworkSaveRepository.save(houseworkSave);
+
+            log.info(">>>> HouseworkSave Add: {}", houseworkSave);
 
             // HouseworkAddResponseDTO 반환
             return HouseworkAddResponseDTO.builder()

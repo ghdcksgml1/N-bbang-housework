@@ -1,6 +1,5 @@
 package com.heachi.housework;
 
-<<<<<<< HEAD
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
@@ -26,7 +25,6 @@ import org.springframework.test.context.TestConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-=======
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestConstructor;
 
@@ -42,14 +40,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
- */
->>>>>>> feat(#69)-housework-add
+*/
 
 @ActiveProfiles("test")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 public class TestConfig {
 
-<<<<<<< HEAD
     public static User generateUser() {
 
         return User.builder()
@@ -117,6 +113,4 @@ public class TestConfig {
 
         return HouseworkTodo.makeTodoReferInfo(houseworkInfo, groupInfo, date);
     }
-=======
->>>>>>> feat(#69)-housework-add
 }
