@@ -38,7 +38,7 @@ public class HouseworkTodo extends BaseEntity {
     private GroupInfo groupInfo;        // 그룹 정보
 
     @Column(name = "HOUSEWORK_MEMBER", nullable = false)
-    private String houseworkMember;     // 집안일 담당자 (,)으로 joining
+    private String houseworkMember;     // GroupMember ID를 (,)으로 joining
 
     @Column(name = "CATEGORY", nullable = false)
     private String category;            // 집안일 카테고리
@@ -77,7 +77,7 @@ public class HouseworkTodo extends BaseEntity {
     @Builder
     private HouseworkTodo(HouseworkInfo houseworkInfo, GroupInfo groupInfo, String houseworkMember, String category,
                          String title, String detail, Integer idx, HouseworkTodoStatus status, LocalDate date,
-                         String verificationPhotoURL, String verifierId, LocalDateTime verificationTime) {
+                         LocalTime endTime, String verificationPhotoURL, String verifierId, LocalDateTime verificationTime) {
         this.houseworkInfo = houseworkInfo;
         this.groupInfo = groupInfo;
         this.houseworkMember = houseworkMember;
@@ -87,6 +87,7 @@ public class HouseworkTodo extends BaseEntity {
         this.idx = idx;
         this.status = status;
         this.date = date;
+        this.endTime = endTime;
         this.verificationPhotoURL = verificationPhotoURL;
         this.verifierId = verifierId;
         this.verificationTime = verificationTime;
@@ -98,13 +99,14 @@ public class HouseworkTodo extends BaseEntity {
                 .houseworkInfo(houseworkInfo.getType() == HouseworkPeriodType.HOUSEWORK_PERIOD_DAY ? null : houseworkInfo)
                 .groupInfo(groupInfo)
                 .houseworkMember(houseworkInfo.getHouseworkMembers().stream()
-                        .map(hm -> hm.getId().toString())
+                        .map(hm -> hm.getGroupMember().getId().toString())
                         .collect(Collectors.joining(",")))
                 .category(houseworkInfo.getHouseworkCategory().getName())
                 .title(houseworkInfo.getTitle())
                 .detail(houseworkInfo.getDetail())
                 .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
                 .date(date)
+                .endTime(houseworkInfo.getEndTime())
                 .build();
     }
 }

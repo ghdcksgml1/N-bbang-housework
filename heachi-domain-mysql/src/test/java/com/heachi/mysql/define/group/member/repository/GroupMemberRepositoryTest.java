@@ -53,40 +53,4 @@ class GroupMemberRepositoryTest extends TestConfig {
         // then
         assertThat(result).isTrue();
     }
-
-    public static User generateUser() {
-
-        return User.builder()
-                .platformId("123456")
-                .platformType(UserPlatformType.KAKAO)
-                .role(UserRole.USER)
-                .name("kms")
-                .email("kms@kakao.com")
-                .phoneNumber("010-0000-0000")
-                .profileImageUrl("https://google.com")
-                .pushAlarmYn(true)
-                .build();
-    }
-
-    public static GroupInfo generateGroupInfo(User user) {
-
-        return GroupInfo.builder()
-                .user(user)
-                .bgColor("bbbbbb")
-                .colorCode("111111")
-                .gradient("csscssscss")
-                .name("group")
-                .info("hello world!")
-                .build();
-    }
-
-    public static GroupMember generateGroupMember(User user, GroupInfo groupInfo) {
-
-        return GroupMember.builder()
-                .groupInfo(groupInfo)
-                .user(user)
-                .role(GroupMemberRole.GROUP_MEMBER)
-                .status(GroupMemberStatus.ACCEPT)
-                .build();
-    }
 }
