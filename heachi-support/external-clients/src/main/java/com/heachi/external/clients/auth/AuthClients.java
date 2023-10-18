@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.service.annotation.GetExchange;
 import reactor.core.publisher.Mono;
 
-@ExternalClients(baseUrl = "http://localhost:8080")
+@ExternalClients(baseUrl = "heachi-core.auth-api")
 public interface AuthClients {
 
     @GetExchange(value = "/auth/info")
