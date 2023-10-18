@@ -1,68 +1,178 @@
 package com.heachi.housework.api.service.housework.info;
 
+import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.admin.common.exception.housework.HouseworkException;
+import com.heachi.admin.common.response.JsonResult;
+import com.heachi.external.clients.auth.AuthClients;
 import com.heachi.external.clients.auth.response.UserInfoResponse;
 import com.heachi.housework.TestConfig;
+import com.heachi.housework.api.service.auth.AuthExternalService;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
+import com.heachi.mysql.define.group.info.GroupInfo;
+import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
+import com.heachi.mysql.define.group.member.GroupMember;
+import com.heachi.mysql.define.group.member.repository.GroupMemberRepository;
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
+import com.heachi.mysql.define.housework.category.repository.HouseworkCategoryRepository;
+import com.heachi.mysql.define.housework.info.HouseworkInfo;
 import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
 import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
-import com.heachi.mysql.define.housework.member.HouseworkMember;
+import com.heachi.mysql.define.housework.member.repository.HouseworkMemberRepository;
+import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import reactor.core.publisher.Mono;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 class HouseworkInfoServiceTest extends TestConfig {
-    @MockBean
-    private HouseworkInfoService houseworkInfoService;
 
-    @MockBean
+    @Autowired
+    private GroupMemberRepository groupMemberRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
-    @MockBean
+    @Autowired
     private HouseworkInfoRepository houseworkInfoRepository;
+
+    @Autowired
+    private HouseworkInfoService houseworkInfoService;
+    @Autowired
+    private HouseworkCategoryRepository houseworkCategoryRepository;
+    @Autowired
+    private GroupInfoRepository groupInfoRepository;
+    @Autowired
+    private HouseworkMemberRepository houseworkMemberRepository;
 
     @AfterEach
     void tearDown() {
-        userRepository.deleteAllInBatch();
+        houseworkMemberRepository.deleteAllInBatch();
         houseworkInfoRepository.deleteAllInBatch();
-    }
-
-   /* @Test
-    @DisplayName("집안일 추가 성공 테스트")
-    void houseworkAddServiceSuccessTest() throws Exception {
-        // given
-        when(houseworkInfoService.createHouseworkInfo(any(UserInfoResponse.class), any(HouseworkInfoCreateServiceRequest.class)))
-
-        HouseworkInfoAddResponse addResponseDTO = houseworkInfoService.createHouseworkInfo(UserInfoResponse.builder().build(), HouseworkInfoCreateServiceRequest.builder().build());
-
-        assertEquals(response, addResponseDTO);
+        groupMemberRepository.deleteAllInBatch();
+        groupInfoRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
+        houseworkCategoryRepository.deleteAllInBatch();
     }
 
     @Test
-    @DisplayName("집안일 추가 실패 테스트")
-    void houseworkAddServiceFailTest() throws Exception {
+    @DisplayName("집안일 추가 성공 테스트")
+    void createHouseworkInfoSuccess() {
+        // given
+        HouseworkCategory category = generateHouseworkCategory();
+        houseworkCategoryRepository.save(category);
+
+        User user = generateUser();
+        userRepository.save(user);
+
+        GroupInfo groupInfo = generateGroupInfo(user);
+        groupInfoRepository.save(groupInfo);
+
+        GroupMember groupMember = generateGroupMember(user, groupInfo);
+        groupMemberRepository.save(groupMember);
+
+        List<Long> gmIdList = new ArrayList<>();
+        gmIdList.add(groupMember.getId());
+
+        HouseworkInfoCreateServiceRequest request = HouseworkInfoCreateServiceRequest.builder()
+                .houseworkCategoryId(category.getId())
+                .groupMemberIdList(gmIdList)
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK)
+                .title("Test")
+                .detail("Test")
+                .dayDate(null)
+                .weekDate("1")
+                .monthDate(null)
+                .endTime(LocalTime.now())
+                .build();
+
         // when
-        when(houseworkInfoService.createHouseworkInfo(any(UserInfoResponse.class), any(HouseworkInfoCreateServiceRequest.class)))
-                .thenThrow(HouseworkException.class);
+        houseworkInfoService.createHouseworkInfo(request);
+        HouseworkInfo savedHousework = houseworkInfoRepository.findByTitle(request.getTitle()).get();
+
         // then
-        assertThrows(HouseworkException.class, () -> {
-            houseworkInfoService.createHouseworkInfo(UserInfoResponse.builder().build(), HouseworkInfoCreateServiceRequest.builder().build());
-        });
-    }*/
+        assertThat(savedHousework.getTitle()).isEqualTo(request.getTitle());
+    }
+
+    @Test
+    @DisplayName("집안일 추가시 카테고리 조회에 실패한 경우 예외가 발생한다.")
+    void createHouseworkInfoFailWhenNotFoundCategory() {
+        // given
+        User user = generateUser();
+        userRepository.save(user);
+
+        GroupInfo groupInfo = generateGroupInfo(user);
+        groupInfoRepository.save(groupInfo);
+
+        GroupMember groupMember = generateGroupMember(user, groupInfo);
+        groupMemberRepository.save(groupMember);
+
+        List<Long> gmIdList = new ArrayList<>();
+        gmIdList.add(groupMember.getId());
+
+        HouseworkInfoCreateServiceRequest request = HouseworkInfoCreateServiceRequest.builder()
+                .houseworkCategoryId(3L)
+                .groupMemberIdList(gmIdList)
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK)
+                .title("Test")
+                .detail("Test")
+                .dayDate(null)
+                .weekDate("1")
+                .monthDate(null)
+                .endTime(LocalTime.now())
+                .build();
+
+        // when & then
+        HouseworkException exception = assertThrows(HouseworkException.class, () -> houseworkInfoService.createHouseworkInfo(request));
+        assertEquals(exception.getMessage(), ExceptionMessage.HOUSEWORK_CATEGORY_NOT_FOUND.getText());
+    }
+
+    @Test
+    @DisplayName("집안일 추가시 그룹 멤버 조회에 실패한 경우 예외가 발생한다.")
+    void createHouseworkInfoFailWhenNotFoundGroupMember() {
+        // given
+        HouseworkCategory category = generateHouseworkCategory();
+        houseworkCategoryRepository.save(category);
+
+        User user = generateUser();
+        userRepository.save(user);
+
+        GroupInfo groupInfo = generateGroupInfo(user);
+        groupInfoRepository.save(groupInfo);
+
+        List<Long> idList = new ArrayList<>();
+        idList.add(0L);
+
+        HouseworkInfoCreateServiceRequest request = HouseworkInfoCreateServiceRequest.builder()
+                .houseworkCategoryId(category.getId())
+                .groupMemberIdList(idList)
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK)
+                .title("Test")
+                .detail("Test")
+                .dayDate(null)
+                .weekDate("1")
+                .monthDate(null)
+                .endTime(LocalTime.now())
+                .build();
+
+        // when & then
+        GroupMemberException exception = assertThrows(GroupMemberException.class, () -> houseworkInfoService.createHouseworkInfo(request));
+        assertEquals(exception.getMessage(), ExceptionMessage.GROUP_MEMBER_NOT_FOUND.getText());
+    }
 }

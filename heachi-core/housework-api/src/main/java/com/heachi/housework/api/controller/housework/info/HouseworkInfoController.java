@@ -1,5 +1,6 @@
 package com.heachi.housework.api.controller.housework.info;
 
+import com.heachi.admin.common.exception.HeachiException;
 import com.heachi.admin.common.exception.auth.AuthException;
 import com.heachi.admin.common.exception.housework.HouseworkException;
 import com.heachi.admin.common.response.JsonResult;
@@ -28,12 +29,12 @@ public class HouseworkInfoController {
     ) {
         // Auth 서버로 요청자 인증 요청 - 해당 그룹원인지 판별하고 상태가 ACCEPT인지 확인
         try {
-            UserInfoResponse requestUser = authExternalService.userAuthenticateAndGroupMatch(authorization, groupId);
+            authExternalService.userAuthenticateAndGroupMatch(authorization, groupId);
 
-            houseworkInfoService.createHouseworkInfo(requestUser, HouseworkInfoCreateServiceRequest.of(request));
+            houseworkInfoService.createHouseworkInfo(HouseworkInfoCreateServiceRequest.of(request));
 
             return JsonResult.successOf("Housework Create Success.");
-        } catch (AuthException | HouseworkException e) {
+        } catch (HeachiException e) {
             return JsonResult.failOf(e.getMessage());
         }
     }

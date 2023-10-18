@@ -35,12 +35,12 @@ public class HouseworkInfoCreateRequest {
 
     private LocalDate dayDate; // 단건: 날짜 정보
 
-    @Pattern(regexp = "^[0-6]$",
-            message = "요일 정보는 0~6 사이의 문자열이어야 합니다.")  // (0~6)
+    @Pattern(regexp = "^[1-7]$",
+            message = "요일 정보는 1~7 사이의 문자열이어야 합니다.")  // (1~7)
     private String weekDate;
 
-    @Pattern(regexp = "^(0*[1-9]|[12][0-9]|3[0-1])$",   // (1~31)
-            message = "일 정보는 1~31 사이의 문자열이어야 합니다.")  // (0~6)
+    @Pattern(regexp = "^(0*[1-9]|[12][0-9]|3[0-1])$",
+            message = "일 정보는 1~31 사이의 문자열이어야 합니다.") // (1~31)
     private String monthDate;
 
     @NotNull

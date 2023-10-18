@@ -36,8 +36,8 @@ public class HouseworkInfoService {
     private final GroupMemberRepository groupMemberRepository;
     private final HouseworkCategoryRepository houseworkCategoryRepository;
 
-    @Transactional
-    public void createHouseworkInfo(UserInfoResponse requestUser, HouseworkInfoCreateServiceRequest request) {
+    @Transactional(readOnly = false)
+    public void createHouseworkInfo(HouseworkInfoCreateServiceRequest request) {
         try {
             // HOUSEWORK_CATEGORY 조회
             HouseworkCategory category = houseworkCategoryRepository.findById(request.getHouseworkCategoryId()).orElseThrow(() -> {
@@ -64,6 +64,13 @@ public class HouseworkInfoService {
 
             // 담당자 지정 - HOUSEWORK_MEMBER 생성
             List<GroupMember> groupMemberList = groupMemberRepository.findGroupMemberListByGroupMemberIdList(request.getGroupMemberIdList());
+
+            // 한 건이라도 조회 실패시 예외 발생
+            if (groupMemberList.size() != request.getGroupMemberIdList().size()) {
+                log.warn(">>>> GourpMember Not Found : {}", ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
+                throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
+            }
+
             for (GroupMember gm : groupMemberList) {
                 HouseworkMember hm = HouseworkMember.builder()
                         .groupMember(gm)
@@ -74,8 +81,8 @@ public class HouseworkInfoService {
             }
 
         } catch (RuntimeException e) {
-            log.warn(">>>> Housework Add Fail : {}", ExceptionMessage.HOUSEWORK_ADD_FAIL);
-            throw new HouseworkException(ExceptionMessage.HOUSEWORK_ADD_FAIL);
+            log.warn(">>>> Housework Add Fail : {}", e.getMessage());
+            throw e;
         }
     }
 }
