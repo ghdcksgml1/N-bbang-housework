@@ -25,9 +25,7 @@ public class HouseworkInfoAddRequest {
     @NotEmpty
     private List<Long> groupMemberIdList;
 
-    @Enumerated(EnumType.STRING)
-    @NotNull
-    private HouseworkCategory houseworkCategory;
+    private Long houseworkCategoryId;
 
     @NotEmpty
     private String title; // 집안일 제목

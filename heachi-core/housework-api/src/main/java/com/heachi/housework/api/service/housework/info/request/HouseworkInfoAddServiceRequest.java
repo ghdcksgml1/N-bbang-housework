@@ -19,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 public class HouseworkInfoAddServiceRequest {
     private List<Long> groupMemberIdList;
-    private HouseworkCategory houseworkCategory;
+    private Long houseworkCategoryId;
     private String title;
     private String detail;
     private HouseworkPeriodType type;
@@ -31,7 +31,7 @@ public class HouseworkInfoAddServiceRequest {
     public static HouseworkInfoAddServiceRequest of(HouseworkInfoAddRequest request) {
         return HouseworkInfoAddServiceRequest.builder()
                 .groupMemberIdList(request.getGroupMemberIdList())
-                .houseworkCategory(request.getHouseworkCategory())
+                .houseworkCategoryId(request.getHouseworkCategoryId())
                 .title(request.getTitle())
                 .detail(request.getDetail())
                 .type(request.getType())
