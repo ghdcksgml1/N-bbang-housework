@@ -11,4 +11,8 @@ public interface GroupMemberRepositoryCustom {
 
     // GroupId를 통해 그룹의 구성원을 리턴해주는 쿼리
     public List<GroupMember> findGroupMemberByGroupId(Long groupId);
+
+    // HouseworkInfo 조회하는데 List<GroupMember>로 조회한다. - 집안일 추가시 담당자 지정을 위해 필요
+    public List<GroupMember> findGroupMemberListByGroupMemberIdList(List<Long> groupMemberIdList);
+
 }

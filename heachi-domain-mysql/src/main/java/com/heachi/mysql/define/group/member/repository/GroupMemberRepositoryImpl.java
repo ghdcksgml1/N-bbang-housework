@@ -42,4 +42,12 @@ public class GroupMemberRepositoryImpl implements GroupMemberRepositoryCustom {
                         .and(groupMember.status.eq(GroupMemberStatus.ACCEPT)))
                 .fetch();
     }
+
+    @Override
+    public List<GroupMember> findGroupMemberListByGroupMemberIdList(List<Long> groupMemberIdList) {
+        // select gm from groupMember gm where gm.id in groupMemberIdList
+        return queryFactory.selectFrom(groupMember)
+                .where(groupMember.id.in(groupMemberIdList))
+                .fetch();
+    }
 }

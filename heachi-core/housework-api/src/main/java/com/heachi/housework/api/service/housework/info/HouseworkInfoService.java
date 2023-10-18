@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -61,12 +63,8 @@ public class HouseworkInfoService {
 
 
             // 담당자 지정 - HOUSEWORK_MEMBER 생성
-            for (Long groupMemberId : request.getGroupMemberIdList()) {
-                GroupMember gm = groupMemberRepository.findById(groupMemberId).orElseThrow(() -> {
-                    log.warn(">>>> GroupMember Not Found : {}", ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
-                    throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
-                });
-
+            List<GroupMember> groupMemberList = groupMemberRepository.findGroupMemberListByGroupMemberIdList(request.getGroupMemberIdList());
+            for (GroupMember gm : groupMemberList) {
                 HouseworkMember hm = HouseworkMember.builder()
                         .groupMember(gm)
                         .houseworkInfo(houseworkInfo)
