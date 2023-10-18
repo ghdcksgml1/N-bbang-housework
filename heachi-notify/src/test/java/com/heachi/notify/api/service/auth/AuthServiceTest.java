@@ -56,7 +56,7 @@ class AuthServiceTest extends TestConfig {
                 // then
                 .expectSubscription()
                 .expectNextMatches(userId -> {
-                    assertThat(userId).isEqualTo("id");
+                    assertThat(userId).isEqualTo("role");
 
                     return true;
                 })

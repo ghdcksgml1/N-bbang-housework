@@ -27,7 +27,13 @@ public class QHouseworkInfo extends EntityPathBase<HouseworkInfo> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdDateTime = _super.createdDateTime;
 
+    public final DatePath<java.time.LocalDate> dayDate = createDate("dayDate", java.time.LocalDate.class);
+
     public final StringPath detail = createString("detail");
+
+    public final TimePath<java.time.LocalTime> endTime = createTime("endTime", java.time.LocalTime.class);
+
+    public final com.heachi.mysql.define.group.info.QGroupInfo groupInfo;
 
     public final com.heachi.mysql.define.housework.category.QHouseworkCategory houseworkCategory;
 
@@ -38,7 +44,13 @@ public class QHouseworkInfo extends EntityPathBase<HouseworkInfo> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> modifiedDateTime = _super.modifiedDateTime;
 
+    public final StringPath monthDate = createString("monthDate");
+
     public final StringPath title = createString("title");
+
+    public final EnumPath<com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType> type = createEnum("type", com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType.class);
+
+    public final StringPath weekDate = createString("weekDate");
 
     public QHouseworkInfo(String variable) {
         this(HouseworkInfo.class, forVariable(variable), INITS);
@@ -58,6 +70,7 @@ public class QHouseworkInfo extends EntityPathBase<HouseworkInfo> {
 
     public QHouseworkInfo(Class<? extends HouseworkInfo> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
+        this.groupInfo = inits.isInitialized("groupInfo") ? new com.heachi.mysql.define.group.info.QGroupInfo(forProperty("groupInfo"), inits.get("groupInfo")) : null;
         this.houseworkCategory = inits.isInitialized("houseworkCategory") ? new com.heachi.mysql.define.housework.category.QHouseworkCategory(forProperty("houseworkCategory")) : null;
     }
 

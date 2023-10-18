@@ -3,7 +3,7 @@ package com.heachi.auth.api.service.state;
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.state.LoginStateException;
 import com.heachi.redis.define.state.LoginState;
-import com.heachi.redis.define.state.LoginStateRepository;
+import com.heachi.redis.define.state.repository.LoginStateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

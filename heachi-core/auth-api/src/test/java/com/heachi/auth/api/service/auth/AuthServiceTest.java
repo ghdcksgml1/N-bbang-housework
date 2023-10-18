@@ -103,12 +103,12 @@ class AuthServiceTest extends TestConfig {
         User user2 = User.builder()
                 .name("김민목")
                 .email("abc2")
-                .role(UserRole.CHEMIST)
+                .role(UserRole.USER)
                 .build();
         User user3 = User.builder()
                 .name("김민금")
                 .email("abc3")
-                .role(UserRole.CENTER)
+                .role(UserRole.USER)
                 .build();
         userRepository.saveAll(List.of(user1, user2, user3));
 
@@ -151,11 +151,11 @@ class AuthServiceTest extends TestConfig {
                 () -> assertThat(claims1.get("name")).isEqualTo("김민수"),
                 () -> assertThat(claims1.get("profileImageUrl")).isEqualTo("google.com"),
                 // 김민목
-                () -> assertThat(claims2.get("role")).isEqualTo("CHEMIST"),
+                () -> assertThat(claims2.get("role")).isEqualTo("USER"),
                 () -> assertThat(claims2.get("name")).isEqualTo("김민목"),
                 () -> assertThat(claims2.get("profileImageUrl")).isEqualTo("google.com"),
                 // 김민금
-                () -> assertThat(claims3.get("role")).isEqualTo("CENTER"),
+                () -> assertThat(claims3.get("role")).isEqualTo("USER"),
                 () -> assertThat(claims3.get("name")).isEqualTo("김민금"),
                 () -> assertThat(claims3.get("profileImageUrl")).isEqualTo("google.com")
         );
@@ -219,7 +219,7 @@ class AuthServiceTest extends TestConfig {
 
         // 회원가입 요청 생성 (CENTER)
         AuthServiceRegisterRequest request = AuthServiceRegisterRequest.builder()
-                .role(UserRole.CENTER)
+                .role(UserRole.USER)
                 .phoneNumber(phoneNumber)
                 .email(email)
                 .build();
@@ -232,7 +232,7 @@ class AuthServiceTest extends TestConfig {
 
 
         // then
-        assertEquals(UserRole.CENTER, response.getRole());
+        assertEquals(UserRole.USER, response.getRole());
         assertThat(tokenValid).isTrue();
     }
 
@@ -249,7 +249,7 @@ class AuthServiceTest extends TestConfig {
         User user = User.builder()
                 .platformId(platformId)
                 .platformType(platformType)
-                .role(UserRole.CENTER)
+                .role(UserRole.USER)
                 .email(email)
                 .name(name)
                 .profileImageUrl(profileImageUrl)
@@ -259,7 +259,7 @@ class AuthServiceTest extends TestConfig {
 
         // 회원가입 요청 생성 (CENTER)
         AuthServiceRegisterRequest request = AuthServiceRegisterRequest.builder()
-                .role(UserRole.CENTER)
+                .role(UserRole.USER)
                 .phoneNumber(phoneNumber)
                 .email(email)
                 .build();

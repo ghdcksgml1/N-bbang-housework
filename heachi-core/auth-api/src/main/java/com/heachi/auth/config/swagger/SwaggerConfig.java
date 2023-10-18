@@ -22,9 +22,10 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI(@Value("${heachiCoreAuthUrls}") String[] serverList) {
         Info info = new Info()
-                .title("Heachi-Auth Server")
+                .title("N빵 집안일 사용자 인증 API Document")
                 .version("0.1")
-                .description("N빵 집안일 인증서버 API 문서입니다.")
+                .description("N빵 집안일 인증서버 API 문서입니다.\n" +
+                        "해당 문서를 이용해 N빵 집안일 REST API를 테스트해볼 수 있습니다.")
                 .contact(new Contact()
                         .name("📍 N-bbang-housework Backend GitHub Link")
                         .url("https://github.com/ghdcksgml1/N-bbang-housework"))

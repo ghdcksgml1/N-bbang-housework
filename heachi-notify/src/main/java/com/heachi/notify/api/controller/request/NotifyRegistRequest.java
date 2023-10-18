@@ -13,6 +13,5 @@ public class NotifyRegistRequest {
     private List<String> receiveUserIds = new ArrayList<>();            // 알림을 받는 아이디
     private NotifyType type;                                            // 알림 종류
     private String message;                                             // 알림 내용
-    private String generatedUrl;                                        // 알림의 근원지
     private String url;                                                 // 알림 클릭 시 이동할 주소
 }

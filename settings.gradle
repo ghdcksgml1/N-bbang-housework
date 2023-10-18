@@ -2,6 +2,7 @@ rootProject.name = "heachi"
 
 include(
     "heachi-core:auth-api",
+    "heachi-core:housework-api",
     "heachi-domain-mongo",
     "heachi-domain-mysql",
     "heachi-domain-redis",

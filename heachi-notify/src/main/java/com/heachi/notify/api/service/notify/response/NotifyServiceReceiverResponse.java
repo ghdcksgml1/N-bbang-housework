@@ -17,7 +17,6 @@ public class NotifyServiceReceiverResponse {
     private String receiveUserIds;                                      // 알림을 받는 아이디
     private NotifyType type;                                            // 알림 종류
     private String message;                                             // 알림 내용
-    private String generatedUrl;                                        // 알림의 근원지
     private String url;                                                 // 알림 클릭 시 이동할 주소
     private LocalDateTime createdTime;                                  // 알림 발생 시간
     private LocalDateTime checkedTime;                                  // 알림 확인 시간
@@ -26,14 +25,13 @@ public class NotifyServiceReceiverResponse {
 
     @Builder
     public NotifyServiceReceiverResponse(String id, String sendUserId, String receiveUserIds, NotifyType type,
-                                         String message, String generatedUrl, String url, LocalDateTime createdTime,
+                                         String message, String url, LocalDateTime createdTime,
                                          LocalDateTime checkedTime, boolean checked, String dateDistance) {
         this.id = id;
         this.sendUserId = sendUserId;
         this.receiveUserIds = receiveUserIds;
         this.type = type;
         this.message = message;
-        this.generatedUrl = generatedUrl;
         this.url = url;
         this.createdTime = createdTime;
         this.checkedTime = checkedTime;
@@ -48,7 +46,6 @@ public class NotifyServiceReceiverResponse {
                 .receiveUserIds(receiveUserId)
                 .type(notify.getType())
                 .message(notify.getMessage())
-                .generatedUrl(notify.getGeneratedUrl())
                 .url(notify.getUrl())
                 .createdTime(notify.getCreatedTime())
                 .checkedTime(notify.getCheckedTime().get(receiveUserId))

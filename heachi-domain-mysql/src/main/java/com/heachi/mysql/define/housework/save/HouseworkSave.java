@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "HOUSEWORK_SAVE")
+@Table(indexes = { @Index(name = "HOUSEWORK_SAVE_GROUP_INFO_INDEX", columnList = "GROUP_INFO_ID") })
 public class HouseworkSave extends BaseEntity {
 
     @Id

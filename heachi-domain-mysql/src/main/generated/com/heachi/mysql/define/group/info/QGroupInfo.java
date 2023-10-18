@@ -31,6 +31,10 @@ public class QGroupInfo extends EntityPathBase<GroupInfo> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdDateTime = _super.createdDateTime;
 
+    public final StringPath gradient = createString("gradient");
+
+    public final ListPath<com.heachi.mysql.define.housework.todo.HouseworkTodo, com.heachi.mysql.define.housework.todo.QHouseworkTodo> houseworkTodoList = this.<com.heachi.mysql.define.housework.todo.HouseworkTodo, com.heachi.mysql.define.housework.todo.QHouseworkTodo>createList("houseworkTodoList", com.heachi.mysql.define.housework.todo.HouseworkTodo.class, com.heachi.mysql.define.housework.todo.QHouseworkTodo.class, PathInits.DIRECT2);
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath info = createString("info");

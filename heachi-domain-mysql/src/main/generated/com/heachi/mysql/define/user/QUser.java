@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -25,6 +26,8 @@ public class QUser extends EntityPathBase<User> {
     public final DateTimePath<java.time.LocalDateTime> createdDateTime = _super.createdDateTime;
 
     public final StringPath email = createString("email");
+
+    public final ListPath<com.heachi.mysql.define.group.info.GroupInfo, com.heachi.mysql.define.group.info.QGroupInfo> groupInfoList = this.<com.heachi.mysql.define.group.info.GroupInfo, com.heachi.mysql.define.group.info.QGroupInfo>createList("groupInfoList", com.heachi.mysql.define.group.info.GroupInfo.class, com.heachi.mysql.define.group.info.QGroupInfo.class, PathInits.DIRECT2);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
