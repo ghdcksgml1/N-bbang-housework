@@ -1,7 +1,5 @@
 package com.heachi.housework.api.controller.housework.info.request;
 
-import com.heachi.mysql.define.group.member.GroupMember;
-import com.heachi.mysql.define.housework.category.HouseworkCategory;
 import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -21,7 +19,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HouseworkInfoAddRequest {
+public class HouseworkInfoCreateRequest {
     @NotEmpty
     private List<Long> groupMemberIdList;
 

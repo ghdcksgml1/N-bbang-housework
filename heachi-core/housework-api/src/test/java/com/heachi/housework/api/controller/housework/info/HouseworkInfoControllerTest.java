@@ -1,39 +1,15 @@
 package com.heachi.housework.api.controller.housework.info;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.heachi.admin.common.exception.ExceptionMessage;
-import com.heachi.admin.common.exception.housework.HouseworkException;
-import com.heachi.external.clients.auth.response.UserInfoResponse;
 import com.heachi.housework.TestConfig;
-import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoAddRequest;
-import com.heachi.housework.api.controller.housework.info.response.HouseworkInfoAddResponse;
 import com.heachi.housework.api.service.housework.info.HouseworkInfoService;
-import com.heachi.housework.api.service.housework.info.request.HouseworkInfoAddServiceRequest;
-import com.heachi.mysql.define.housework.category.HouseworkCategory;
-import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
 import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
-import com.heachi.mysql.define.housework.member.HouseworkMember;
 import com.heachi.mysql.define.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @AutoConfigureMockMvc
 @SpringBootTest

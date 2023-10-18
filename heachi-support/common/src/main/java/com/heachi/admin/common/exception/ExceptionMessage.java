@@ -56,7 +56,7 @@ public enum ExceptionMessage {
     HOUSEWORK_NOT_FOUND("집안일 정보를 찾을 수 없습니다."),
     HOUSEWORK_ADD_FAIL("집안일 추가에 실패했습니다."),
     HOUSEWORK_ADD_PERMISSION_DENIED("집안일을 추가할 권한이 없습니다."),
-
+    HOUSEWORK_CATEGORY_NOT_FOUND("집안일 카테고리 정보를 찾을 수 없습니다."),
     ;
 
     private final String text;
