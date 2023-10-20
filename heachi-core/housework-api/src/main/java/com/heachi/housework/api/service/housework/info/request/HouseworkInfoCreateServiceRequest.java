@@ -9,12 +9,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class HouseworkInfoCreateServiceRequest {
     private List<Long> groupMemberIdList;
     private Long houseworkCategoryId;
@@ -26,7 +24,23 @@ public class HouseworkInfoCreateServiceRequest {
     private String monthDate;
     private LocalTime endTime;
 
+    @Builder
+    private HouseworkInfoCreateServiceRequest(List<Long> groupMemberIdList, Long houseworkCategoryId, String title,
+                                             String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate,
+                                             String monthDate, LocalTime endTime) {
+        this.groupMemberIdList = groupMemberIdList == null ? new ArrayList<>() : groupMemberIdList;
+        this.houseworkCategoryId = houseworkCategoryId;
+        this.title = title;
+        this.detail = detail;
+        this.type = type;
+        this.dayDate = dayDate;
+        this.weekDate = weekDate;
+        this.monthDate = monthDate;
+        this.endTime = endTime;
+    }
+
     public static HouseworkInfoCreateServiceRequest of(HouseworkInfoCreateRequest request) {
+
         return HouseworkInfoCreateServiceRequest.builder()
                 .groupMemberIdList(request.getGroupMemberIdList())
                 .houseworkCategoryId(request.getHouseworkCategoryId())

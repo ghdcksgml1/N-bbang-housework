@@ -29,8 +29,8 @@ public class HouseworkInfoCreateRequest {
     private String title; // 집안일 제목
     private String detail; // 집안일 내용
 
-    @Enumerated(EnumType.STRING)
     @NotNull
+    @Enumerated(EnumType.STRING)
     private HouseworkPeriodType type; // 집안일 주기 타입 (한번, 매일, 매주, 매달)
 
     private LocalDate dayDate; // 단건: 날짜 정보
