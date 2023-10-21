@@ -96,30 +96,31 @@ public class HouseworkInfoService {
                             todoListRepository.save(todoList);
                             log.info(">>>> dirtyBit Checking TodoList id: {}", todoList.getId());
                         });
+            } else {
 
-                return ;
+                // HOUSEWORK_INFO 저장
+                HouseworkInfo houseworkInfo = houseworkInfoRepository.save(HouseworkInfo.builder()
+                        .houseworkCategory(category)
+                        .title(request.getTitle())
+                        .detail(request.getDetail())
+                        .type(request.getType())
+                        .dayDate(request.getDayDate())
+                        .weekDate(request.getWeekDate())
+                        .monthDate(request.getMonthDate())
+                        .endTime(request.getEndTime())
+                        .build());
+                log.info(">>>> HouseworkInfo Create: {}", houseworkInfo.getId());
+
+                groupMemberList.stream()
+                        .map(gm -> HouseworkMember.builder()
+                                .groupMember(gm)
+                                .houseworkInfo(houseworkInfo)
+                                .build())
+                        // HOUSEWORK_MEMBER 저장
+                        .forEach(houseworkMemberRepository::save);
+
+                // TODO: findByGroupInfoId를 통해 해당 그룹의 캐싱된 객체 조회
             }
-
-            // HOUSEWORK_INFO 저장
-            HouseworkInfo houseworkInfo = houseworkInfoRepository.save(HouseworkInfo.builder()
-                    .houseworkCategory(category)
-                    .title(request.getTitle())
-                    .detail(request.getDetail())
-                    .type(request.getType())
-                    .dayDate(request.getDayDate())
-                    .weekDate(request.getWeekDate())
-                    .monthDate(request.getMonthDate())
-                    .endTime(request.getEndTime())
-                    .build());
-            log.info(">>>> HouseworkInfo Create: {}", houseworkInfo.getId());
-
-            groupMemberList.stream()
-                    .map(gm -> HouseworkMember.builder()
-                            .groupMember(gm)
-                            .houseworkInfo(houseworkInfo)
-                            .build())
-                    // HOUSEWORK_MEMBER 저장
-                    .forEach(houseworkMemberRepository::save);
 
         } catch (RuntimeException e) {
             log.warn(">>>> Housework Add Fail : {}", e.getMessage());
