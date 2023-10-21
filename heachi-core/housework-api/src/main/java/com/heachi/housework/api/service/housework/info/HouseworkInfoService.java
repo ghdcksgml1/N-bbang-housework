@@ -1,9 +1,12 @@
 package com.heachi.housework.api.service.housework.info;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.group.info.GroupInfoException;
 import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.admin.common.exception.housework.HouseworkException;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
+import com.heachi.mysql.define.group.info.GroupInfo;
+import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.group.member.repository.GroupMemberRepository;
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
@@ -24,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,11 +34,12 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class HouseworkInfoService {
-    private final HouseworkInfoRepository houseworkInfoRepository;
-    private final HouseworkMemberRepository houseworkMemberRepository;
+    private final GroupInfoRepository groupInfoRepository;
     private final GroupMemberRepository groupMemberRepository;
-    private final HouseworkCategoryRepository houseworkCategoryRepository;
+    private final HouseworkInfoRepository houseworkInfoRepository;
     private final HouseworkTodoRepository houseworkTodoRepository;
+    private final HouseworkMemberRepository houseworkMemberRepository;
+    private final HouseworkCategoryRepository houseworkCategoryRepository;
 
     private final TodoListRepository todoListRepository;
 
@@ -50,12 +53,19 @@ public class HouseworkInfoService {
                 throw new HouseworkException(ExceptionMessage.HOUSEWORK_CATEGORY_NOT_FOUND);
             });
 
+            // GROUP_INFO 조회
+            GroupInfo groupInfo = groupInfoRepository.findById(request.getGroupId()).orElseThrow(() -> {
+                log.warn(">>>> GroupInfo Not Found : {}", ExceptionMessage.GROUP_NOT_FOUND.getText());
+
+                throw new GroupInfoException(ExceptionMessage.GROUP_NOT_FOUND);
+            });
+
             // 담당자 지정 - HOUSEWORK_MEMBER 생성
             List<GroupMember> groupMemberList = groupMemberRepository.findGroupMemberListByGroupMemberIdList(request.getGroupMemberIdList());
 
             // 한 건이라도 조회 실패시 예외 발생
             if (groupMemberList.size() != request.getGroupMemberIdList().size()) {
-                log.warn(">>>> GourpMember Not Found : {}", ExceptionMessage.GROUP_MEMBER_NOT_FOUND.getText());
+                log.warn(">>>> GroupMember Not Found : {}", ExceptionMessage.GROUP_MEMBER_NOT_FOUND.getText());
 
                 throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
             }
@@ -66,7 +76,7 @@ public class HouseworkInfoService {
                 // HouseworkTodo 생성
                 houseworkTodoRepository.save(HouseworkTodo.builder()
                         .houseworkInfo(null) // 단건은 HouseworkInfo가 존재하지 않는다.
-                        .groupInfo(groupMemberList.isEmpty() ? null : groupMemberList.get(0).getGroupInfo())
+                        .groupInfo(groupInfo)
                         .houseworkMember(groupMemberList.stream()
                                 .map(gm -> gm.getId().toString())
                                 .collect(Collectors.joining(",")))
@@ -78,7 +88,14 @@ public class HouseworkInfoService {
                         .endTime(request.getEndTime())
                         .build());
 
-                // TODO: 해당 HouseworkTodo에 맞는 groupInfoId와 Date가 캐싱되어있다면, dirtyBit를 true로 바꿔줘야함.
+                // 해당 HouseworkTodo에 맞는 groupInfoId와 Date가 캐싱되어있다면, dirtyBit를 true로 바꿔줘야함.
+                todoListRepository.findById(TodoList.makeId(request.getGroupId(), request.getDayDate()))
+                        // Todo가 캐싱되어 있다면, dirtyBit 체킹
+                        .ifPresent(todoList -> {
+                            todoList.checkDirtyBit();
+                            todoListRepository.save(todoList);
+                            log.info(">>>> dirtyBit Checking TodoList id: {}", todoList.getId());
+                        });
 
                 return ;
             }
