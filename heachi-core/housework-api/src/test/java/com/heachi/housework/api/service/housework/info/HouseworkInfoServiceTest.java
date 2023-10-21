@@ -23,6 +23,8 @@ import com.heachi.mysql.define.housework.todo.HouseworkTodo;
 import com.heachi.mysql.define.housework.todo.repository.HouseworkTodoRepository;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.repository.UserRepository;
+import com.heachi.redis.define.housework.todo.TodoList;
+import com.heachi.redis.define.housework.todo.repository.TodoListRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,14 +57,19 @@ class HouseworkInfoServiceTest extends TestConfig {
     @Autowired private HouseworkMemberRepository houseworkMemberRepository;
     @Autowired private HouseworkTodoRepository houseworkTodoRepository;
 
+    @Autowired private TodoListRepository todoListRepository;
+
     @AfterEach
     void tearDown() {
+        houseworkTodoRepository.deleteAllInBatch();
         houseworkMemberRepository.deleteAllInBatch();
         houseworkInfoRepository.deleteAllInBatch();
         groupMemberRepository.deleteAllInBatch();
         groupInfoRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
         houseworkCategoryRepository.deleteAllInBatch();
+
+        todoListRepository.deleteAll();
     }
 
     @Test
@@ -94,6 +101,7 @@ class HouseworkInfoServiceTest extends TestConfig {
                 .weekDate("1")
                 .monthDate(null)
                 .endTime(LocalTime.now())
+                .groupId(groupInfo.getId())
                 .build();
 
         // when
@@ -130,6 +138,7 @@ class HouseworkInfoServiceTest extends TestConfig {
                 .weekDate("1")
                 .monthDate(null)
                 .endTime(LocalTime.now())
+                .groupId(groupInfo.getId())
                 .build();
 
         // when & then
@@ -163,11 +172,11 @@ class HouseworkInfoServiceTest extends TestConfig {
                 .weekDate("1")
                 .monthDate(null)
                 .endTime(LocalTime.now())
+                .groupId(groupInfo.getId())
                 .build();
 
         // when & then
-        GroupMemberException exception = assertThrows(GroupMemberException.class, () -> houseworkInfoService.createHouseworkInfo(request));
-        assertEquals(exception.getMessage(), ExceptionMessage.GROUP_MEMBER_NOT_FOUND.getText());
+        assertThrows(GroupMemberException.class, () -> houseworkInfoService.createHouseworkInfo(request));
     }
 
     @Test
@@ -196,6 +205,7 @@ class HouseworkInfoServiceTest extends TestConfig {
                 .weekDate(null)
                 .monthDate(null)
                 .endTime(LocalTime.now())
+                .groupId(groupInfo.getId())
                 .build();
 
         // when
@@ -206,5 +216,48 @@ class HouseworkInfoServiceTest extends TestConfig {
         // then
         assertThat(infoList.size()).isEqualTo(0);
         assertThat(todoList.size()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("딱 한번하는 집안일의 경우, HOUSEWORK_INFO가 생성되지 않고, HOUSEWORK_TODO가 바로 생성된다. " +
+            "만약, Redis에 이미 캐싱되어있던 TodoList일 경우 DirtyBit가 Check로 바뀐다.")
+    void createHouseworkInfoWhenPeriodDayDirtyBitChecking() {
+        // given
+        HouseworkCategory category = generateHouseworkCategory();
+        houseworkCategoryRepository.save(category);
+
+        User user = generateUser();
+        userRepository.save(user);
+
+        GroupInfo groupInfo = generateGroupInfo(user);
+        groupInfoRepository.save(groupInfo);
+
+        GroupMember groupMember = generateGroupMember(user, groupInfo);
+        groupMemberRepository.save(groupMember);
+
+        HouseworkInfoCreateServiceRequest request = HouseworkInfoCreateServiceRequest.builder()
+                .houseworkCategoryId(category.getId())
+                .groupMemberIdList(null)
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_DAY) // 단건
+                .title("Test")
+                .detail("Test")
+                .dayDate(LocalDate.now())
+                .weekDate(null)
+                .monthDate(null)
+                .endTime(LocalTime.now())
+                .groupId(groupInfo.getId())
+                .build();
+
+        TodoList todoList = todoListRepository.save(TodoList.builder()
+                .groupInfoId(groupInfo.getId())
+                .date(LocalDate.now())
+                .build());
+
+        // when
+        houseworkInfoService.createHouseworkInfo(request);
+        TodoList savedTodoList = todoListRepository.findById(todoList.getId()).get();
+
+        // then
+        assertThat(savedTodoList.isDirtyBit()).isTrue();
     }
 }

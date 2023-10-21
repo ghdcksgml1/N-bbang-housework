@@ -26,7 +26,7 @@ public class HouseworkInfoController {
         // Auth 서버로 요청자 인증 요청 - 해당 그룹원인지 판별하고 상태가 ACCEPT인지 확인
         try {
             authExternalService.userAuthenticateAndGroupMatch(authorization, groupId);
-            houseworkInfoService.createHouseworkInfo(HouseworkInfoCreateServiceRequest.of(request));
+            houseworkInfoService.createHouseworkInfo(HouseworkInfoCreateServiceRequest.of(request, groupId));
 
             return JsonResult.successOf("Housework Create Success.");
         } catch (HeachiException e) {
