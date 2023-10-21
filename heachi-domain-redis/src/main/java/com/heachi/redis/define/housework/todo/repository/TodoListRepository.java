@@ -7,4 +7,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 
 public interface TodoListRepository extends CrudRepository<TodoList, String> {
+
+    Optional<TodoList> findByGroupInfoIdAndDate(@Param("groupInfoId") Long groupInfoId, @Param("date") LocalDate date);
+
 }

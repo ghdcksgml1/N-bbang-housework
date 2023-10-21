@@ -4,6 +4,7 @@ import com.heachi.admin.common.utils.CachingStrategy;
 import com.heachi.admin.common.utils.DayOfWeekUtils;
 import com.heachi.housework.api.service.housework.todo.request.TodoSelectRequest;
 import com.heachi.housework.api.service.housework.todo.response.TodoResponse;
+import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.group.member.repository.GroupMemberRepository;
 import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
 import com.heachi.mysql.define.housework.todo.HouseworkTodo;
@@ -39,7 +40,7 @@ public class TodoService {
     public TodoList cachedSelectTodo(TodoSelectRequest request) {
 
         return CachingStrategy.cachingIfEmpty(request,
-                (req) -> todoListRepository.findById(TodoList.makeId(req.getGroupId(), req.getDate())).orElse(null),
+                (req) -> todoListRepository.findByGroupInfoIdAndDate(req.getGroupId(), req.getDate()).orElse(null),
                 (req) -> {
                     List<TodoResponse> todoResponseList = selectTodo(req);
 
@@ -48,7 +49,7 @@ public class TodoService {
 
                     return todoList;
                 },
-                (todo) -> todo.isDirtyBit() == false); // dirtyBit가 false가 아니면 캐시 업데이트
+                (todo) -> !todo.isDirtyBit()); // dirtyBit가 false가 아니면 캐시 업데이트
     }
 
     // GroupInfoId와 Date를 통해 Todo List 가져오기
@@ -67,9 +68,8 @@ public class TodoService {
                         switch (info.getType()) {
                             case HOUSEWORK_PERIOD_EVERYDAY -> true;
                             case HOUSEWORK_PERIOD_WEEK -> DayOfWeekUtils.equals(info.getWeekDate(), date);
-                            case HOUSEWORK_PERIOD_MONTH -> Arrays.asList(info.getMonthDate().split(",")).stream()
-                                    .filter(d -> Integer.parseInt(d) == date.getDayOfMonth())
-                                    .findFirst().isPresent();
+                            case HOUSEWORK_PERIOD_MONTH -> Arrays.stream(info.getMonthDate().split(","))
+                                    .anyMatch(d -> Integer.parseInt(d) == date.getDayOfMonth());
                             default -> false;
                         })
                 .map(info -> HouseworkTodo.makeTodoReferInfo(info, info.getGroupInfo(), date))
@@ -79,7 +79,7 @@ public class TodoService {
 
         // Map<GROUP_MEMBER_ID, USER>
         Map<Long, User> userMap = groupMemberRepository.findGroupMemberByGroupId(groupId).stream()
-                .collect(Collectors.toMap(gm -> gm.getId(), gm -> gm.getUser()));
+                .collect(Collectors.toMap(GroupMember::getId, GroupMember::getUser));
 
         return houseworkTodoRepository.findByGroupInfoAndDate(groupId, date).stream() // 최신 Todo 불러와 리턴
                 .map(todo -> TodoResponse.of(todo, userMap))

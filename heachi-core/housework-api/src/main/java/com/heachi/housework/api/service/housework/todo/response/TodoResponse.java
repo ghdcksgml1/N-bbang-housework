@@ -55,7 +55,7 @@ public class TodoResponse {
 
         return TodoResponse.builder()
                 .id(todo.getId())
-                .houseworkMembers(!todo.getHouseworkMember().equals("") ? Arrays.asList(todo.getHouseworkMember().split(",")).stream()
+                .houseworkMembers(!todo.getHouseworkMember().equals("") ? Arrays.stream(todo.getHouseworkMember().split(","))
                         .map(Long::parseLong)
                         .map(i -> TodoUser.of(userMap.get(i)))
                         .collect(Collectors.toList()) : new ArrayList<>())

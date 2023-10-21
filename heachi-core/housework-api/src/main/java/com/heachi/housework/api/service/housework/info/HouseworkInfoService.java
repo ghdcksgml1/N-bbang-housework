@@ -89,7 +89,7 @@ public class HouseworkInfoService {
                         .build());
 
                 // 해당 HouseworkTodo에 맞는 groupInfoId와 Date가 캐싱되어있다면, dirtyBit를 true로 바꿔줘야함.
-                todoListRepository.findById(TodoList.makeId(request.getGroupId(), request.getDayDate()))
+                todoListRepository.findByGroupInfoIdAndDate(request.getGroupId(), request.getDayDate())
                         // Todo가 캐싱되어 있다면, dirtyBit 체킹
                         .ifPresent(todoList -> {
                             todoList.checkDirtyBit();
