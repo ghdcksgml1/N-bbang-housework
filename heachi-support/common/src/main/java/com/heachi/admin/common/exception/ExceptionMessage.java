@@ -37,6 +37,9 @@ public enum ExceptionMessage {
     AUTH_NOT_FOUND("계정 정보를 찾을 수 없습니다."),
     AUTH_DELETE_FAIL("계정 삭제에 실패했습니다."),
 
+    // GroupException
+    GROUP_NOT_FOUND("그룹을 찾지 못했습니다."),
+
     // GroupMemberException
     GROUP_MEMBER_NOT_FOUND("그룹 멤버를 찾지 못했습니다."),
 
@@ -48,6 +51,12 @@ public enum ExceptionMessage {
     S3_FILE_SIZE_LIMIT_EXCEEDED("파일 크기가 너무 큽니다."),
     S3_FILE_UPLOAD_FAILED("파일을 업로드하는데 실패했습니다."),
     S3_MALFORMED_FILE("잘못된 파일 확장자 입니다."),
+
+    // HouseworkException
+    HOUSEWORK_NOT_FOUND("집안일 정보를 찾을 수 없습니다."),
+    HOUSEWORK_ADD_FAIL("집안일 추가에 실패했습니다."),
+    HOUSEWORK_ADD_PERMISSION_DENIED("집안일을 추가할 권한이 없습니다."),
+    HOUSEWORK_CATEGORY_NOT_FOUND("집안일 카테고리 정보를 찾을 수 없습니다."),
     ;
 
     private final String text;

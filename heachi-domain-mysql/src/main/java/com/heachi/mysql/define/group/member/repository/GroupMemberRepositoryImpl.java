@@ -1,5 +1,6 @@
 package com.heachi.mysql.define.group.member.repository;
 
+import com.heachi.mysql.define.group.info.QGroupInfo;
 import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.group.member.constant.GroupMemberStatus;
 import com.querydsl.jpa.JPAExpressions;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.heachi.mysql.define.group.info.QGroupInfo.*;
 import static com.heachi.mysql.define.group.member.QGroupMember.groupMember;
 import static com.heachi.mysql.define.user.QUser.user;
 
@@ -39,6 +41,17 @@ public class GroupMemberRepositoryImpl implements GroupMemberRepositoryCustom {
         return queryFactory.selectFrom(groupMember)
                 .innerJoin(groupMember.user, user).fetchJoin()
                 .where(groupMember.groupInfo.id.eq(groupId)
+                        .and(groupMember.status.eq(GroupMemberStatus.ACCEPT)))
+                .fetch();
+    }
+
+    @Override
+    public List<GroupMember> findGroupMemberListByGroupMemberIdList(List<Long> groupMemberIdList) {
+
+        // select gm from groupMember gm where gm.id in groupMemberIdList and gm.status = 'ACCEPT'
+        return queryFactory.selectFrom(groupMember)
+                .innerJoin(groupMember.groupInfo, groupInfo).fetchJoin()
+                .where(groupMember.id.in(groupMemberIdList)
                         .and(groupMember.status.eq(GroupMemberStatus.ACCEPT)))
                 .fetch();
     }
