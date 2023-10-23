@@ -39,8 +39,12 @@ jib {
         image = 'eclipse-temurin:17-jre' // https://github.com/GoogleContainerTools/jib/issues/3483
         platforms {
             platform {
-                architecture = "arm64"
+                architecture = "amd64"
                 os = "linux"
+            }
+            platform {
+                architecture = 'arm64'
+                os = 'linux'
             }
         }
     }
@@ -54,7 +58,7 @@ jib {
     }
     container {
 
-        entrypoint = ['java', '-Dspring.profiles.active=prod', '-jar', 'heachi-auth-' + buildVersion + '.jar']
+        entrypoint = ['java', '-Dspring.profiles.active=prod', '-Duser.timezone=Aisa/Seoul', '-jar', 'heachi-auth-' + buildVersion + '.jar']
         jvmFlags = ['-Xms2048m', '-Xmx2048m', '-Xdebug', '-XshowSettings:vm', '-XX:+UnlockExperimentalVMOptions', '-XX:+UseContainerSupport']
         ports = ['8080']
         environment = [SPRING_OUTPUT_ANSI_ENABLED: "ALWAYS"]
