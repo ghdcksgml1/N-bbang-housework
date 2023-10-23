@@ -60,10 +60,16 @@ jobs:
       run: ./gradlew jib
 
   deployment:
-    name: docker 배포
+    name: docker deployment
     needs: build # depends on
     runs-on: self-hosted
 
     steps:
-      - name: docker-compose 배포 스크립트
-        run: ${{ secrets.DOCKER_COMPOSE_DEPLOYMENT_SCRIPT }}
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: ${{ secrets.DOCKER_COMPOSE_DEPLOYMENT_SCRIPT }} # docker-compose 배포 스크립트 실행
