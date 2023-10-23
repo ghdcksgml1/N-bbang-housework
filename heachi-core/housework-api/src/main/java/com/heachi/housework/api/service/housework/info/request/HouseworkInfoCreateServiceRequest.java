@@ -24,10 +24,12 @@ public class HouseworkInfoCreateServiceRequest {
     private String monthDate;
     private LocalTime endTime;
 
+    private Long groupId;
+
     @Builder
     private HouseworkInfoCreateServiceRequest(List<Long> groupMemberIdList, Long houseworkCategoryId, String title,
                                              String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate,
-                                             String monthDate, LocalTime endTime) {
+                                             String monthDate, LocalTime endTime, Long groupId) {
         this.groupMemberIdList = groupMemberIdList == null ? new ArrayList<>() : groupMemberIdList;
         this.houseworkCategoryId = houseworkCategoryId;
         this.title = title;
@@ -37,9 +39,10 @@ public class HouseworkInfoCreateServiceRequest {
         this.weekDate = weekDate;
         this.monthDate = monthDate;
         this.endTime = endTime;
+        this.groupId = groupId;
     }
 
-    public static HouseworkInfoCreateServiceRequest of(HouseworkInfoCreateRequest request) {
+    public static HouseworkInfoCreateServiceRequest of(HouseworkInfoCreateRequest request, Long groupId) {
 
         return HouseworkInfoCreateServiceRequest.builder()
                 .groupMemberIdList(request.getGroupMemberIdList())
@@ -51,6 +54,7 @@ public class HouseworkInfoCreateServiceRequest {
                 .weekDate(request.getWeekDate())
                 .monthDate(request.getMonthDate())
                 .endTime(request.getEndTime())
+                .groupId(groupId)
                 .build();
     }
 }

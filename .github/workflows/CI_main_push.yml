@@ -58,5 +58,12 @@ jobs:
     # Jib을 이용한 도커 이미지 빌드 후 허브 푸쉬
     - name: 도커 이미지 빌드 & 도커 허브 푸쉬
       run: ./gradlew jib
-    
-    
+
+  deployment:
+    name: docker 배포
+    needs: build # depends on
+    runs-on: self-hosted
+
+    steps:
+      - name: docker-compose 배포 스크립트
+        run: ${{ secrets.DOCKER_COMPOSE_DEPLOYMENT_SCRIPT }}
