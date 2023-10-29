@@ -260,4 +260,106 @@ class HouseworkInfoServiceTest extends TestConfig {
         // then
         assertThat(savedTodoList.isDirtyBit()).isTrue();
     }
+
+    @Test
+    @DisplayName("주마다 하는 집안일의 경우, HOUSEWORK_INFO가 생성되고, " +
+            "이미 캐싱되어 있는 TodoList의 Date와 주마다 하는 집안일의 주기가 겹칠 경우 dirtyBit가 Checking된다.")
+    void createHouseworkInfoWhenPeriodWeekDirtyBitChecking() {
+        // given
+        HouseworkCategory category = generateHouseworkCategory();
+        houseworkCategoryRepository.save(category);
+
+        User user = generateUser();
+        userRepository.save(user);
+
+        GroupInfo groupInfo = generateGroupInfo(user);
+        groupInfoRepository.save(groupInfo);
+
+        GroupMember groupMember = generateGroupMember(user, groupInfo);
+        groupMemberRepository.save(groupMember);
+
+        HouseworkInfoCreateServiceRequest request = HouseworkInfoCreateServiceRequest.builder()
+                .houseworkCategoryId(category.getId())
+                .groupMemberIdList(null)
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK) // 주마다
+                .title("Test")
+                .detail("Test")
+                .dayDate(null)
+                .weekDate("1,2,3,4,5") // 월,화,수,목,금 마다
+                .monthDate(null)
+                .endTime(LocalTime.now())
+                .groupId(groupInfo.getId())
+                .build();
+
+        TodoList todoList = todoListRepository.save(TodoList.builder()
+                .groupInfoId(groupInfo.getId())
+                .date(LocalDate.of(2023, 10, 27)) // 금요일이니까 bitChecking 돼야함
+                .build());
+        TodoList todoList2 = todoListRepository.save(TodoList.builder()
+                .groupInfoId(groupInfo.getId())
+                .date(LocalDate.of(2023, 10, 25)) // 수요일이니까 bitChecking 돼야함
+                .build());
+        TodoList todoList3 = todoListRepository.save(TodoList.builder()
+                .groupInfoId(100L)
+                .date(LocalDate.of(2023, 10, 25)) // 주기에 해당되지만, GroupInfoId가 다르다.
+                .build());
+
+        // when
+        houseworkInfoService.createHouseworkInfo(request);
+        var findTodoList = todoListRepository.findByGroupInfoId(groupInfo.getId());
+        var findTodoList2 = todoListRepository.findByGroupInfoId(100L);
+
+        // then
+        assertThat(findTodoList.get(0).getId()).isEqualTo(todoList.getId()); // 이전에 생성되어 있던 todoList가 맞는지
+        assertThat(findTodoList.get(0).isDirtyBit()).isTrue(); // 비트 체킹
+
+        assertThat(findTodoList.get(1).getId()).isEqualTo(todoList2.getId()); // 이전에 생성되어 있던 todoList가 맞는지
+        assertThat(findTodoList.get(1).isDirtyBit()).isTrue(); // 비트 체킹
+
+        assertThat(findTodoList2.get(0).isDirtyBit()).isFalse();
+    }
+
+    @Test
+    @DisplayName("달마다 하는 집안일의 경우, HOUSEWORK_INFO가 생성되고, " +
+            "이미 캐싱되어 있는 TodoList의 Date와 달마다 하는 집안일의 주기가 겹칠 경우 dirtyBit가 Checking된다.")
+    void createHouseworkInfoWhenPeriodMonthDirtyBitChecking() {
+        // given
+        HouseworkCategory category = generateHouseworkCategory();
+        houseworkCategoryRepository.save(category);
+
+        User user = generateUser();
+        userRepository.save(user);
+
+        GroupInfo groupInfo = generateGroupInfo(user);
+        groupInfoRepository.save(groupInfo);
+
+        GroupMember groupMember = generateGroupMember(user, groupInfo);
+        groupMemberRepository.save(groupMember);
+
+        HouseworkInfoCreateServiceRequest request = HouseworkInfoCreateServiceRequest.builder()
+                .houseworkCategoryId(category.getId())
+                .groupMemberIdList(null)
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_MONTH) // 주마다
+                .title("Test")
+                .detail("Test")
+                .dayDate(null)
+                .weekDate(null)
+                .monthDate("12,23,30") // 12, 23, 30일 마다
+                .endTime(LocalTime.now())
+                .groupId(groupInfo.getId())
+                .build();
+
+        TodoList todoList = todoListRepository.save(TodoList.builder()
+                .groupInfoId(groupInfo.getId())
+                .date(LocalDate.of(2023, 10, 23)) // 23일이니까 비트체킹 돼야함.
+                .build());
+
+        // when
+        houseworkInfoService.createHouseworkInfo(request);
+        var findTodoList = todoListRepository.findByGroupInfoId(groupInfo.getId());
+
+        // then
+        assertThat(findTodoList.get(0).getId()).isEqualTo(todoList.getId());
+        assertThat(findTodoList.get(0).isDirtyBit()).isTrue();
+    }
 }
