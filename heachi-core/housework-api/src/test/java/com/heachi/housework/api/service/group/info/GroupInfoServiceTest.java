@@ -2,6 +2,9 @@ package com.heachi.housework.api.service.group.info;
 
 import com.heachi.housework.TestConfig;
 import com.heachi.housework.api.service.group.info.response.GroupInfoUserGroupServiceResponse;
+import com.heachi.admin.common.exception.user.UserException;
+import com.heachi.housework.TestConfig;
+import com.heachi.housework.api.service.group.info.request.GroupInfoCreateServiceRequest;
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
@@ -14,6 +17,7 @@ import com.heachi.mysql.define.housework.member.HouseworkMember;
 import com.heachi.mysql.define.housework.member.repository.HouseworkMemberRepository;
 import com.heachi.mysql.define.housework.todo.HouseworkTodo;
 import com.heachi.mysql.define.housework.todo.repository.HouseworkTodoRepository;
+
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -95,5 +99,51 @@ class GroupInfoServiceTest extends TestConfig {
         assertThat(groupServiceResponses.get(1).getRemainTodoListCnt()).isEqualTo(1);
         assertThat(groupServiceResponses.get(1).getProgressPercent()).isEqualTo(0);
     }
+  
+    @Test
+    @DisplayName("올바른 GroupInfoCreateServiceRequest를 넘기면, 요청한 유저가 관리자로 GroupInfo, GroupMember가 생성된다.")
+    void createGroupInfoSuccess() {
+        // given
+        User user = userRepository.save(generateUser());
+        var request = GroupInfoCreateServiceRequest.builder()
+                .bgColor("bgColor")
+                .colorCode("colorCode")
+                .gradient("gradient")
+                .name("name")
+                .info("info")
+                .email(user.getEmail())
+                .build();
 
+        // when
+        groupInfoService.createGroupInfo(request);
+        GroupInfo groupInfo = groupInfoRepository.findAll().get(0);
+        GroupMember groupMember = groupMemberRepository.findAll().get(0);
+
+        // then
+        assertThat(groupInfo.getUser().getId()).isEqualTo(user.getId());
+        assertThat(groupMember.getGroupInfo().getId()).isEqualTo(groupInfo.getId());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 유저 이메일일 경우, GroupInfo를 생성할 수 없다.")
+    void createGroupInfoFailWhenUserEmailNotFound() {
+        // given
+        var request = GroupInfoCreateServiceRequest.builder()
+                .bgColor("bgColor")
+                .colorCode("colorCode")
+                .gradient("gradient")
+                .name("name")
+                .info("info")
+                .email("kms@kakao.com")
+                .build();
+
+        // when & then
+        assertThrows(UserException.class ,() -> groupInfoService.createGroupInfo(request));
+
+        List<GroupInfo> groupInfoList = groupInfoRepository.findAll();
+        List<GroupMember> groupMemberList = groupMemberRepository.findAll();
+
+        assertThat(groupInfoList.size()).isEqualTo(0);
+        assertThat(groupMemberList.size()).isEqualTo(0);
+    }
 }

@@ -4,6 +4,7 @@ import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.group.info.GroupInfoException;
 import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.admin.common.exception.housework.HouseworkException;
+import com.heachi.admin.common.utils.DayOfWeekUtils;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -89,7 +91,7 @@ public class HouseworkInfoService {
                         .build());
 
                 // 해당 HouseworkTodo에 맞는 groupInfoId와 Date가 캐싱되어있다면, dirtyBit를 true로 바꿔줘야함.
-                todoListRepository.findById(TodoList.makeId(request.getGroupId(), request.getDayDate()))
+                todoListRepository.findByGroupInfoIdAndDate(request.getGroupId(), request.getDayDate())
                         // Todo가 캐싱되어 있다면, dirtyBit 체킹
                         .ifPresent(todoList -> {
                             todoList.checkDirtyBit();
@@ -119,7 +121,22 @@ public class HouseworkInfoService {
                         // HOUSEWORK_MEMBER 저장
                         .forEach(houseworkMemberRepository::save);
 
-                // TODO: findByGroupInfoId를 통해 해당 그룹의 캐싱된 객체 조회
+                // findByGroupInfoId를 통해 해당 그룹의 캐싱된 객체 조회
+                todoListRepository.findByGroupInfoId(request.getGroupId()).stream()
+                        .filter(todoList -> // PERIOD에 맞는 TodoList 선별
+                                switch (request.getType()) {
+                                    case HOUSEWORK_PERIOD_DAY -> false;
+                                    case HOUSEWORK_PERIOD_EVERYDAY -> true;
+                                    case HOUSEWORK_PERIOD_WEEK ->
+                                            DayOfWeekUtils.equals(request.getWeekDate(), todoList.getDate());
+                                    case HOUSEWORK_PERIOD_MONTH -> Arrays.stream(request.getMonthDate().split(","))
+                                            .anyMatch(d -> Integer.parseInt(d) == todoList.getDate().getDayOfMonth());
+                                })
+                        .forEach(todoList -> { // dirtyBit Checking
+                            todoList.checkDirtyBit();
+                            todoListRepository.save(todoList);
+                            log.info(">>>> dirtyBit Checking TodoList id: {}", todoList.getId());
+                        });
             }
 
         } catch (RuntimeException e) {

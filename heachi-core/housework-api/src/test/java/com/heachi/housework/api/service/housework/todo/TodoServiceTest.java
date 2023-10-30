@@ -143,7 +143,9 @@ class TodoServiceTest extends TestConfig {
         todoService.cachedSelectTodo(TodoSelectRequest.builder().groupId(groupInfo.getId()).date(LocalDate.now()).build());
 
         // then
-        todoService.cachedSelectTodo(TodoSelectRequest.builder().groupId(groupInfo.getId()).date(LocalDate.now()).build());
+        TodoList todoList = todoService.cachedSelectTodo(TodoSelectRequest.builder().groupId(groupInfo.getId()).date(LocalDate.now()).build());
+        assertThat(todoList.getGroupInfoId()).isEqualTo(groupInfo.getId());
+        assertThat(todoList.getDate()).isEqualTo(LocalDate.now());
     }
 
     @Test
