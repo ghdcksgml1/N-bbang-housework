@@ -36,6 +36,7 @@ public class TodoService {
     private final HouseworkTodoRepository houseworkTodoRepository;
     private final HouseworkInfoRepository houseworkInfoRepository;
 
+    @Transactional
     public TodoList cachedSelectTodo(TodoSelectRequest request) {
 
         return CachingStrategy.cachingIfEmpty(request,
