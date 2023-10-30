@@ -151,7 +151,7 @@ class TodoServiceTest extends TestConfig {
     void test4() {
         // given
         User user = userRepository.save(generateUser());
-        User user2 = userRepository.save(generateUser("kmm@kakao.com", "010-1111-1111"));
+        User user2 = userRepository.save(generateCustomUser("kmm@kakao.com", "010-1111-1111"));
         GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(user));
         GroupMember groupMember = groupMemberRepository.save(generateGroupMember(user, groupInfo));
         GroupMember groupMember2 = groupMemberRepository.save(generateGroupMember(user2, groupInfo));
