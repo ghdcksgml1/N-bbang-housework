@@ -87,6 +87,7 @@ public class GroupInfoService {
                     }
                 })
                 .collect(Collectors.toList());
+    }
 
     @Transactional
     public void createGroupInfo(GroupInfoCreateServiceRequest request) {

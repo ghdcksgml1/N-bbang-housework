@@ -34,6 +34,7 @@ public class GroupInfoController {
         UserInfoResponse userInfo = authExternalService.userAuthenticate(authorization);
 
         return JsonResult.successOf(groupInfoService.userGroupInfoList(userInfo.getEmail()));
+    }
 
     @PostMapping("/")
     public JsonResult<?> createGroupInfo(@RequestHeader(name = "Authorization") String authorization,
