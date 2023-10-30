@@ -49,6 +49,8 @@ public class GroupInfoRepositoryImpl implements GroupInfoRepositoryCustom {
                         .name(groupInfo.getName())
                         .groupMembers(
                                 groupInfo.getGroupMembers().stream()
+                                        // 현재 그룹 멤버만
+                                        .filter(groupMember -> groupMember.getStatus() == GroupMemberStatus.ACCEPT)
                                         .map(groupMember -> GroupInfoGroupMember.builder()
                                                 .name(groupMember.getUser().getName())
                                                 .profileImageUrl(groupMember.getUser().getProfileImageUrl())
