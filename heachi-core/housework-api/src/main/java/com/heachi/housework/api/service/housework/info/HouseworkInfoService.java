@@ -55,9 +55,9 @@ public class HouseworkInfoService {
 
             // GROUP_INFO 조회
             GroupInfo groupInfo = groupInfoRepository.findById(request.getGroupId()).orElseThrow(() -> {
-                log.warn(">>>> GroupInfo Not Found : {}", ExceptionMessage.GROUP_NOT_FOUND.getText());
+                log.warn(">>>> GroupInfo Not Found : {}", ExceptionMessage.GROUP_INFO_NOT_FOUND.getText());
 
-                throw new GroupInfoException(ExceptionMessage.GROUP_NOT_FOUND);
+                throw new GroupInfoException(ExceptionMessage.GROUP_INFO_NOT_FOUND);
             });
 
             // 담당자 지정 - HOUSEWORK_MEMBER 생성

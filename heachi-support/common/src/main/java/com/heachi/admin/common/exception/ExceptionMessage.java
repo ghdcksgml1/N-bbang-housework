@@ -37,8 +37,8 @@ public enum ExceptionMessage {
     AUTH_NOT_FOUND("계정 정보를 찾을 수 없습니다."),
     AUTH_DELETE_FAIL("계정 삭제에 실패했습니다."),
 
-    // GroupException
-    GROUP_NOT_FOUND("그룹을 찾지 못했습니다."),
+    // GroupInfoException
+    GROUP_INFO_NOT_FOUND("그룹을 찾지 못했습니다."),
 
     // GroupMemberException
     GROUP_MEMBER_NOT_FOUND("그룹 멤버를 찾지 못했습니다."),
