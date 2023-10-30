@@ -44,6 +44,20 @@ public class TestConfig {
                 .build();
     }
 
+    public static User generateCustomUser(String email, String phoneNumber) {
+
+        return User.builder()
+                .platformId("123456")
+                .platformType(UserPlatformType.KAKAO)
+                .role(UserRole.USER)
+                .name("kms")
+                .email(email)
+                .phoneNumber(phoneNumber)
+                .profileImageUrl("https://google.com")
+                .pushAlarmYn(true)
+                .build();
+    }
+
     public static GroupInfo generateGroupInfo(User user) {
 
         return GroupInfo.builder()
@@ -73,6 +87,13 @@ public class TestConfig {
                 .build();
     }
 
+    public static HouseworkCategory generateCustomHouseworkCategory(String name) {
+
+        return HouseworkCategory.builder()
+                .name(name)
+                .build();
+    }
+
     public static HouseworkInfo generateHouseworkInfo(HouseworkCategory category) {
 
         return HouseworkInfo.builder()
@@ -80,6 +101,17 @@ public class TestConfig {
                 .title("빨래")
                 .detail("빨래 돌리기")
                 .type(HouseworkPeriodType.HOUSEWORK_PERIOD_EVERYDAY)
+                .endTime(LocalTime.of(18,0))
+                .build();
+    }
+
+    public static HouseworkInfo generateCustomHouseworkInfo(HouseworkCategory category, String title, HouseworkPeriodType type) {
+
+        return HouseworkInfo.builder()
+                .houseworkCategory(category)
+                .title(title)
+                .detail("빨래 돌리기")
+                .type(type)
                 .endTime(LocalTime.of(18,0))
                 .build();
     }
