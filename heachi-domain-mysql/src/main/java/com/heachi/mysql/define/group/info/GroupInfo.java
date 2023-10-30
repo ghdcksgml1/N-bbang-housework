@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -48,13 +49,19 @@ public class GroupInfo extends BaseEntity {
     private String joinCode;    // 그룹 가입코드
 
     @Builder
-    private GroupInfo(User user, String bgColor, String colorCode, String gradient, String name, String info, String joinCode) {
+    private GroupInfo(User user, String bgColor, String colorCode, String gradient, String name, String info) {
         this.user = user;
         this.bgColor = bgColor;
         this.colorCode = colorCode;
         this.gradient = gradient;
         this.name = name;
         this.info = info;
-        this.joinCode = joinCode;
+        this.joinCode = rotateJoinCode();
+    }
+
+    public String rotateJoinCode() {
+        this.joinCode = UUID.randomUUID().toString().substring(0, 6);
+
+        return this.joinCode;
     }
 }
