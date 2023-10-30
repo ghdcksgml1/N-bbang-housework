@@ -1,6 +1,7 @@
 package com.heachi.mysql.define.group.info;
 
 import com.heachi.mysql.define.BaseEntity;
+import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.housework.todo.HouseworkTodo;
 import com.heachi.mysql.define.user.User;
 import jakarta.persistence.*;
@@ -24,6 +25,9 @@ public class GroupInfo extends BaseEntity {
 
     @OneToMany(mappedBy = "groupInfo")   // 집안일 리스트
     private List<HouseworkTodo> houseworkTodoList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "groupInfo")   // 그룹 멤버
+    private List<GroupMember> groupMembers = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "USER_ID", nullable = false)

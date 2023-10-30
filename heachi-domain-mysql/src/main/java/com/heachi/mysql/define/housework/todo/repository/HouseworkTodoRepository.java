@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface HouseworkTodoRepository extends JpaRepository<HouseworkTodo, Long> {
+public interface HouseworkTodoRepository extends JpaRepository<HouseworkTodo, Long>, HouseworkTodoRepositoryCustom {
 
     @Query("select ht from HOUSEWORK_TODO ht where ht.groupInfo.id = :groupId and ht.date = :date")
     public List<HouseworkTodo> findByGroupInfoAndDate(@Param(value = "groupId") Long groupId,
