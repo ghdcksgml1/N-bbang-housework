@@ -1,6 +1,7 @@
 package com.heachi.mysql.define.group.info;
 
 import com.heachi.mysql.define.BaseEntity;
+import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.housework.todo.HouseworkTodo;
 import com.heachi.mysql.define.user.User;
 import jakarta.persistence.*;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -24,6 +26,9 @@ public class GroupInfo extends BaseEntity {
 
     @OneToMany(mappedBy = "groupInfo")   // 집안일 리스트
     private List<HouseworkTodo> houseworkTodoList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "groupInfo")   // 그룹 멤버
+    private List<GroupMember> groupMembers = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "USER_ID", nullable = false)
@@ -48,13 +53,19 @@ public class GroupInfo extends BaseEntity {
     private String joinCode;    // 그룹 가입코드
 
     @Builder
-    private GroupInfo(User user, String bgColor, String colorCode, String gradient, String name, String info, String joinCode) {
+    private GroupInfo(User user, String bgColor, String colorCode, String gradient, String name, String info) {
         this.user = user;
         this.bgColor = bgColor;
         this.colorCode = colorCode;
         this.gradient = gradient;
         this.name = name;
         this.info = info;
-        this.joinCode = joinCode;
+        this.joinCode = rotateJoinCode();
+    }
+
+    public String rotateJoinCode() {
+        this.joinCode = UUID.randomUUID().toString().substring(0, 6);
+
+        return this.joinCode;
     }
 }

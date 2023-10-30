@@ -60,7 +60,7 @@ public class TestConfig {
                 .build();
     }
 
-    public static User generateUser(String email, String phoneNumber) {
+    public static User generateCustomUser(String email, String phoneNumber) {
 
         return User.builder()
                 .platformId("123456")
@@ -103,14 +103,43 @@ public class TestConfig {
                 .build();
     }
 
-    public static HouseworkInfo generateHouseworkInfo(GroupInfo groupInfo, HouseworkCategory category) {
+    public static HouseworkCategory generateCustomHouseworkCategory(String name) {
+
+        return HouseworkCategory.builder()
+                .name(name)
+                .build();
+    }
+
+    public static HouseworkInfo generateHouseworkInfo(HouseworkCategory category) {
 
         return HouseworkInfo.builder()
                 .houseworkCategory(category)
-                .groupInfo(groupInfo)
                 .title("빨래")
                 .detail("빨래 돌리기")
                 .type(HouseworkPeriodType.HOUSEWORK_PERIOD_EVERYDAY)
+                .endTime(LocalTime.of(18,0))
+                .build();
+    }
+
+    public static HouseworkInfo generateHouseworkInfo(GroupInfo groupInfo, HouseworkCategory category) {
+
+        return HouseworkInfo.builder()
+                .groupInfo(groupInfo)
+                .houseworkCategory(category)
+                .title("빨래")
+                .detail("빨래 돌리기")
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_EVERYDAY)
+                .endTime(LocalTime.of(18,0))
+                .build();
+    }
+
+    public static HouseworkInfo generateCustomHouseworkInfo(HouseworkCategory category, String title, HouseworkPeriodType type) {
+
+        return HouseworkInfo.builder()
+                .houseworkCategory(category)
+                .title(title)
+                .detail("빨래 돌리기")
+                .type(type)
                 .endTime(LocalTime.of(18,0))
                 .build();
     }

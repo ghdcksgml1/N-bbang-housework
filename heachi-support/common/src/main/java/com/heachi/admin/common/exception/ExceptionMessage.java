@@ -24,6 +24,9 @@ public enum ExceptionMessage {
     OAUTH_INVALID_TOKEN_URL("tokenURL이 정확하지 않습니다."),
     OAUTH_INVALID_ACCESS_TOKEN("잘못된 access_token 입니다."),
 
+    // USER
+    USER_NOT_FOUND("USER 정보를 찾을 수 없습니다."),
+
     // LoginState
     LOGINSTATE_IS_NOT_USE("해당 LoginState를 사용할 수 없습니다."),
     LOGINSTATE_INVALID_VALUE("LoginState 정보가 잘못되었습니다."),
@@ -37,8 +40,8 @@ public enum ExceptionMessage {
     AUTH_NOT_FOUND("계정 정보를 찾을 수 없습니다."),
     AUTH_DELETE_FAIL("계정 삭제에 실패했습니다."),
 
-    // GroupException
-    GROUP_NOT_FOUND("그룹을 찾지 못했습니다."),
+    // GroupInfoException
+    GROUP_INFO_NOT_FOUND("그룹을 찾지 못했습니다."),
 
     // GroupMemberException
     GROUP_MEMBER_NOT_FOUND("그룹 멤버를 찾지 못했습니다."),

@@ -33,6 +33,8 @@ public class QGroupInfo extends EntityPathBase<GroupInfo> {
 
     public final StringPath gradient = createString("gradient");
 
+    public final ListPath<com.heachi.mysql.define.group.member.GroupMember, com.heachi.mysql.define.group.member.QGroupMember> groupMembers = this.<com.heachi.mysql.define.group.member.GroupMember, com.heachi.mysql.define.group.member.QGroupMember>createList("groupMembers", com.heachi.mysql.define.group.member.GroupMember.class, com.heachi.mysql.define.group.member.QGroupMember.class, PathInits.DIRECT2);
+
     public final ListPath<com.heachi.mysql.define.housework.todo.HouseworkTodo, com.heachi.mysql.define.housework.todo.QHouseworkTodo> houseworkTodoList = this.<com.heachi.mysql.define.housework.todo.HouseworkTodo, com.heachi.mysql.define.housework.todo.QHouseworkTodo>createList("houseworkTodoList", com.heachi.mysql.define.housework.todo.HouseworkTodo.class, com.heachi.mysql.define.housework.todo.QHouseworkTodo.class, PathInits.DIRECT2);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
