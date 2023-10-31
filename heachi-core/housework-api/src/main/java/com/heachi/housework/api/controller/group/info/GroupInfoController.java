@@ -27,15 +27,6 @@ public class GroupInfoController {
     private final AuthExternalService authExternalService;
     private final GroupInfoService groupInfoService;
 
-
-    // User가 가입한 Group 정보를 리턴한다.
-    @GetMapping("/list")
-    public JsonResult<?> userGroupInfoList(@RequestHeader(name = "Authorization") String authorization) {
-        UserInfoResponse userInfo = authExternalService.userAuthenticate(authorization);
-
-        return JsonResult.successOf(groupInfoService.userGroupInfoList(userInfo.getEmail()));
-    }
-
     @PostMapping("/")
     public JsonResult<?> createGroupInfo(@RequestHeader(name = "Authorization") String authorization,
                                          @Valid @RequestBody GroupInfoCreateRequest request) {
@@ -51,6 +42,24 @@ public class GroupInfoController {
                 .email(userInfoResponse.getEmail())
                 .build());
 
-        return JsonResult.successOf();
+        return JsonResult.successOf("그룹이 성공적으로 생성되었습니다.");
+    }
+
+    // User가 가입한 Group 정보를 리턴한다.
+    @GetMapping("/list")
+    public JsonResult<?> userGroupInfoList(@RequestHeader(name = "Authorization") String authorization) {
+        UserInfoResponse userInfo = authExternalService.userAuthenticate(authorization);
+
+        return JsonResult.successOf(groupInfoService.userGroupInfoList(userInfo.getEmail()));
+    }
+
+    // joinCode를 통해 그룹 가입하기
+    @PostMapping("/join")
+    public JsonResult<?> joinGroupInfo(@RequestHeader(name = "Authorization") String authorization,
+                                       @RequestParam(name = "joinCode") String joinCode) {
+        UserInfoResponse userInfo = authExternalService.userAuthenticate(authorization);
+        groupInfoService.joinGroupInfo(userInfo.getEmail(), joinCode);
+
+        return JsonResult.successOf("성공적으로 그룹에 가입했습니다.");
     }
 }

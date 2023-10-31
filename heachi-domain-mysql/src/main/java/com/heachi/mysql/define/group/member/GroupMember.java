@@ -47,4 +47,9 @@ public class GroupMember extends BaseEntity {
         this.status = status;
     }
 
+    // WITHDRAW인 사람이 재가입하려는 경우
+    public void rejoinGroup() {
+        this.role = GroupMemberRole.GROUP_MEMBER;
+        this.status = GroupMemberStatus.WAITING;
+    }
 }
