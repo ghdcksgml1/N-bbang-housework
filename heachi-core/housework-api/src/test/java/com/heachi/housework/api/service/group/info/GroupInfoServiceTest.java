@@ -8,6 +8,8 @@ import com.heachi.housework.api.service.group.info.request.GroupInfoCreateServic
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
+import com.heachi.mysql.define.group.member.constant.GroupMemberRole;
+import com.heachi.mysql.define.group.member.constant.GroupMemberStatus;
 import com.heachi.mysql.define.group.member.repository.GroupMemberRepository;
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
 import com.heachi.mysql.define.housework.category.repository.HouseworkCategoryRepository;
@@ -35,15 +37,23 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class GroupInfoServiceTest extends TestConfig {
 
-    @Autowired private GroupMemberRepository groupMemberRepository;
-    @Autowired private UserRepository userRepository;
-    @Autowired private GroupInfoRepository groupInfoRepository;
-    @Autowired private HouseworkCategoryRepository houseworkCategoryRepository;
-    @Autowired private HouseworkInfoRepository houseworkInfoRepository;
-    @Autowired private HouseworkTodoRepository houseworkTodoRepository;
-    @Autowired private HouseworkMemberRepository houseworkMemberRepository;
+    @Autowired
+    private GroupMemberRepository groupMemberRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private GroupInfoRepository groupInfoRepository;
+    @Autowired
+    private HouseworkCategoryRepository houseworkCategoryRepository;
+    @Autowired
+    private HouseworkInfoRepository houseworkInfoRepository;
+    @Autowired
+    private HouseworkTodoRepository houseworkTodoRepository;
+    @Autowired
+    private HouseworkMemberRepository houseworkMemberRepository;
 
-    @Autowired private GroupInfoService groupInfoService;
+    @Autowired
+    private GroupInfoService groupInfoService;
 
     @AfterEach
     void tearDown() {
@@ -99,7 +109,7 @@ class GroupInfoServiceTest extends TestConfig {
         assertThat(groupServiceResponses.get(1).getRemainTodoListCnt()).isEqualTo(1);
         assertThat(groupServiceResponses.get(1).getProgressPercent()).isEqualTo(0);
     }
-  
+
     @Test
     @DisplayName("올바른 GroupInfoCreateServiceRequest를 넘기면, 요청한 유저가 관리자로 GroupInfo, GroupMember가 생성된다.")
     void createGroupInfoSuccess() {
@@ -138,12 +148,100 @@ class GroupInfoServiceTest extends TestConfig {
                 .build();
 
         // when & then
-        assertThrows(UserException.class ,() -> groupInfoService.createGroupInfo(request));
+        assertThrows(UserException.class, () -> groupInfoService.createGroupInfo(request));
 
         List<GroupInfo> groupInfoList = groupInfoRepository.findAll();
         List<GroupMember> groupMemberList = groupMemberRepository.findAll();
 
         assertThat(groupInfoList.size()).isEqualTo(0);
         assertThat(groupMemberList.size()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("사용자가 해당 그룹에 가입한 이력이 없는경우 성공적으로 그룹멤버로 WAITING인 상태로 추가된다.")
+    void joinGroupInfo() {
+        // given
+        // 그룹 생성
+        User user = userRepository.save(generateUser());
+        var request = GroupInfoCreateServiceRequest.builder()
+                .bgColor("bgColor")
+                .colorCode("colorCode")
+                .gradient("gradient")
+                .name("name")
+                .info("info")
+                .email(user.getEmail())
+                .build();
+        groupInfoService.createGroupInfo(request);
+        GroupInfo groupInfo = groupInfoRepository.findAll().get(0);
+
+        User user2 = userRepository.save(generateCustomUser("ghdcksgml1@naver.com", "010-1111-1111"));
+
+        // when
+        groupInfoService.joinGroupInfo(user2.getEmail(), groupInfo.getJoinCode());
+        GroupMember findGroupMember = groupMemberRepository.findByUserAndGroupInfo(user2, groupInfo).get();
+
+        // then
+        assertThat(findGroupMember.getGroupInfo().getId()).isEqualTo(groupInfo.getId());
+        assertThat(findGroupMember.getUser().getId()).isEqualTo(user2.getId());
+        assertThat(findGroupMember.getRole()).isEqualTo(GroupMemberRole.GROUP_MEMBER);
+        assertThat(findGroupMember.getStatus()).isEqualTo(GroupMemberStatus.WAITING);
+    }
+
+    @Test
+    @DisplayName("사용자가 해당 그룹에 이미 가입해있거나, 신청 대기중일 경우 아무런 동작도 일어나지 않는다.")
+    void joinGroupInfoAlreadyGroupMemberStatusWAITING() {
+        // given
+        User user = userRepository.save(generateUser());
+        var request = GroupInfoCreateServiceRequest.builder()
+                .bgColor("bgColor")
+                .colorCode("colorCode")
+                .gradient("gradient")
+                .name("name")
+                .info("info")
+                .email(user.getEmail())
+                .build();
+        groupInfoService.createGroupInfo(request);
+        GroupInfo groupInfo = groupInfoRepository.findAll().get(0);
+
+        // when
+        groupInfoService.joinGroupInfo(user.getEmail(), groupInfo.getJoinCode());
+        GroupMember findGroupMember = groupMemberRepository.findByUserAndGroupInfo(user, groupInfo).get();
+
+        // then
+        assertThat(findGroupMember.getStatus()).isEqualTo(GroupMemberStatus.ACCEPT);
+        assertThat(findGroupMember.getRole()).isEqualTo(GroupMemberRole.GROUP_ADMIN);
+    }
+
+    @Test
+    @DisplayName("사용자가 해당 그룹에 재가입하는 경우(기존 상태 WITHDRAW) 역할은 GROUP_MEMBER, 상태는 WAITING으로 그룹 가입 신청이 된다.")
+    void joinGroupInfoAlreadyGroupMemberStatusWITHDRAW() {
+        // given
+        User user = userRepository.save(generateUser());
+        var request = GroupInfoCreateServiceRequest.builder()
+                .bgColor("bgColor")
+                .colorCode("colorCode")
+                .gradient("gradient")
+                .name("name")
+                .info("info")
+                .email(user.getEmail())
+                .build();
+        groupInfoService.createGroupInfo(request);
+        GroupInfo groupInfo = groupInfoRepository.findAll().get(0);
+
+        User user2 = userRepository.save(generateCustomUser("ghdcksgml1@naver.com", "010-1111-1111"));
+        groupMemberRepository.save(GroupMember.builder()
+                .groupInfo(groupInfo)
+                .user(user2)
+                .role(GroupMemberRole.GROUP_ADMIN) // 기존에 관리자였던 멤버
+                .status(GroupMemberStatus.WITHDRAW)
+                .build());
+
+        // when
+        groupInfoService.joinGroupInfo(user2.getEmail(), groupInfo.getJoinCode());
+        GroupMember findGroupMember = groupMemberRepository.findByUserAndGroupInfo(user2, groupInfo).get();
+
+        // then
+        assertThat(findGroupMember.getStatus()).isEqualTo(GroupMemberStatus.WAITING);
+        assertThat(findGroupMember.getRole()).isEqualTo(GroupMemberRole.GROUP_MEMBER);
     }
 }
