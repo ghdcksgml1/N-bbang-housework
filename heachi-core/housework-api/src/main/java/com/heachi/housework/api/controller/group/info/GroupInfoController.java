@@ -2,6 +2,7 @@ package com.heachi.housework.api.controller.group.info;
 
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.external.clients.auth.response.UserInfoResponse;
+import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequest;
 import com.heachi.housework.api.service.auth.AuthExternalService;
 import com.heachi.housework.api.service.group.info.GroupInfoService;
 import lombok.RequiredArgsConstructor;
@@ -61,5 +62,16 @@ public class GroupInfoController {
         groupInfoService.joinGroupInfo(userInfo.getEmail(), joinCode);
 
         return JsonResult.successOf("성공적으로 그룹에 가입했습니다.");
+    }
+
+    // 그룹 가입 요청 처리
+    @PostMapping("/register")
+    public JsonResult<?> joinGroupRequestHandler(@RequestHeader(name = "Authorization") String authorization,
+                                                 @Valid @RequestBody GroupInfoRegisterRequest request) {
+        // Auth 서버에서 사용자 인증
+        UserInfoResponse userInfo = authExternalService.userAuthenticate(authorization);
+        groupInfoService.joinRequestHandler(userInfo.getEmail(), request);
+
+        return JsonResult.successOf("그룹 가입 요청을 성공적으로 수행했습니다.");
     }
 }

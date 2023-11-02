@@ -52,4 +52,9 @@ public class GroupMember extends BaseEntity {
         this.role = GroupMemberRole.GROUP_MEMBER;
         this.status = GroupMemberStatus.WAITING;
     }
+
+    // 그룹 가입 요청 수락 여부에 따른 update
+    public void updateStatus(GroupMemberStatus status) {
+        this.status = status;
+    }
 }
