@@ -6,6 +6,7 @@ import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoC
 import com.heachi.housework.api.service.auth.AuthExternalService;
 import com.heachi.housework.api.service.housework.info.HouseworkInfoService;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class HouseworkInfoController {
     @PostMapping("/{groupId}")
     public JsonResult<?> createHouseworkInfo(@RequestHeader(name = "Authorization") String authorization,
                                              @PathVariable(name = "groupId") Long groupId,
-                                             @RequestBody HouseworkInfoCreateRequest request
+                                             @Valid @RequestBody HouseworkInfoCreateRequest request
     ) {
         // Auth 서버로 요청자 인증 요청 - 해당 그룹원인지 판별하고 상태가 ACCEPT인지 확인
         try {
