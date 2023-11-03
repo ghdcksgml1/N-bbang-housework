@@ -164,36 +164,8 @@ public class GroupInfoService {
 
     @Transactional
     public void joinRequestHandler(String adminEmail, GroupInfoRegisterRequest request) {
-        // 그룹 정보 조회
-        GroupInfo groupInfo = groupInfoRepository.findById(request.getGroupId()).orElseThrow(() -> {
-            log.warn(">>>> 해당 groupId를 가진 그룹이 존재하지 않습니다 : [{}]", request.getGroupId());
-
-            throw new GroupInfoException(ExceptionMessage.GROUP_INFO_NOT_FOUND);
-        });
-
-        // 그룹 가입 요청자 조회
-        GroupMember requestGroupMember = groupMemberRepository.findByIdAndGroupInfo(request.getGroupMemberId(), groupInfo).orElseThrow(() -> {
-            log.warn(">>>> Group Member Not Found : [{}]", request.getGroupMemberId());
-
-            throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
-        });
-
-        // 그룹 가입 요청자 상태 확인: WAITING 상태가 아닐경우 예외처리
-        if (requestGroupMember.getStatus() != GroupMemberStatus.WAITING) {
-            log.warn(">>>> Group Member's Status Is Not WAITING : [{}]", requestGroupMember.getStatus());
-
-            throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_STATUS_NOT_WAITING);
-        }
-
-        // adminEmail로 User 정보 조회
-        User adminUser = userRepository.findByEmail(adminEmail).orElseThrow(() -> {
-            log.warn(">>>> USER NOT FOUND : [{}]", adminEmail);
-
-            throw new UserException(ExceptionMessage.USER_NOT_FOUND);
-        });
-
-        // User 정보와 GroupInfo 정보로 GROUP_MEMBER 조회
-        GroupMember adminGroupMember = groupMemberRepository.findByUserAndGroupInfo(adminUser, groupInfo).orElseThrow(() -> {
+        // 그룹장의 email과 GroupId로 GROUP_MEMBER 조회
+        GroupMember adminGroupMember = groupMemberRepository.findGroupMemberByUserEmailAndGroupInfoId(adminEmail, request.getGroupId()).orElseThrow(() -> {
             log.warn(">>>> 해당 그룹의 구성원이 아닙니다. : [{}]", adminEmail);
 
             throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
@@ -204,6 +176,20 @@ public class GroupInfoService {
             log.warn(">>>> 해당 그룹의 그룹장이 아닙니다. : [role: {}]", adminGroupMember.getRole());
 
             throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_ROLE_NOT_ADMIN);
+        }
+
+        // 그룹 가입 요청자 조회
+        GroupMember requestGroupMember = groupMemberRepository.findGroupMemberByGroupMemberIdAndGroupInfoId(request.getGroupMemberId(), request.getGroupId()).orElseThrow(() -> {
+            log.warn(">>>> Group Member Not Found : [{}]", request.getGroupMemberId());
+
+            throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
+        });
+
+        // 그룹 가입 요청자 상태 확인: WAITING 상태가 아닐경우 예외처리
+        if (requestGroupMember.getStatus() != GroupMemberStatus.WAITING) {
+            log.warn(">>>> Group Member's Status Is Not WAITING : [{}]", requestGroupMember.getStatus());
+
+            throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_STATUS_NOT_WAITING);
         }
 
         // status에 따른 그룹 가입 요청 핸들링

@@ -267,9 +267,8 @@ class GroupInfoServiceTest extends TestConfig {
                 .build();
         groupMemberRepository.save(adminMember);
 
-
-        // 그룹 가입 요청자
-        User requestUser =  userRepository.save(User.builder()
+        // WAITING 상태가 아닌 그룹 멤버
+        User requestUser = userRepository.save(User.builder()
                 .platformId("11")
                 .platformType(UserPlatformType.KAKAO)
                 .role(UserRole.USER)
@@ -279,19 +278,22 @@ class GroupInfoServiceTest extends TestConfig {
                 .profileImageUrl("https://google.com")
                 .pushAlarmYn(true)
                 .build());
-        // WAITING 상태가 아닌 ACCEPT 상태
-        GroupMember requestAcceptMember = groupMemberRepository.save(generateGroupMember(requestUser, groupInfo));
+        GroupMember requestMember = GroupMember.builder()
+                .groupInfo(groupInfo)
+                .role(GroupMemberRole.GROUP_MEMBER)
+                .status(GroupMemberStatus.ACCEPT)
+                .user(requestUser)
+                .build();
+        GroupMember requestWaitingMember = groupMemberRepository.save(requestMember);
 
         GroupInfoRegisterRequest request = GroupInfoRegisterRequest.builder()
-                .groupMemberId(requestAcceptMember.getId())
+                .groupMemberId(requestWaitingMember.getId())
                 .groupId(groupInfo.getId())
-                .status(true)
+                .status(false)
                 .build();
 
-        String adminEmail = "test@test.com";
-
         // when & then
-        GroupMemberException exception = assertThrows(GroupMemberException.class, () -> groupInfoService.joinRequestHandler(adminEmail, request));
+        GroupMemberException exception = assertThrows(GroupMemberException.class, () -> groupInfoService.joinRequestHandler(admin.getEmail(), request));
         assertThat(exception.getMessage()).isEqualTo(ExceptionMessage.GROUP_MEMBER_STATUS_NOT_WAITING.getText());
 
     }
