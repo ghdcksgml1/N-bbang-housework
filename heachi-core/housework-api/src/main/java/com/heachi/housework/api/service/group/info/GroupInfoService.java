@@ -207,7 +207,7 @@ public class GroupInfoService {
         }
 
         // status에 따른 그룹 가입 요청 핸들링
-        GroupMemberStatus updateStatus = request.isStatus() ? GroupMemberStatus.ACCEPT : GroupMemberStatus.WAITING;
+        GroupMemberStatus updateStatus = request.isStatus() ? GroupMemberStatus.ACCEPT : GroupMemberStatus.WITHDRAW;
 
         // requestGroupMember update
         requestGroupMember.updateStatus(updateStatus);
