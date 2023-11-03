@@ -9,10 +9,10 @@ public class GroupInfoRegisterRequest {
     private Long groupMemberId;
     private Long groupId;
     @NotEmpty
-    private boolean status;
+    private GroupInfoRegisterRequestStatusEnum status;
 
     @Builder
-    private GroupInfoRegisterRequest(Long groupMemberId, Long groupId, boolean status) {
+    private GroupInfoRegisterRequest(Long groupMemberId, Long groupId, GroupInfoRegisterRequestStatusEnum status) {
         this.groupMemberId = groupMemberId;
         this.groupId = groupId;
         this.status = status;

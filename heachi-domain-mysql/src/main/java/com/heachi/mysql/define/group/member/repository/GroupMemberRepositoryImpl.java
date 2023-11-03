@@ -65,7 +65,7 @@ public class GroupMemberRepositoryImpl implements GroupMemberRepositoryCustom {
                 .innerJoin(groupMember.groupInfo, groupInfo).fetchJoin()
                 .where(groupMember.id.eq(groupMemberId)
                         .and(groupMember.groupInfo.id.eq(groupId)))
-                .fetchFirst());
+                .fetchOne());
     }
 
     @Override
@@ -75,6 +75,6 @@ public class GroupMemberRepositoryImpl implements GroupMemberRepositoryCustom {
                 .innerJoin(groupMember.groupInfo, groupInfo).fetchJoin()
                 .where(groupMember.user.email.eq(userEmail)
                         .and(groupMember.groupInfo.id.eq(groupId)))
-                .fetchFirst());
+                .fetchOne());
     }
 }

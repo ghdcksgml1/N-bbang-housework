@@ -5,6 +5,7 @@ import com.heachi.admin.common.exception.group.info.GroupInfoException;
 import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.housework.TestConfig;
 import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequest;
+import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequestStatusEnum;
 import com.heachi.housework.api.service.group.info.response.GroupInfoUserGroupServiceResponse;
 import com.heachi.admin.common.exception.user.UserException;
 import com.heachi.housework.TestConfig;
@@ -289,7 +290,7 @@ class GroupInfoServiceTest extends TestConfig {
         GroupInfoRegisterRequest request = GroupInfoRegisterRequest.builder()
                 .groupMemberId(requestWaitingMember.getId())
                 .groupId(groupInfo.getId())
-                .status(false)
+                .status(GroupInfoRegisterRequestStatusEnum.REFUSE)
                 .build();
 
         // when & then
@@ -329,7 +330,7 @@ class GroupInfoServiceTest extends TestConfig {
         GroupInfoRegisterRequest request = GroupInfoRegisterRequest.builder()
                 .groupMemberId(requestWaitingMember.getId())
                 .groupId(groupInfo.getId())
-                .status(true)
+                .status(GroupInfoRegisterRequestStatusEnum.ACCEPT)
                 .build();
 
         // when & then
@@ -375,7 +376,7 @@ class GroupInfoServiceTest extends TestConfig {
         GroupInfoRegisterRequest request = GroupInfoRegisterRequest.builder()
                 .groupMemberId(requestWaitingMember.getId())
                 .groupId(groupInfo.getId())
-                .status(true)
+                .status(GroupInfoRegisterRequestStatusEnum.ACCEPT)
                 .build();
 
         // when
@@ -424,7 +425,7 @@ class GroupInfoServiceTest extends TestConfig {
         GroupInfoRegisterRequest request = GroupInfoRegisterRequest.builder()
                 .groupMemberId(requestWaitingMember.getId())
                 .groupId(groupInfo.getId())
-                .status(false)
+                .status(GroupInfoRegisterRequestStatusEnum.REFUSE)
                 .build();
 
         // when

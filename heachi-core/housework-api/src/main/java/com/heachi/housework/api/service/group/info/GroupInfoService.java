@@ -4,6 +4,7 @@ import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.group.info.GroupInfoException;
 import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequest;
+import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequestStatusEnum;
 import com.heachi.housework.api.service.group.info.response.GroupInfoUserGroupServiceResponse;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.info.repository.response.GroupInfoUserGroupResponse;
@@ -193,9 +194,10 @@ public class GroupInfoService {
         }
 
         // status에 따른 그룹 가입 요청 핸들링
-        GroupMemberStatus updateStatus = request.isStatus() ? GroupMemberStatus.ACCEPT : GroupMemberStatus.WITHDRAW;
-
-        // requestGroupMember update
-        requestGroupMember.updateStatus(updateStatus);
+        if (request.getStatus().equals(GroupInfoRegisterRequestStatusEnum.ACCEPT)) {
+            requestGroupMember.acceptJoin();
+        } else {
+            requestGroupMember.refuseJoin();
+        }
     }
 }
