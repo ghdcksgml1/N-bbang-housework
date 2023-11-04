@@ -1,6 +1,11 @@
 package com.heachi.housework.api.service.group.info;
 
+import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.group.info.GroupInfoException;
+import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.housework.TestConfig;
+import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequest;
+import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequestStatusEnum;
 import com.heachi.housework.api.service.group.info.response.GroupInfoUserGroupServiceResponse;
 import com.heachi.admin.common.exception.user.UserException;
 import com.heachi.housework.TestConfig;
@@ -21,6 +26,8 @@ import com.heachi.mysql.define.housework.todo.HouseworkTodo;
 import com.heachi.mysql.define.housework.todo.repository.HouseworkTodoRepository;
 
 import com.heachi.mysql.define.user.User;
+import com.heachi.mysql.define.user.constant.UserPlatformType;
+import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -244,4 +251,190 @@ class GroupInfoServiceTest extends TestConfig {
         assertThat(findGroupMember.getStatus()).isEqualTo(GroupMemberStatus.WAITING);
         assertThat(findGroupMember.getRole()).isEqualTo(GroupMemberRole.GROUP_MEMBER);
     }
+
+    @Test
+    @DisplayName("그룹 가입 요청자의 상태가 WAITING이 아닐 경우 예외가 발생한다.")
+    void joinRequestGroupMemberStatusIsNotWAITING() {
+        // given
+        // Admin
+        User admin = userRepository.save(generateUser());
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(admin));
+
+        GroupMember adminMember = GroupMember.builder()
+                .groupInfo(groupInfo)
+                .role(GroupMemberRole.GROUP_ADMIN)
+                .status(GroupMemberStatus.ACCEPT)
+                .user(admin)
+                .build();
+        groupMemberRepository.save(adminMember);
+
+        // WAITING 상태가 아닌 그룹 멤버
+        User requestUser = userRepository.save(User.builder()
+                .platformId("11")
+                .platformType(UserPlatformType.KAKAO)
+                .role(UserRole.USER)
+                .name("test")
+                .email("test@test.com")
+                .phoneNumber("010-1233-0000")
+                .profileImageUrl("https://google.com")
+                .pushAlarmYn(true)
+                .build());
+        GroupMember requestMember = GroupMember.builder()
+                .groupInfo(groupInfo)
+                .role(GroupMemberRole.GROUP_MEMBER)
+                .status(GroupMemberStatus.ACCEPT)
+                .user(requestUser)
+                .build();
+        GroupMember requestWaitingMember = groupMemberRepository.save(requestMember);
+
+        GroupInfoRegisterRequest request = GroupInfoRegisterRequest.builder()
+                .groupMemberId(requestWaitingMember.getId())
+                .groupId(groupInfo.getId())
+                .status(GroupInfoRegisterRequestStatusEnum.REFUSE)
+                .build();
+
+        // when & then
+        GroupMemberException exception = assertThrows(GroupMemberException.class, () -> groupInfoService.joinRequestHandler(admin.getEmail(), request));
+        assertThat(exception.getMessage()).isEqualTo(ExceptionMessage.GROUP_MEMBER_STATUS_NOT_WAITING.getText());
+
+    }
+
+    @Test
+    @DisplayName("해당 그룹의 그룹장이 아닐 경우 예외가 발생한다.")
+    void joinResponseGroupMemberRoleIsNotAdmin() {
+        // given
+        // Admin이 아닌 그룹 멤버
+        User notAdmin = userRepository.save(User.builder()
+                .platformId("11")
+                .platformType(UserPlatformType.KAKAO)
+                .role(UserRole.USER)
+                .name("test")
+                .email("test@test.com")
+                .phoneNumber("010-1233-0000")
+                .profileImageUrl("https://google.com")
+                .pushAlarmYn(true)
+                .build());
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(notAdmin));
+        groupMemberRepository.save(generateGroupMember(notAdmin, groupInfo));
+
+        // WAITING 상태의 그룹 멤버
+        User requestUser = userRepository.save(generateUser());
+        GroupMember requestMember = GroupMember.builder()
+                .groupInfo(groupInfo)
+                .role(GroupMemberRole.GROUP_MEMBER)
+                .status(GroupMemberStatus.WAITING)
+                .user(requestUser)
+                .build();
+        GroupMember requestWaitingMember = groupMemberRepository.save(requestMember);
+
+        GroupInfoRegisterRequest request = GroupInfoRegisterRequest.builder()
+                .groupMemberId(requestWaitingMember.getId())
+                .groupId(groupInfo.getId())
+                .status(GroupInfoRegisterRequestStatusEnum.ACCEPT)
+                .build();
+
+        // when & then
+        GroupMemberException exception = assertThrows(GroupMemberException.class, () -> groupInfoService.joinRequestHandler(notAdmin.getEmail(), request));
+        assertThat(exception.getMessage()).isEqualTo(ExceptionMessage.GROUP_MEMBER_ROLE_NOT_ADMIN.getText());
+
+    }
+
+    @Test
+    @DisplayName("status가 true일 경우 그룹 가입 요청이 승인되어 그룹 가입 요청자의 상태가 ACCEPT로 변경된다.")
+    void joinRequestStatusIsTrue() {
+        // Admin
+        User admin = userRepository.save(generateUser());
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(admin));
+
+        GroupMember adminMember = GroupMember.builder()
+                .groupInfo(groupInfo)
+                .role(GroupMemberRole.GROUP_ADMIN)
+                .status(GroupMemberStatus.ACCEPT)
+                .user(admin)
+                .build();
+        groupMemberRepository.save(adminMember);
+
+        // WAITING 상태의 그룹 멤버
+        User requestUser = userRepository.save(User.builder()
+                .platformId("11")
+                .platformType(UserPlatformType.KAKAO)
+                .role(UserRole.USER)
+                .name("test")
+                .email("test@test.com")
+                .phoneNumber("010-1233-0000")
+                .profileImageUrl("https://google.com")
+                .pushAlarmYn(true)
+                .build());
+        GroupMember requestMember = GroupMember.builder()
+                .groupInfo(groupInfo)
+                .role(GroupMemberRole.GROUP_MEMBER)
+                .status(GroupMemberStatus.WAITING)
+                .user(requestUser)
+                .build();
+        GroupMember requestWaitingMember = groupMemberRepository.save(requestMember);
+
+        GroupInfoRegisterRequest request = GroupInfoRegisterRequest.builder()
+                .groupMemberId(requestWaitingMember.getId())
+                .groupId(groupInfo.getId())
+                .status(GroupInfoRegisterRequestStatusEnum.ACCEPT)
+                .build();
+
+        // when
+        groupInfoService.joinRequestHandler(admin.getEmail(), request);
+
+
+        // then
+        GroupMember updateMember = groupMemberRepository.findById(requestWaitingMember.getId()).get();
+        assertThat(updateMember.getStatus()).isEqualTo(GroupMemberStatus.ACCEPT);
+    }
+
+    @Test
+    @DisplayName("status가 false일 경우 그룹 가입 요청이 거절되어 그룹 가입 요청자의 상태가 WITHDRAW로 변경된다.")
+    void joinRequestStatusIsFalse() {
+        // Admin
+        User admin = userRepository.save(generateUser());
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(admin));
+
+        GroupMember adminMember = GroupMember.builder()
+                .groupInfo(groupInfo)
+                .role(GroupMemberRole.GROUP_ADMIN)
+                .status(GroupMemberStatus.ACCEPT)
+                .user(admin)
+                .build();
+        groupMemberRepository.save(adminMember);
+
+        // WAITING 상태의 그룹 멤버
+        User requestUser = userRepository.save(User.builder()
+                .platformId("11")
+                .platformType(UserPlatformType.KAKAO)
+                .role(UserRole.USER)
+                .name("test")
+                .email("test@test.com")
+                .phoneNumber("010-1233-0000")
+                .profileImageUrl("https://google.com")
+                .pushAlarmYn(true)
+                .build());
+        GroupMember requestMember = GroupMember.builder()
+                .groupInfo(groupInfo)
+                .role(GroupMemberRole.GROUP_MEMBER)
+                .status(GroupMemberStatus.WAITING)
+                .user(requestUser)
+                .build();
+        GroupMember requestWaitingMember = groupMemberRepository.save(requestMember);
+
+        GroupInfoRegisterRequest request = GroupInfoRegisterRequest.builder()
+                .groupMemberId(requestWaitingMember.getId())
+                .groupId(groupInfo.getId())
+                .status(GroupInfoRegisterRequestStatusEnum.REFUSE)
+                .build();
+
+        // when
+        groupInfoService.joinRequestHandler(admin.getEmail(), request);
+
+
+        // then
+        GroupMember updateMember = groupMemberRepository.findById(requestWaitingMember.getId()).get();
+        assertThat(updateMember.getStatus()).isEqualTo(GroupMemberStatus.WITHDRAW);
+    }
+
 }
