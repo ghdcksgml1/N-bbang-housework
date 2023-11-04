@@ -50,7 +50,7 @@ public class HouseworkTodoRepositoryImpl implements HouseworkTodoRepositoryCusto
                 .where(houseworkTodo.id.eq(todoId))
                 .fetchOne();
 
-        if (findHouseworkTodo != null) {
+        if (findHouseworkTodo != null && !findHouseworkTodo.getHouseworkMember().isEmpty()) {
             return Arrays.stream(findHouseworkTodo.getHouseworkMember().split(","))
                     .map(Long::parseLong)
                     .anyMatch(gmId -> gmId.equals(groupMemberId)) ? Optional.of(findHouseworkTodo) : Optional.empty();
