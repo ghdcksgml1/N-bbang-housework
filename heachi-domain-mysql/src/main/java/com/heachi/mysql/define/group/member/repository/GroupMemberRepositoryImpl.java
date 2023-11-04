@@ -9,9 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.heachi.mysql.define.group.info.QGroupInfo.*;
 import static com.heachi.mysql.define.group.member.QGroupMember.groupMember;
+import static com.heachi.mysql.define.housework.todo.QHouseworkTodo.houseworkTodo;
 import static com.heachi.mysql.define.user.QUser.user;
 
 @Component
@@ -54,5 +56,20 @@ public class GroupMemberRepositoryImpl implements GroupMemberRepositoryCustom {
                 .where(groupMember.id.in(groupMemberIdList)
                         .and(groupMember.status.eq(GroupMemberStatus.ACCEPT)))
                 .fetch();
+    }
+
+    @Override
+    public Optional<GroupMember> findGroupMemberByUserEmailAndTodoId(String email, Long todoId) {
+
+        return Optional.ofNullable(queryFactory
+                .selectFrom(groupMember)
+                .innerJoin(groupMember.user, user)
+                .where(groupMember.groupInfo.id.eq(
+                                JPAExpressions.select(groupInfo.id)
+                                        .from(houseworkTodo)
+                                        .innerJoin(houseworkTodo.groupInfo, groupInfo)
+                                        .where(houseworkTodo.id.eq(todoId)))
+                        .and(user.email.eq(email)))
+                .fetchOne());
     }
 }
