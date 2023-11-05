@@ -2,6 +2,9 @@ package com.heachi.housework.api.service.group.info;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.group.info.GroupInfoException;
+import com.heachi.admin.common.exception.group.member.GroupMemberException;
+import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequest;
+import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequestStatusEnum;
 import com.heachi.housework.api.service.group.info.response.GroupInfoUserGroupServiceResponse;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.info.repository.response.GroupInfoUserGroupResponse;
@@ -27,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.heachi.mysql.define.group.info.QGroupInfo.groupInfo;
+import static com.heachi.mysql.define.user.QUser.user;
 
 @Slf4j
 @Service
@@ -155,5 +161,43 @@ public class GroupInfoService {
                     .build());
         }
 
+    }
+
+    @Transactional
+    public void joinRequestHandler(String adminEmail, GroupInfoRegisterRequest request) {
+        // 그룹장의 email과 GroupId로 GROUP_MEMBER 조회
+        GroupMember adminGroupMember = groupMemberRepository.findGroupMemberByUserEmailAndGroupInfoId(adminEmail, request.getGroupId()).orElseThrow(() -> {
+            log.warn(">>>> 해당 그룹의 구성원이 아닙니다. : [{}]", adminEmail);
+
+            throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
+        });
+
+        // role이 GROUP_ADMIN(그룹장)인지 확인
+        if (adminGroupMember.getRole() != GroupMemberRole.GROUP_ADMIN) {
+            log.warn(">>>> 해당 그룹의 그룹장이 아닙니다. : [role: {}]", adminGroupMember.getRole());
+
+            throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_ROLE_NOT_ADMIN);
+        }
+
+        // 그룹 가입 요청자 조회
+        GroupMember requestGroupMember = groupMemberRepository.findGroupMemberByGroupMemberIdAndGroupInfoId(request.getGroupMemberId(), request.getGroupId()).orElseThrow(() -> {
+            log.warn(">>>> Group Member Not Found : [{}]", request.getGroupMemberId());
+
+            throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
+        });
+
+        // 그룹 가입 요청자 상태 확인: WAITING 상태가 아닐경우 예외처리
+        if (requestGroupMember.getStatus() != GroupMemberStatus.WAITING) {
+            log.warn(">>>> Group Member's Status Is Not WAITING : [{}]", requestGroupMember.getStatus());
+
+            throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_STATUS_NOT_WAITING);
+        }
+
+        // status에 따른 그룹 가입 요청 핸들링
+        if (request.getStatus().equals(GroupInfoRegisterRequestStatusEnum.ACCEPT)) {
+            requestGroupMember.acceptJoin();
+        } else {
+            requestGroupMember.refuseJoin();
+        }
     }
 }

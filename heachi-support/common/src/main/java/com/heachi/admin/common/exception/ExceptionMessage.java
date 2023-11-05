@@ -45,6 +45,8 @@ public enum ExceptionMessage {
 
     // GroupMemberException
     GROUP_MEMBER_NOT_FOUND("그룹 멤버를 찾지 못했습니다."),
+    GROUP_MEMBER_STATUS_NOT_WAITING("그룹 가입 요청 수락 대기자가 아닙니다."),
+    GROUP_MEMBER_ROLE_NOT_ADMIN("그룹의 그룹장이 아닙니다."),
 
     // NotifyException
     NOTIFY_NOT_FOUND("해당 아이디의 알림을 찾을 수 없습니다."),

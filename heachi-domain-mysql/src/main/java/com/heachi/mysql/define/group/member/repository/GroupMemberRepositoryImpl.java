@@ -3,6 +3,7 @@ package com.heachi.mysql.define.group.member.repository;
 import com.heachi.mysql.define.group.info.QGroupInfo;
 import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.group.member.constant.GroupMemberStatus;
+import com.heachi.mysql.define.user.User;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -69,7 +70,26 @@ public class GroupMemberRepositoryImpl implements GroupMemberRepositoryCustom {
                                         .from(houseworkTodo)
                                         .innerJoin(houseworkTodo.groupInfo, groupInfo)
                                         .where(houseworkTodo.id.eq(todoId)))
-                        .and(user.email.eq(email)))
+                        .and(user.email.eq(email)));
+    }
+                                   
+    @Override
+    public Optional<GroupMember> findGroupMemberByGroupMemberIdAndGroupInfoId(Long groupMemberId, Long groupId) {
+        // select gm from groupMember gm where gm.id= :groupMemberId and gm.groupInfo.id= :groupId
+        return Optional.of(queryFactory.selectFrom(groupMember)
+                .innerJoin(groupMember.groupInfo, groupInfo).fetchJoin()
+                .where(groupMember.id.eq(groupMemberId)
+                        .and(groupMember.groupInfo.id.eq(groupId)))
+                .fetchOne());
+    }
+
+    @Override
+    public Optional<GroupMember> findGroupMemberByUserEmailAndGroupInfoId(String userEmail, Long groupId) {
+        return Optional.of(queryFactory.selectFrom(groupMember)
+                .innerJoin(groupMember.user, user).fetchJoin()
+                .innerJoin(groupMember.groupInfo, groupInfo).fetchJoin()
+                .where(groupMember.user.email.eq(userEmail)
+                        .and(groupMember.groupInfo.id.eq(groupId)))
                 .fetchOne());
     }
 }
