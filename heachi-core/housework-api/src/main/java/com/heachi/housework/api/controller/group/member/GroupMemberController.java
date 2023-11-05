@@ -21,7 +21,7 @@ public class GroupMemberController {
     private final AuthExternalService authExternalService;
     private final GroupMemberRepository groupMemberRepository;
 
-    @GetMapping("/{groupId}/members")
+    @GetMapping("/member/{groupId}")
     public JsonResult<?> groupMemberList(@RequestHeader(name = "Authorization") String authorization,
                                          @PathVariable(name = "groupId") Long groupId) {
         // 유저 인증
