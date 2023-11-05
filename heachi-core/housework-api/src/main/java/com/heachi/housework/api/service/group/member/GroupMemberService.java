@@ -28,7 +28,6 @@ public class GroupMemberService {
         }
 
         // groupId로 상태가 ACCEPT인 모든 그룹 멤버 조회 후 GroupMemberListResponse 리스트로 변환해서 반환
-
         return groupMemberRepository.findGroupMemberByGroupId(groupId)
                 .stream()
                 .map(gm -> GroupMemberListResponse.builder()
