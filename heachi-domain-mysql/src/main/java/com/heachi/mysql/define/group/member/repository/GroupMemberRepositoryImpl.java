@@ -70,13 +70,14 @@ public class GroupMemberRepositoryImpl implements GroupMemberRepositoryCustom {
                                         .from(houseworkTodo)
                                         .innerJoin(houseworkTodo.groupInfo, groupInfo)
                                         .where(houseworkTodo.id.eq(todoId)))
-                        .and(user.email.eq(email)));
+                        .and(user.email.eq(email)))
+                .fetchOne());
     }
                                    
     @Override
     public Optional<GroupMember> findGroupMemberByGroupMemberIdAndGroupInfoId(Long groupMemberId, Long groupId) {
         // select gm from groupMember gm where gm.id= :groupMemberId and gm.groupInfo.id= :groupId
-        return Optional.of(queryFactory.selectFrom(groupMember)
+        return Optional.ofNullable(queryFactory.selectFrom(groupMember)
                 .innerJoin(groupMember.groupInfo, groupInfo).fetchJoin()
                 .where(groupMember.id.eq(groupMemberId)
                         .and(groupMember.groupInfo.id.eq(groupId)))
@@ -85,7 +86,7 @@ public class GroupMemberRepositoryImpl implements GroupMemberRepositoryCustom {
 
     @Override
     public Optional<GroupMember> findGroupMemberByUserEmailAndGroupInfoId(String userEmail, Long groupId) {
-        return Optional.of(queryFactory.selectFrom(groupMember)
+        return Optional.ofNullable(queryFactory.selectFrom(groupMember)
                 .innerJoin(groupMember.user, user).fetchJoin()
                 .innerJoin(groupMember.groupInfo, groupInfo).fetchJoin()
                 .where(groupMember.user.email.eq(userEmail)
