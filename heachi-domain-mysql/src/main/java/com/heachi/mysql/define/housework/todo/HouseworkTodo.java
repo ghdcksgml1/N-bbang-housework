@@ -69,7 +69,7 @@ public class HouseworkTodo extends BaseEntity {
     private String verificationPhotoURL;    // 다른 사용자가 확인할 수 있는 인증 사진 URL
 
     @Column(name = "VERIFIER_ID")
-    private String verifierId;              // 해당 집안일을 인증해준 사용자
+    private Long verifierId;              // 해당 집안일을 인증한 사용자 (GroupMemberId)
 
     @Column(name = "VERIFICATION_TIME")
     private LocalDateTime verificationTime; // 인증된 시각
@@ -77,7 +77,7 @@ public class HouseworkTodo extends BaseEntity {
     @Builder
     private HouseworkTodo(HouseworkInfo houseworkInfo, GroupInfo groupInfo, String houseworkMember, String category,
                          String title, String detail, Integer idx, HouseworkTodoStatus status, LocalDate date,
-                         LocalTime endTime, String verificationPhotoURL, String verifierId, LocalDateTime verificationTime) {
+                         LocalTime endTime, String verificationPhotoURL, Long verifierId, LocalDateTime verificationTime) {
         this.houseworkInfo = houseworkInfo;
         this.groupInfo = groupInfo;
         this.houseworkMember = houseworkMember;
@@ -91,6 +91,13 @@ public class HouseworkTodo extends BaseEntity {
         this.verificationPhotoURL = verificationPhotoURL;
         this.verifierId = verifierId;
         this.verificationTime = verificationTime;
+    }
+
+    // 집안일 인증
+    public void verifyHousework(String verificationPhotoURL, Long verifierId) {
+        this.verificationPhotoURL = verificationPhotoURL;
+        this.verifierId = verifierId;
+        this.verificationTime = LocalDateTime.now();
     }
 
     public static HouseworkTodo makeTodoReferInfo(HouseworkInfo houseworkInfo, GroupInfo groupInfo, LocalDate date) {

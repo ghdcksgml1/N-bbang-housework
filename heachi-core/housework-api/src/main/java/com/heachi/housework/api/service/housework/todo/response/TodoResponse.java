@@ -30,13 +30,13 @@ public class TodoResponse {
     private LocalDate date;
     private LocalTime endTime;
     private String verificationPhotoURL;
-    private String verifierId;
+    private Long verifierId;
     private LocalDateTime verificationTime;
 
     @Builder
     private TodoResponse(Long id, List<TodoUser> houseworkMembers, String category, String title, String detail,
                          Integer idx, HouseworkTodoStatus status, LocalDate date, LocalTime endTime,
-                         String verificationPhotoURL, String verifierId, LocalDateTime verificationTime) {
+                         String verificationPhotoURL, Long verifierId, LocalDateTime verificationTime) {
         this.id = id;
         this.houseworkMembers = houseworkMembers;
         this.category = category;

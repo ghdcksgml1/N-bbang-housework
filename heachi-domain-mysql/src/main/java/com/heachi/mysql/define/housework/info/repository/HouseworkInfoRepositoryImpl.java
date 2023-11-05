@@ -24,7 +24,7 @@ public class HouseworkInfoRepositoryImpl implements HouseworkInfoRepositoryCusto
     @Override
     public Optional<HouseworkInfo> findHouseworkInfoByIdJoinFetchHouseworkMembers(Long houseworkInfoId) {
 
-        return Optional.of(queryFactory.selectFrom(houseworkInfo)
+        return Optional.ofNullable(queryFactory.selectFrom(houseworkInfo)
                 .leftJoin(houseworkInfo.houseworkMembers, houseworkMember).fetchJoin()
                 .innerJoin(houseworkInfo.houseworkCategory, houseworkCategory).fetchJoin()
                 .where(houseworkInfo.id.eq(houseworkInfoId))

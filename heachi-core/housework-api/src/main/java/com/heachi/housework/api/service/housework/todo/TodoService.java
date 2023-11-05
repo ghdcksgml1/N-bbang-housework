@@ -1,8 +1,12 @@
 package com.heachi.housework.api.service.housework.todo;
 
+import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.group.member.GroupMemberException;
+import com.heachi.admin.common.exception.housework.HouseworkException;
 import com.heachi.admin.common.utils.CachingStrategy;
 import com.heachi.admin.common.utils.DayOfWeekUtils;
 import com.heachi.housework.api.service.housework.todo.request.TodoSelectRequest;
+import com.heachi.housework.api.service.housework.todo.request.VerifyTodoServiceRequest;
 import com.heachi.housework.api.service.housework.todo.response.TodoResponse;
 import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.group.member.repository.GroupMemberRepository;
@@ -85,6 +89,25 @@ public class TodoService {
         return houseworkTodoRepository.findByGroupInfoAndDate(groupId, date).stream() // 최신 Todo 불러와 리턴
                 .map(todo -> TodoResponse.of(todo, userMap))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void verifyTodo(VerifyTodoServiceRequest request) {
+        // groupMemberId 가져오기
+        GroupMember groupMember = groupMemberRepository.findGroupMemberByUserEmailAndTodoId(request.getEmail(), request.getTodoId()).orElseThrow(() -> {
+            log.warn(">>>> 매칭되는 groupMember를 찾지 못했습니다.");
+
+            throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_NOT_FOUND);
+        });
+
+        HouseworkTodo houseworkTodo = houseworkTodoRepository.findHouseworkTodoByIdAndGroupMemberId(request.getTodoId(), groupMember.getId()).orElseThrow(() -> {
+            log.warn(">>>> 해당 그룹멤버는 집안일의 담당자가 아닙니다.");
+
+            throw new HouseworkException(ExceptionMessage.HOUSEWORK_TODO_PERMISSION_DENIED);
+        });
+
+        // 담당자가 맞다면, 업데이트
+        houseworkTodo.verifyHousework(request.getVerifyImageURL(), groupMember.getId());
     }
 
     private TodoList caching(TodoSelectRequest req, List<TodoResponse> todoResponseList) {
