@@ -2,10 +2,8 @@ package com.heachi.housework.api.service.group.member;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.group.member.GroupMemberException;
-import com.heachi.admin.common.exception.jwt.JwtException;
 import com.heachi.housework.TestConfig;
-import com.heachi.housework.api.controller.group.member.response.GroupMemberListResponse;
-import com.heachi.housework.api.service.group.info.GroupInfoService;
+import com.heachi.housework.api.controller.group.member.response.GroupMemberResponse;
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
@@ -60,23 +58,6 @@ class GroupMemberServiceTest extends TestConfig {
     }
 
     @Test
-    @DisplayName("API 호출자가 해당 그룹원이 아닐 경우 예외가 발생한다.")
-    void isNotGroupMemberFailTest() {
-        // given
-        User user = userRepository.save(generateUser());
-        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(user));
-        GroupMember groupMember = groupMemberRepository.save(generateGroupMember(user, groupInfo));
-
-        User notMember = userRepository.save(generateCustomUser("ghdcksgml1@naver.com", "010-1111-1111"));
-
-        // when & then
-        GroupMemberException exception = assertThrows(GroupMemberException.class,
-                () -> groupMemberService.selctGroupMember(notMember.getEmail(), groupInfo.getId()));
-
-        assertThat(exception.getMessage()).isEqualTo(ExceptionMessage.GROUP_MEMBER_NOT_FOUND.getText());
-    }
-
-    @Test
     @DisplayName(" groupMemberList API 호출시 GroupMemberListResponse 리스트가 잘 반환된다.\n")
     void selectGroupMemberListSuccessTest() {
         // given
@@ -87,12 +68,12 @@ class GroupMemberServiceTest extends TestConfig {
         GroupMember groupMember2 = groupMemberRepository.save(generateGroupMember(user2, groupInfo));
 
         // when
-        List<GroupMemberListResponse> groupMemberListResponses = groupMemberService.selctGroupMember(user.getEmail(), groupInfo.getId());
+        List<GroupMemberResponse> groupMemberRespons = groupMemberService.selctGroupMember(groupInfo.getId());
 
         // then
-        assertThat(groupMemberListResponses.size()).isEqualTo(2);
-        assertThat(groupMemberListResponses.get(0).getGroupMemberId()).isEqualTo(groupMember.getId());
-        assertThat(groupMemberListResponses.get(1).getGroupMemberId()).isEqualTo(groupMember2.getId());
+        assertThat(groupMemberRespons.size()).isEqualTo(2);
+        assertThat(groupMemberRespons.get(0).getGroupMemberId()).isEqualTo(groupMember.getId());
+        assertThat(groupMemberRespons.get(1).getGroupMemberId()).isEqualTo(groupMember2.getId());
 
     }
 }
