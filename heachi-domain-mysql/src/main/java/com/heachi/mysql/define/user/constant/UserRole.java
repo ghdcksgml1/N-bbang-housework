@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 public enum UserRole {
     UNAUTH("미인증"),
     USER("유저"),
-    WITHDRAWAL("탈퇴");
+    WITHDRAW("탈퇴");
 
     private final String text;
 }
