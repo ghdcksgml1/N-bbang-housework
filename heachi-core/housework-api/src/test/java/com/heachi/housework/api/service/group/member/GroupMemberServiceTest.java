@@ -68,7 +68,7 @@ class GroupMemberServiceTest extends TestConfig {
         GroupMember groupMember2 = groupMemberRepository.save(generateGroupMember(user2, groupInfo));
 
         // when
-        List<GroupMemberResponse> groupMemberRespons = groupMemberService.selctGroupMember(groupInfo.getId());
+        List<GroupMemberResponse> groupMemberRespons = groupMemberService.selectGroupMember(groupInfo.getId());
 
         // then
         assertThat(groupMemberRespons.size()).isEqualTo(2);

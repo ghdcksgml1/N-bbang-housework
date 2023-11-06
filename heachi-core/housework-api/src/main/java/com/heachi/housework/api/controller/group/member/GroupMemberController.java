@@ -24,7 +24,7 @@ public class GroupMemberController {
         // 유저 인증 & 해당 그룹원인지 확인
         authExternalService.userAuthenticateAndGroupMatch(authorization, groupId);
 
-        List<GroupMemberResponse> groupMemberList = groupMemberService.selctGroupMember(groupId);
+        List<GroupMemberResponse> groupMemberList = groupMemberService.selectGroupMember(groupId);
 
         return JsonResult.successOf(groupMemberList);
     }
