@@ -9,7 +9,7 @@ public class GroupMemberResponse {
     private String username;
 
     @Builder
-    public GroupMemberResponse(Long groupMemberId, String username) {
+    private GroupMemberResponse(Long groupMemberId, String username) {
         this.groupMemberId = groupMemberId;
         this.username = username;
     }
