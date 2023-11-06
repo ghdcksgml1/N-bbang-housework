@@ -72,6 +72,10 @@ public class User extends BaseEntity implements UserDetails {
         this.phoneNumber = phoneNumber;
     }
 
+    public void deleteUser() {
+        this.role = UserRole.WITHDRAW;
+    }
+
     @Builder
     private User(List<GroupInfo> groupInfoList, String platformId, UserPlatformType platformType, UserRole role,
                  String name, String email, String phoneNumber, String profileImageUrl, boolean pushAlarmYn) {

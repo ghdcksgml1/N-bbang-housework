@@ -141,7 +141,7 @@ public class AuthService {
         });
 
         try {
-            userRepository.deleteById(user.getId());
+            user.deleteUser();
             log.info(">>>> {} Info is Deleted.", user.getName());
         } catch (IllegalArgumentException e) {
             log.error(">>>> ID = {} : 계정 삭제에 실패했습니다.", user.getId());

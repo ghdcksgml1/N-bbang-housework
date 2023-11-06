@@ -299,9 +299,9 @@ class AuthServiceTest extends TestConfig {
 
         // when
         authService.userDelete("kms@kakao.com");
-        Optional<User> byEmail = userRepository.findByEmail("kms@kakao.com");
+        User deletedUser = userRepository.findByEmail("kms@kakao.com").get();
 
         // then
-        assertThat(byEmail.isEmpty()).isTrue();
+        assertThat(deletedUser.getRole()).isEqualTo(UserRole.WITHDRAW);
     }
 }
