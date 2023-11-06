@@ -45,6 +45,8 @@ public enum ExceptionMessage {
 
     // GroupMemberException
     GROUP_MEMBER_NOT_FOUND("그룹 멤버를 찾지 못했습니다."),
+    GROUP_MEMBER_STATUS_NOT_WAITING("그룹 가입 요청 수락 대기자가 아닙니다."),
+    GROUP_MEMBER_ROLE_NOT_ADMIN("그룹의 그룹장이 아닙니다."),
 
     // NotifyException
     NOTIFY_NOT_FOUND("해당 아이디의 알림을 찾을 수 없습니다."),
@@ -60,6 +62,7 @@ public enum ExceptionMessage {
     HOUSEWORK_ADD_FAIL("집안일 추가에 실패했습니다."),
     HOUSEWORK_ADD_PERMISSION_DENIED("집안일을 추가할 권한이 없습니다."),
     HOUSEWORK_CATEGORY_NOT_FOUND("집안일 카테고리 정보를 찾을 수 없습니다."),
+    HOUSEWORK_TODO_PERMISSION_DENIED("해당 집안일의 담당자가 아닙니다."),
     ;
 
     private final String text;

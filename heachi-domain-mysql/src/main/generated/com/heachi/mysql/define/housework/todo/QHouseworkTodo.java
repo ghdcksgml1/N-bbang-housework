@@ -56,7 +56,7 @@ public class QHouseworkTodo extends EntityPathBase<HouseworkTodo> {
 
     public final DateTimePath<java.time.LocalDateTime> verificationTime = createDateTime("verificationTime", java.time.LocalDateTime.class);
 
-    public final StringPath verifierId = createString("verifierId");
+    public final NumberPath<Long> verifierId = createNumber("verifierId", Long.class);
 
     public QHouseworkTodo(String variable) {
         this(HouseworkTodo.class, forVariable(variable), INITS);

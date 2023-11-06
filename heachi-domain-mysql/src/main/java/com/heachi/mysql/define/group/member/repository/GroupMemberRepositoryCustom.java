@@ -1,8 +1,10 @@
 package com.heachi.mysql.define.group.member.repository;
 
 import com.heachi.mysql.define.group.member.GroupMember;
+import com.heachi.mysql.define.user.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface GroupMemberRepositoryCustom {
 
@@ -14,5 +16,14 @@ public interface GroupMemberRepositoryCustom {
 
     // 그룹 멤버의 ID 리스트에 해당하는 그룹멤버들을 조회한다. (그룹원인 경우만 = ACCEPT) - 집안일 추가시 담당자 지정을 위해 필요
     public List<GroupMember> findGroupMemberListByGroupMemberIdList(List<Long> groupMemberIdList);
+
+    // Email과 todoId를 통해 GroupMember를 조회한다.
+    public Optional<GroupMember> findGroupMemberByUserEmailAndTodoId(String email, Long todoId);
+
+    // 그룹 멤버의 ID와 User 정보를 이용해 그룹 멤버를 조회한다.
+    public Optional<GroupMember> findGroupMemberByGroupMemberIdAndGroupInfoId(Long groupMemberId, Long groupId);
+
+    // User의 email과 GroupId를 이용해 그룹 멤버를 조회한다.
+    public Optional<GroupMember> findGroupMemberByUserEmailAndGroupInfoId(String userEmail, Long groupId);
 
 }

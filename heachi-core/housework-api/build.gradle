@@ -12,6 +12,7 @@ dependencies {
     implementation project(':heachi-support:common')
     implementation project(':heachi-support:logging')
     implementation project(':heachi-support:external-clients')
+    implementation project(':heachi-support:aws-s3') // aws s3 모듈
     implementation project(':heachi-domain-mysql')
     implementation project(':heachi-domain-redis')
 
