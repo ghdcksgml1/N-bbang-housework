@@ -6,6 +6,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -57,5 +58,16 @@ public class HouseworkTodoRepositoryImpl implements HouseworkTodoRepositoryCusto
         } else {
             return Optional.empty();
         }
+    }
+
+    @Override
+    @Transactional
+    public long updateHouseworkTodoByHouseworkInfoId(Long houseworkInfoId) {
+
+        return queryFactory
+                .update(houseworkTodo)
+                .setNull(houseworkTodo.houseworkInfo)
+                .where(houseworkTodo.houseworkInfo.id.eq(houseworkInfoId))
+                .execute();
     }
 }
