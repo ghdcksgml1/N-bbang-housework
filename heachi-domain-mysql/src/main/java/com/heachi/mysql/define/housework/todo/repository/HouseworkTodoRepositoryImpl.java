@@ -1,6 +1,8 @@
 package com.heachi.mysql.define.housework.todo.repository;
 
+import com.heachi.mysql.define.housework.info.HouseworkInfo;
 import com.heachi.mysql.define.housework.todo.HouseworkTodo;
+import com.heachi.mysql.define.housework.todo.constant.HouseworkTodoStatus;
 import com.heachi.mysql.define.housework.todo.repository.response.HouseworkTodoCount;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -15,6 +17,9 @@ import java.util.Optional;
 
 import static com.heachi.mysql.define.group.info.QGroupInfo.groupInfo;
 import static com.heachi.mysql.define.group.member.QGroupMember.groupMember;
+import static com.heachi.mysql.define.housework.category.QHouseworkCategory.houseworkCategory;
+import static com.heachi.mysql.define.housework.info.QHouseworkInfo.houseworkInfo;
+import static com.heachi.mysql.define.housework.member.QHouseworkMember.houseworkMember;
 import static com.heachi.mysql.define.housework.todo.QHouseworkTodo.houseworkTodo;
 import static com.heachi.mysql.define.user.QUser.user;
 import static com.querydsl.core.group.GroupBy.groupBy;
@@ -69,5 +74,23 @@ public class HouseworkTodoRepositoryImpl implements HouseworkTodoRepositoryCusto
                 .setNull(houseworkTodo.houseworkInfo)
                 .where(houseworkTodo.houseworkInfo.id.eq(houseworkInfoId))
                 .execute();
+    }
+
+
+    @Override
+    public Optional<HouseworkTodo> findHouseworkTodoByIdJoinFetchHouseworkInfo(Long todoId) {
+
+        return Optional.ofNullable(queryFactory.selectFrom(houseworkTodo)
+                .innerJoin(houseworkTodo.houseworkInfo, houseworkInfo).fetchJoin()
+                .where(houseworkTodo.id.eq(todoId))
+                .fetchOne());
+    }
+
+    @Override
+    public List<HouseworkTodo> findHouseworkTodoByHouseworkInfo(Long houseworkInfoId) {
+        return queryFactory
+                .selectFrom(houseworkTodo)
+                .where(houseworkTodo.houseworkInfo.id.eq(houseworkInfoId))
+                .fetch();
     }
 }

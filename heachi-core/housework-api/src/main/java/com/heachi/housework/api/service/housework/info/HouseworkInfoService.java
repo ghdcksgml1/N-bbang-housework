@@ -1,11 +1,14 @@
 package com.heachi.housework.api.service.housework.info;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.HeachiException;
 import com.heachi.admin.common.exception.group.info.GroupInfoException;
 import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.admin.common.exception.housework.HouseworkException;
 import com.heachi.admin.common.utils.DayOfWeekUtils;
+import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoDeleteType;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
+import com.heachi.housework.api.service.housework.info.request.HouseworkInfoDeleteRequest;
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
@@ -27,8 +30,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -141,6 +146,75 @@ public class HouseworkInfoService {
 
         } catch (RuntimeException e) {
             log.warn(">>>> Housework Add Fail : {}", e.getMessage());
+
+            throw e;
+        }
+    }
+
+    @Transactional(readOnly = false)
+    public void deleteHouseworkInfo(HouseworkInfoDeleteRequest request) {
+        Long groupId = request.getGroupId();
+        LocalDate requestDate = request.getDate();
+        Long todoId = request.getTodoId();
+        HouseworkInfoDeleteType deleteType = request.getDeleteType();
+
+
+        try {
+            // HouseworkTodo 조회 -> HouseworkInfo도 fetch Join 함께 조회
+            HouseworkTodo requestTodo = houseworkTodoRepository.findHouseworkTodoByIdJoinFetchHouseworkInfo(todoId).orElseThrow(() -> {
+                log.warn(">>>> HouseworkTodo Not Found : {}", ExceptionMessage.HOUSEWORK_TODO_NOT_FOUND.getText());
+
+                throw new HouseworkException(ExceptionMessage.HOUSEWORK_TODO_NOT_FOUND);
+            });
+
+            HouseworkInfo houseworkInfo = requestTodo.getHouseworkInfo();
+
+            // 단건 집안일(HOUSEWORK_PERIOD_DAY)이거나 비단건 집안일이지만 해당 건만 삭제하고 싶을 경우
+            if (houseworkInfo == null || deleteType == HouseworkInfoDeleteType.ONE) {
+                // HouseworkTodoStatus를 DELETE로 변경
+                requestTodo.deleteHouseworkTodo();
+
+                // 요청 날짜의 todoList를 조회 후 dirtyBit 체킹
+                todoListRepository.findByGroupInfoIdAndDate(groupId, requestDate)
+                        .ifPresent(todoList -> {
+                            todoList.checkDirtyBit();
+                            todoListRepository.save(todoList);
+                            log.info(">>>> dirtyBit Checking TodoList id: {}", todoList.getId());
+                        });
+
+                // 비단건 집안일(HOUSEWORK_PERIOD_DAY를 제외한 모든 경우)이고 반복되는 모든 건을 삭제하고 싶을 경우
+            } else if (deleteType == HouseworkInfoDeleteType.ALL) {
+                // HouseworkInfo를 외래키로 가진 HouseworkMember 삭제
+                houseworkMemberRepository.deleteByHouseworkInfo(houseworkInfo);
+
+                // HouseworkInfo를 외래키로 가진 HouseworkTodo의 houseworkInfo 필드값 null로 변환해 관계 해제
+                houseworkTodoRepository.updateHouseworkTodoByHouseworkInfoId(houseworkInfo.getId());
+
+                // HouseworkInfo 삭제
+                houseworkInfoRepository.deleteById(houseworkInfo.getId());
+                log.info(">>>> HouseworkInfo Deleted: {}", houseworkInfo.getId());
+
+                // 삭제 요청한 날짜를 기준으로 이후의 HouseworkTodo 조회
+                List<HouseworkTodo> todoList = houseworkTodoRepository.findHouseworkTodoByHouseworkInfo(houseworkInfo.getId());
+
+                // requestDate 이후의 HouseworkTodo를 HOUSEWORK_TODO_DELETE로 상태 변경
+                todoList.stream()
+                        .filter(todo -> todo.getDate().isAfter(requestDate))
+                        .forEach(HouseworkTodo::deleteHouseworkTodo);
+
+                // DELETE로 바뀐 HouseworkTodo를 포함하고 있는 TodoList 조회 후 dirtyBit 체킹
+                todoListRepository.findByTodoList_IdIn(todoList.stream()
+                                .map(HouseworkTodo::getId)
+                                .collect(Collectors.toList()))
+                        .forEach(tList -> { // dirtyBit Checking
+                            tList.checkDirtyBit();
+                            todoListRepository.save(tList);
+                            log.info(">>>> dirtyBit Checking TodoList id: {}", tList.getId());
+                        });
+            }
+
+        } catch (HeachiException e) {
+            log.warn(">>>> Housework Delete Fail : {}", e.getMessage());
 
             throw e;
         }
