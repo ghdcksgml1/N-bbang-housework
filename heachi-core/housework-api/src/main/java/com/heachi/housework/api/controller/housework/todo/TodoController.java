@@ -10,9 +10,12 @@ import com.heachi.housework.api.service.housework.todo.request.TodoSelectRequest
 import com.heachi.housework.api.service.housework.todo.request.VerifyTodoServiceRequest;
 import com.heachi.redis.define.housework.todo.TodoList;
 import com.heachi.s3.api.service.AwsS3Service;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +35,7 @@ public class TodoController {
     private final AwsS3Service awsS3Service;
 
     // Todo List 가져오기
-    @ApiResponse(responseCode = "200", description = "Todo List 조회 성공", content = @Content(schema = @Schema(implementation = TodoList.class)))
+    @ApiResponse(responseCode = "200", description = "성공적으로 Todo List를 조회함", content = @Content(schema = @Schema(implementation = TodoList.class)))
     @GetMapping("/{groupId}")
     public JsonResult<?> selectTodo(@RequestHeader(name = "Authorization") String authorization,
                                     @PathVariable(name = "groupId") Long groupId,
