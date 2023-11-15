@@ -4,6 +4,7 @@ import com.heachi.admin.common.response.JsonResult;
 import com.heachi.housework.api.controller.group.member.response.GroupMemberResponse;
 import com.heachi.housework.api.service.housework.category.HouseworkCategoryService;
 import com.heachi.housework.api.service.housework.category.response.HouseworkCategoryResponse;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,7 +22,7 @@ public class HouseworkCategoryController {
 
     private final HouseworkCategoryService houseworkCategoryService;
 
-    @ApiResponse(responseCode = "200", description = "카테고리 리스트 조회 성공", content = @Content(schema = @Schema(implementation = HouseworkCategoryResponse.class, type = "array")))
+    @ApiResponse(responseCode = "200", description = "Group Member 리스트 조회 성공", content = @Content(array = @ArraySchema(schema = @Schema(implementation = HouseworkCategoryResponse.class))))
     @GetMapping("/")
     public JsonResult<?> selectCategory() {
 
