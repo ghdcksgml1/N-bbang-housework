@@ -13,6 +13,10 @@ import com.heachi.auth.api.service.oauth.OAuthService;
 import com.heachi.auth.api.service.state.LoginStateService;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +44,7 @@ public class AuthController {
         return JsonResult.successOf(loginPage);
     }
 
+    @ApiResponse(responseCode = "200", description = "로그인 성공", content = @Content(schema = @Schema(implementation = AuthServiceLoginResponse.class)))
     @GetMapping("/{platformType}/login")
     public JsonResult<String> login(
             @PathVariable("platformType") UserPlatformType platformType,
@@ -53,6 +58,7 @@ public class AuthController {
         return JsonResult.successOf(loginResponse);
     }
 
+    @ApiResponse(responseCode = "200", description = "회원가입 성공", content = @Content(schema = @Schema(implementation = AuthServiceLoginResponse.class)))
     @PostMapping("/register")
     public JsonResult<?> register(
             @Valid @RequestBody AuthRegisterRequest request) {
@@ -62,6 +68,7 @@ public class AuthController {
         return JsonResult.successOf(registerResponse);
     }
 
+    @ApiResponse(responseCode = "200", description = "회원 정보 불러오기 성공", content = @Content(schema = @Schema(implementation = UserSimpleInfoResponse.class)))
     @GetMapping("/info")
     public JsonResult<UserSimpleInfoResponse> userInfo(@AuthenticationPrincipal User user) {
 
@@ -90,6 +97,7 @@ public class AuthController {
         return JsonResult.successOf();
     }
 
+    @ApiResponse(responseCode = "200", description = "토큰 재발급 성공", content = @Content(schema = @Schema(implementation = ReissueAccessTokenResponse.class)))
     @PostMapping("/reissue")
     public JsonResult<?> reissueAccessToken(@RequestHeader(name = "Authorization") String token) {
         List<String> tokens = Arrays.asList(token.split(" "));

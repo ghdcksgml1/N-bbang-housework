@@ -5,6 +5,10 @@ import com.heachi.external.clients.auth.response.UserInfoResponse;
 import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequest;
 import com.heachi.housework.api.service.auth.AuthExternalService;
 import com.heachi.housework.api.service.group.info.GroupInfoService;
+import com.heachi.housework.api.service.group.info.response.GroupInfoUserGroupServiceResponse;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +22,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -47,6 +53,7 @@ public class GroupInfoController {
     }
 
     // User가 가입한 Group 정보를 리턴한다.
+    @ApiResponse(responseCode = "200", description = "그룹 리스트 조회 성공", content = @Content(schema = @Schema(implementation = GroupInfoUserGroupServiceResponse.class, type = "array")))
     @GetMapping("/list")
     public JsonResult<?> userGroupInfoList(@RequestHeader(name = "Authorization") String authorization) {
         UserInfoResponse userInfo = authExternalService.userAuthenticate(authorization);
