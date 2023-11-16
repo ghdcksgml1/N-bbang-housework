@@ -22,6 +22,7 @@ import com.heachi.mysql.define.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -38,6 +39,7 @@ public class Initializer implements ApplicationRunner {
     @Autowired private HouseworkTodoRepository houseworkTodoRepository;
 
     @Override
+    @Profile("prod")
     public void run(ApplicationArguments args) throws Exception {
         User user = userRepository.save(generateCustomUser("김준영", "kjy@naver.com", "010-0000-0000"));
         User user2 = userRepository.save(generateCustomUser("구지원", "itkoo@naver.com", "010-1111-1111"));
