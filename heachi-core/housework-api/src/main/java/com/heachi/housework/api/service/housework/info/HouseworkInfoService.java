@@ -175,12 +175,12 @@ public class HouseworkInfoService {
                 requestTodo.deleteHouseworkTodo();
 
                 // 요청 날짜의 todoList를 조회 후 dirtyBit 체킹
-//                todoListRepository.findByGroupInfoIdAndDate(groupId, requestDate)
-//                        .ifPresent(todoList -> {
-//                            todoList.checkDirtyBit();
-//                            todoListRepository.save(todoList);
-//                            log.info(">>>> dirtyBit Checking TodoList id: {}", todoList.getId());
-//                        });
+                todoListRepository.findByGroupInfoIdAndDate(groupId, requestDate)
+                        .ifPresent(todoList -> {
+                            todoList.checkDirtyBit();
+                            todoListRepository.save(todoList);
+                            log.info(">>>> dirtyBit Checking TodoList id: {}", todoList.getId());
+                        });
 
                 // 비단건 집안일(HOUSEWORK_PERIOD_DAY를 제외한 모든 경우)이고 반복되는 모든 건을 삭제하고 싶을 경우
             } else if (deleteType == HouseworkInfoDeleteType.ALL) {
