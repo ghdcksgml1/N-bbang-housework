@@ -8,10 +8,10 @@ import java.time.LocalDate;
 
 @Getter
 public class HouseworkInfoDeleteRequest {
-    Long groupId;
-    LocalDate date;
-    Long todoId;
-    HouseworkInfoDeleteType deleteType;
+    private Long groupId;
+    private LocalDate date;
+    private Long todoId;
+    private HouseworkInfoDeleteType deleteType;
 
     @Builder
     public HouseworkInfoDeleteRequest(Long groupId, LocalDate date, Long todoId, HouseworkInfoDeleteType deleteType) {

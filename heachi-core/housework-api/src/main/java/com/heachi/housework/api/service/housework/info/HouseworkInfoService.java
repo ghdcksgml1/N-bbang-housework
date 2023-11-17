@@ -194,11 +194,8 @@ public class HouseworkInfoService {
                 houseworkInfoRepository.deleteById(houseworkInfo.getId());
                 log.info(">>>> HouseworkInfo Deleted: {}", houseworkInfo.getId());
 
-                // HouseworkInfo를 외래키로 가진 HouseworkTodo 리스트 조회
-                List<HouseworkTodo> findTodoList = houseworkTodoRepository.findHouseworkTodoByHouseworkInfo(houseworkInfo.getId());
-
                 // requestDate 이후의 HouseworkTodo를 HOUSEWORK_TODO_DELETE로 상태 변경
-                findTodoList.stream()
+                houseworkTodoRepository.findHouseworkTodoByHouseworkInfo(houseworkInfo.getId()).stream()
                         .filter(todo -> todo.getDate().isAfter(requestDate))
                         .forEach(HouseworkTodo::deleteHouseworkTodo);
 
