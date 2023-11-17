@@ -19,12 +19,16 @@ import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.constant.UserPlatformType;
 import com.heachi.mysql.define.user.constant.UserRole;
 import com.heachi.mysql.define.user.repository.UserRepository;
+import com.heachi.redis.define.housework.todo.Todo;
+import com.heachi.redis.define.housework.todo.TodoList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
+
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestConstructor;
 
@@ -144,6 +148,17 @@ public class TestConfig {
                 .build();
     }
 
+    public static HouseworkInfo generateCustom2HouseworkInfo(HouseworkCategory category, GroupInfo groupInfo, String title, HouseworkPeriodType type) {
+
+        return HouseworkInfo.builder()
+                .houseworkCategory(category)
+                .title(title)
+                .detail("빨래 돌리기")
+                .type(type)
+                .endTime(LocalTime.of(18,0))
+                .build();
+    }
+
     public static HouseworkMember generateHouseworkMember(GroupMember groupMember, HouseworkInfo houseworkInfo) {
 
         return HouseworkMember.builder()
@@ -155,5 +170,14 @@ public class TestConfig {
     public static HouseworkTodo generateHouseworkTodo(HouseworkInfo houseworkInfo, GroupInfo groupInfo, LocalDate date) {
 
         return HouseworkTodo.makeTodoReferInfo(houseworkInfo, groupInfo, date);
+    }
+
+    public static TodoList generateTodoList(Long groupId, LocalDate date, List<Todo> todoList) {
+        return TodoList.builder()
+                .groupInfoId(groupId)
+                .date(date)
+                .todoList(todoList)
+                .build();
+
     }
 }

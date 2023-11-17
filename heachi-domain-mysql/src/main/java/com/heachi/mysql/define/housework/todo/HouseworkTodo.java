@@ -100,6 +100,11 @@ public class HouseworkTodo extends BaseEntity {
         this.verificationTime = LocalDateTime.now();
     }
 
+    // 집안일 삭제
+    public void deleteHouseworkTodo() {
+        this.status = HouseworkTodoStatus.HOUSEWORK_TODO_DELETE;
+    }
+
     public static HouseworkTodo makeTodoReferInfo(HouseworkInfo houseworkInfo, GroupInfo groupInfo, LocalDate date) {
 
         return HouseworkTodo.builder()

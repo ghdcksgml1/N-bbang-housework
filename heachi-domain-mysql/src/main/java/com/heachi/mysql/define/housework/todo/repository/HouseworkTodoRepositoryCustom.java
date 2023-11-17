@@ -13,4 +13,13 @@ public interface HouseworkTodoRepositoryCustom {
 
     // todoId와 groupMemberId를 통해 해당 그룹원이 해당 집안일의 담당자인지 확인한다.
     public Optional<HouseworkTodo> findHouseworkTodoByIdAndGroupMemberId(Long todoId, Long groupMemberId);
+
+    // houseworkInfoId와 일치하는 HouseworkTodo들의 houseworkInfoId를 null로 업데이트 한다. (HouseworkInfo 의존성을 끊기위해 사용)
+    public long updateHouseworkTodoByHouseworkInfoId(Long houseworkInfoId);
+
+    // HouseworkTodo 조회하는데 fetch Join으로 HouseworkInfo까지 조회해온다.
+    public Optional<HouseworkTodo> findHouseworkTodoByIdJoinFetchHouseworkInfo(Long todoId);
+
+    // houseworkInfoId와 일치하는 HouseworkTodo 리스트를 조회한다.
+    public List<HouseworkTodo> findHouseworkTodoByHouseworkInfo(Long houseworkInfoId);
 }
