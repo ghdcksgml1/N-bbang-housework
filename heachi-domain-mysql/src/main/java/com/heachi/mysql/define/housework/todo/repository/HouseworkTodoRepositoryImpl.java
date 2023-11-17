@@ -81,7 +81,7 @@ public class HouseworkTodoRepositoryImpl implements HouseworkTodoRepositoryCusto
     public Optional<HouseworkTodo> findHouseworkTodoByIdJoinFetchHouseworkInfo(Long todoId) {
 
         return Optional.ofNullable(queryFactory.selectFrom(houseworkTodo)
-                .innerJoin(houseworkTodo.houseworkInfo, houseworkInfo).fetchJoin()
+                .leftJoin(houseworkTodo.houseworkInfo, houseworkInfo).fetchJoin()
                 .where(houseworkTodo.id.eq(todoId))
                 .fetchOne());
     }

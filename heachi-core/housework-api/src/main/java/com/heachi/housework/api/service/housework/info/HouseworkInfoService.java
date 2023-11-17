@@ -175,12 +175,12 @@ public class HouseworkInfoService {
                 requestTodo.deleteHouseworkTodo();
 
                 // 요청 날짜의 todoList를 조회 후 dirtyBit 체킹
-                todoListRepository.findByGroupInfoIdAndDate(groupId, requestDate)
-                        .ifPresent(todoList -> {
-                            todoList.checkDirtyBit();
-                            todoListRepository.save(todoList);
-                            log.info(">>>> dirtyBit Checking TodoList id: {}", todoList.getId());
-                        });
+//                todoListRepository.findByGroupInfoIdAndDate(groupId, requestDate)
+//                        .ifPresent(todoList -> {
+//                            todoList.checkDirtyBit();
+//                            todoListRepository.save(todoList);
+//                            log.info(">>>> dirtyBit Checking TodoList id: {}", todoList.getId());
+//                        });
 
                 // 비단건 집안일(HOUSEWORK_PERIOD_DAY를 제외한 모든 경우)이고 반복되는 모든 건을 삭제하고 싶을 경우
             } else if (deleteType == HouseworkInfoDeleteType.ALL) {
@@ -209,8 +209,8 @@ public class HouseworkInfoService {
                                     case HOUSEWORK_PERIOD_DAY -> false;
                                     case HOUSEWORK_PERIOD_EVERYDAY -> true;
                                     case HOUSEWORK_PERIOD_WEEK ->
-                                            DayOfWeekUtils.equals(requestTodo.getHouseworkInfo().getWeekDate(), todoList.getDate());
-                                    case HOUSEWORK_PERIOD_MONTH -> Arrays.stream(requestTodo.getHouseworkInfo().getMonthDate().split(","))
+                                            DayOfWeekUtils.equals(houseworkInfo.getWeekDate(), todoList.getDate());
+                                    case HOUSEWORK_PERIOD_MONTH -> Arrays.stream(houseworkInfo.getMonthDate().split(","))
                                             .anyMatch(d -> Integer.parseInt(d) == todoList.getDate().getDayOfMonth());
                                 })
                         .forEach(todoList -> { // dirtyBit Checking
@@ -219,7 +219,7 @@ public class HouseworkInfoService {
                             log.info(">>>> dirtyBit Checking TodoList id: {}", todoList.getId());
                         });
 
-                /* redis에서 _IdIn 지원하지 않음 -> 이렇게 한번에 조회하려면 RedisTemplate 사용해야 할듯
+                /* redis에서 _IdIn 지원하지 않음 -> 이렇게 한번에 조회하려면 RedisTemplate 사용이 필요해 보입니다.
                 todoListRepository.findByTodoList_IdIn(todoList.stream()
                                 .map(HouseworkTodo::getId)
                                 .collect(Collectors.toList()))

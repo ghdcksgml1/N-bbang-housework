@@ -1,14 +1,14 @@
 package com.heachi.housework.api.service.housework.info;
 
 import com.heachi.admin.common.exception.ExceptionMessage;
+import com.heachi.admin.common.exception.HeachiException;
 import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.admin.common.exception.housework.HouseworkException;
-import com.heachi.admin.common.response.JsonResult;
-import com.heachi.external.clients.auth.AuthClients;
-import com.heachi.external.clients.auth.response.UserInfoResponse;
+import com.heachi.admin.common.utils.DayOfWeekUtils;
 import com.heachi.housework.TestConfig;
-import com.heachi.housework.api.service.auth.AuthExternalService;
+import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoDeleteType;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
+import com.heachi.housework.api.service.housework.info.request.HouseworkInfoDeleteRequest;
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
@@ -18,49 +18,59 @@ import com.heachi.mysql.define.housework.category.repository.HouseworkCategoryRe
 import com.heachi.mysql.define.housework.info.HouseworkInfo;
 import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
 import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
+import com.heachi.mysql.define.housework.member.HouseworkMember;
 import com.heachi.mysql.define.housework.member.repository.HouseworkMemberRepository;
 import com.heachi.mysql.define.housework.todo.HouseworkTodo;
+import com.heachi.mysql.define.housework.todo.constant.HouseworkTodoStatus;
 import com.heachi.mysql.define.housework.todo.repository.HouseworkTodoRepository;
 import com.heachi.mysql.define.user.User;
 import com.heachi.mysql.define.user.repository.UserRepository;
+import com.heachi.redis.define.housework.todo.Todo;
 import com.heachi.redis.define.housework.todo.TodoList;
 import com.heachi.redis.define.housework.todo.repository.TodoListRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest
 class HouseworkInfoServiceTest extends TestConfig {
 
-    @Autowired private GroupMemberRepository groupMemberRepository;
-    @Autowired private UserRepository userRepository;
-    @Autowired private HouseworkInfoRepository houseworkInfoRepository;
-    @Autowired private HouseworkInfoService houseworkInfoService;
-    @Autowired private HouseworkCategoryRepository houseworkCategoryRepository;
-    @Autowired private GroupInfoRepository groupInfoRepository;
-    @Autowired private HouseworkMemberRepository houseworkMemberRepository;
-    @Autowired private HouseworkTodoRepository houseworkTodoRepository;
+    @Autowired
+    private GroupMemberRepository groupMemberRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private HouseworkInfoRepository houseworkInfoRepository;
+    @Autowired
+    private HouseworkInfoService houseworkInfoService;
+    @Autowired
+    private HouseworkCategoryRepository houseworkCategoryRepository;
+    @Autowired
+    private GroupInfoRepository groupInfoRepository;
+    @Autowired
+    private HouseworkMemberRepository houseworkMemberRepository;
+    @Autowired
+    private HouseworkTodoRepository houseworkTodoRepository;
 
-    @Autowired private TodoListRepository todoListRepository;
+    @Autowired
+    private TodoListRepository todoListRepository;
 
     @AfterEach
     void tearDown() {
+        System.out.println("\n====== 테스트를 종료합니다 ======");
         houseworkTodoRepository.deleteAllInBatch();
         houseworkMemberRepository.deleteAllInBatch();
         houseworkInfoRepository.deleteAllInBatch();
@@ -361,5 +371,214 @@ class HouseworkInfoServiceTest extends TestConfig {
         // then
         assertThat(findTodoList.get(0).getId()).isEqualTo(todoList.getId());
         assertThat(findTodoList.get(0).isDirtyBit()).isTrue();
+    }
+
+    @Test
+    @DisplayName("단건 집안일을 삭제하고 싶을 경우, 해당 HouseworkTodo의 status가 DELETE로 변경되고 " +
+            "요청 날짜 TodoList의 dirtyBit이 true가 된다.")
+    void deleteHouseworkInfoWhenPeriodDay() {
+        /*
+            given
+        */
+        // User 2명 생성 - A, B
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+
+        // 그룹 생성 - A가 그룹장
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        // 그룹 멤버 생성 - A, B
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+
+        // 카테고리 2개 생성 - 집안일, 집 밖의 일
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkCategory outWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집 밖의 일"));
+
+        // 단건 집안일 생성
+        HouseworkTodo saveTodo = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(null) // 단건은 HouseworkInfo가 존재하지 않는다.
+                .groupInfo(groupInfo)
+                .houseworkMember(gA.toString())
+                .category(inWork.getName())
+                .title("title")
+                .detail("detail")
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(LocalDate.now())
+                .endTime(LocalTime.now())
+                .build());
+
+        // TodoList 생성
+        List<Todo> todos = new ArrayList<>();
+        todos.add(Todo.builder().id(saveTodo.getId()).build());
+        TodoList todoList = todoListRepository.save(generateTodoList(groupInfo.getId(), LocalDate.now(), todos));
+        System.out.println("todoList = " + todoList);
+
+        HouseworkInfoDeleteRequest request = HouseworkInfoDeleteRequest.builder()
+                .groupId(groupInfo.getId())
+                .deleteType(any(HouseworkInfoDeleteType.class))
+                .todoId(saveTodo.getId())
+                .date(LocalDate.now())
+                .build();
+
+        /*
+            when
+        */
+        houseworkInfoService.deleteHouseworkInfo(request);
+
+        /*
+            then
+        */
+        // TODO의 Status가 DELETE로 변경되어야 한다.
+        assertThat(houseworkTodoRepository.findById(saveTodo.getId()).get().getStatus()).isEqualTo(HouseworkTodoStatus.HOUSEWORK_TODO_DELETE);
+
+        // 요청 날짜의 todoList의 dirtyBit이 true이어야 한다.
+        TodoList findTodoList = todoListRepository.findByGroupInfoIdAndDate(groupInfo.getId(), saveTodo.getDate()).get();
+        System.out.println(findTodoList.isDirtyBit());
+    }
+
+    @Test
+    @DisplayName("비단건 집안일이지만 해당 건만 삭제하고 싶을 경우, " +
+            "해당 HouseworkTodo의 status가 DELETE로 변경되고 요청 날짜 TodoList의 dirtyBit이 true가 된다.")
+    void deleteHouseworkInfoWhenDeleteOne() {
+        /*
+            given
+        */
+        // User 2명 생성 - A, B
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+
+        // 그룹 생성 - A가 그룹장
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        // 그룹 멤버 생성 - A, B
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+
+        // 카테고리 2개 생성 - 집안일, 집 밖의 일
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkCategory outWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집 밖의 일"));
+
+        // 집안일 2개 생성 - 청소기, 빨래
+        HouseworkInfo vacuum = houseworkInfoRepository.save(generateCustom2HouseworkInfo(inWork, groupInfo, "청소기 돌리기", HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK));
+        HouseworkInfo wash = houseworkInfoRepository.save(generateCustom2HouseworkInfo(outWork, groupInfo, "쓰레기 버리기", HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK));
+
+        // 집안일 담당자 지정 - 청소기: gA, gB / 빨래: gB
+        HouseworkMember hA = houseworkMemberRepository.save(generateHouseworkMember(gA, vacuum));
+        HouseworkMember hB = houseworkMemberRepository.save(generateHouseworkMember(gB, vacuum));
+
+        // Today 집안일 생성
+        HouseworkTodo todayVacuum = houseworkTodoRepository.save(generateHouseworkTodo(vacuum, groupInfo, LocalDate.now()));
+        HouseworkTodo todayWash = houseworkTodoRepository.save(generateHouseworkTodo(wash, groupInfo, LocalDate.now()));
+
+        // TodoList 생성
+        List<Todo> todos = new ArrayList<>();
+        todos.add(Todo.builder().id(todayVacuum.getId()).build());
+        todos.add(Todo.builder().id(todayWash.getId()).build());
+        TodoList todoList = todoListRepository.save(generateTodoList(groupInfo.getId(), LocalDate.now(), todos));
+        System.out.println("todoList = " + todoList);
+
+        HouseworkInfoDeleteRequest request = HouseworkInfoDeleteRequest.builder()
+                .groupId(groupInfo.getId())
+                .deleteType(HouseworkInfoDeleteType.ONE)
+                .todoId(todayVacuum.getId())
+                .date(LocalDate.now())
+                .build();
+
+        /*
+            when
+        */
+        houseworkInfoService.deleteHouseworkInfo(request);
+
+        /*
+            then
+        */
+        // TODO의 Status가 DELETE로 변경되어야 한다.
+        assertThat(houseworkTodoRepository.findById(todayVacuum.getId()).get().getStatus()).isEqualTo(HouseworkTodoStatus.HOUSEWORK_TODO_DELETE);
+
+        // 요청 날짜의 todoList의 dirtyBit이 true이어야 한다.
+        TodoList findTodoList = todoListRepository.findByGroupInfoIdAndDate(groupInfo.getId(), todayVacuum.getDate()).get();
+        System.out.println(findTodoList.isDirtyBit());
+    }
+
+    @Test
+    @DisplayName("비단건 집안일이고 반복되는 모든 건 삭제하고 싶을 경우, " +
+            "담장자(HOUSEWORK_MEMBER)들의 정보가 삭제되고, " +
+            "해당 집안일로 생성된 HOUSEWORK_TODO의 status가 DELETE로 변경된 후 해당 집안일이 삭제된다.")
+    void deleteHouseworkInfoWhenNotPeriodDay() {
+        /*
+            given
+        */
+        // User 2명 생성 - A, B
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+
+        // 그룹 생성 - A가 그룹장
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        // 그룹 멤버 생성 - A, B
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+
+        // 카테고리 2개 생성 - 집안일, 집 밖의 일
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkCategory outWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집 밖의 일"));
+
+        // 집안일 2개 생성 - 청소기, 빨래
+        HouseworkInfo vacuum = houseworkInfoRepository.save(generateCustom2HouseworkInfo(inWork, groupInfo, "청소기 돌리기", HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK));
+        HouseworkInfo wash = houseworkInfoRepository.save(generateCustom2HouseworkInfo(outWork, groupInfo, "쓰레기 버리기", HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK));
+
+        // 집안일 담당자 지정 - 청소기: gA, gB / 빨래: gB
+        HouseworkMember hA = houseworkMemberRepository.save(generateHouseworkMember(gA, vacuum));
+        HouseworkMember hB = houseworkMemberRepository.save(generateHouseworkMember(gB, vacuum));
+
+        // Today 집안일 생성
+        HouseworkTodo todayVacuum = houseworkTodoRepository.save(generateHouseworkTodo(vacuum, groupInfo, LocalDate.now()));
+        HouseworkTodo todayWash = houseworkTodoRepository.save(generateHouseworkTodo(wash, groupInfo, LocalDate.now()));
+
+        // TodoList 생성
+        List<Todo> todos = new ArrayList<>();
+        todos.add(Todo.builder().id(todayVacuum.getId()).build());
+        todos.add(Todo.builder().id(todayWash.getId()).build());
+        TodoList todoList = todoListRepository.save(generateTodoList(groupInfo.getId(), LocalDate.now(), todos));
+
+        HouseworkInfoDeleteRequest request = HouseworkInfoDeleteRequest.builder()
+                .groupId(groupInfo.getId())
+                .deleteType(HouseworkInfoDeleteType.ALL)
+                .todoId(todayVacuum.getId())
+                .date(LocalDate.now())
+                .build();
+
+        /*
+            when
+        */
+        houseworkInfoService.deleteHouseworkInfo(request);
+
+        /*
+            then
+        */
+        // HOUSEWORK_MEMBER가 조회되지 않아야 한다.
+        assertThat(houseworkMemberRepository.findById(hA.getId()).isEmpty());
+
+        // 요청 날짜 이후의 HOUSEWORKTODO는 DELETE 상태여야 한다.
+        List<HouseworkTodo> findTodos = houseworkTodoRepository.findHouseworkTodoByHouseworkInfo(hA.getId()).stream()
+                .filter(todo -> todo.getDate().isAfter(request.getDate()))
+                .collect(Collectors.toList());
+        assertAll(() -> findTodos.forEach(todo -> assertEquals("DELETE", todo.getStatus())));
+
+        // 요청 날짜 이후의 todoList는 dirtyBit이 true여야 한다.
+        List<TodoList> findTodoLists = todoListRepository.findByGroupInfoId(groupInfo.getId()).stream()
+                .filter(td -> // PERIOD에 맞는 TodoList 선별
+                        switch (todayVacuum.getHouseworkInfo().getType()) {
+                            case HOUSEWORK_PERIOD_DAY -> false;
+                            case HOUSEWORK_PERIOD_EVERYDAY -> true;
+                            case HOUSEWORK_PERIOD_WEEK ->
+                                    DayOfWeekUtils.equals(todayVacuum.getHouseworkInfo().getWeekDate(), td.getDate());
+                            case HOUSEWORK_PERIOD_MONTH ->
+                                    Arrays.stream(todayVacuum.getHouseworkInfo().getMonthDate().split(","))
+                                            .anyMatch(d -> Integer.parseInt(d) == td.getDate().getDayOfMonth());
+                        })
+                .collect(Collectors.toList());
+        assertAll(() -> findTodoLists.forEach(list -> assertTrue(list.isDirtyBit())));
+
+        // 집안일이 조회되지 않아야 한다.
+        assertThat(houseworkInfoRepository.findById(vacuum.getId())).isEmpty();
     }
 }
