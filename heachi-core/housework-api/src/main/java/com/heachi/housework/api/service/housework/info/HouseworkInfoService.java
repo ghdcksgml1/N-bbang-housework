@@ -9,6 +9,7 @@ import com.heachi.admin.common.utils.DayOfWeekUtils;
 import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoDeleteType;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoDeleteRequest;
+import com.heachi.housework.api.service.housework.info.response.HouseworkInfoUpdatePageResponse;
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
@@ -23,7 +24,6 @@ import com.heachi.mysql.define.housework.member.repository.HouseworkMemberReposi
 import com.heachi.mysql.define.housework.todo.HouseworkTodo;
 import com.heachi.mysql.define.housework.todo.constant.HouseworkTodoStatus;
 import com.heachi.mysql.define.housework.todo.repository.HouseworkTodoRepository;
-import com.heachi.redis.define.housework.todo.TodoList;
 import com.heachi.redis.define.housework.todo.repository.TodoListRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -107,6 +106,7 @@ public class HouseworkInfoService {
 
                 // HOUSEWORK_INFO 저장
                 HouseworkInfo houseworkInfo = houseworkInfoRepository.save(HouseworkInfo.builder()
+                        .groupInfo(groupInfo)
                         .houseworkCategory(category)
                         .title(request.getTitle())
                         .detail(request.getDetail())
@@ -207,8 +207,9 @@ public class HouseworkInfoService {
                                     case HOUSEWORK_PERIOD_EVERYDAY -> true;
                                     case HOUSEWORK_PERIOD_WEEK ->
                                             DayOfWeekUtils.equals(houseworkInfo.getWeekDate(), todoList.getDate());
-                                    case HOUSEWORK_PERIOD_MONTH -> Arrays.stream(houseworkInfo.getMonthDate().split(","))
-                                            .anyMatch(d -> Integer.parseInt(d) == todoList.getDate().getDayOfMonth());
+                                    case HOUSEWORK_PERIOD_MONTH ->
+                                            Arrays.stream(houseworkInfo.getMonthDate().split(","))
+                                                    .anyMatch(d -> Integer.parseInt(d) == todoList.getDate().getDayOfMonth());
                                 })
                         .forEach(todoList -> { // dirtyBit Checking
                             todoList.checkDirtyBit();
@@ -232,6 +233,33 @@ public class HouseworkInfoService {
             log.warn(">>>> Housework Delete Fail : {}", e.getMessage());
 
             throw e;
+        }
+    }
+
+    public HouseworkInfoUpdatePageResponse updateHouseworkPage(Long todoId) {
+        // HouseworkTodo 조회 -> HouseworkInfo도 fetch Join 함께 조회
+        HouseworkTodo requestTodo = houseworkTodoRepository.findHouseworkTodoByIdJoinFetchHouseworkInfo(todoId).orElseThrow(() -> {
+            log.warn(">>>> HouseworkTodo Not Found : {}", ExceptionMessage.HOUSEWORK_TODO_NOT_FOUND.getText());
+
+            return new HouseworkException(ExceptionMessage.HOUSEWORK_TODO_NOT_FOUND);
+        });
+
+        HouseworkInfo houseworkInfo = requestTodo.getHouseworkInfo();
+
+        // 담장자 그룹 멤버 Id 리스트 조회
+        List<Long> groupMemberIdList = groupMemberRepository.findGroupMemberListByGroupMemberIdList(Arrays.stream(requestTodo.getHouseworkMember().split(","))
+                .map(Long::parseLong)
+                .collect(Collectors.toList())).stream().map(GroupMember::getId).toList();
+
+        // 단건 집안일의 경우
+        if (houseworkInfo == null) {
+            // 카테고리 조회
+            HouseworkCategory category = houseworkCategoryRepository.findHouseworkCategoryByName(requestTodo.getCategory());
+
+            return HouseworkInfoUpdatePageResponse.of(requestTodo, category, groupMemberIdList);
+
+        } else {    // 비단건 집안일의 경우
+            return HouseworkInfoUpdatePageResponse.of(houseworkInfo, groupMemberIdList);
         }
     }
 }

@@ -8,7 +8,6 @@ import com.heachi.housework.api.service.auth.AuthExternalService;
 import com.heachi.housework.api.service.housework.info.HouseworkInfoService;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoDeleteRequest;
-import com.heachi.housework.api.service.housework.todo.request.TodoSelectRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,5 +57,16 @@ public class HouseworkInfoController {
             return JsonResult.failOf(e.getMessage());
         }
 
+    }
+
+    @GetMapping("/update/{groupId}")
+    public JsonResult<?> updateHouseworkInfo(@RequestHeader(name = "Authorization") String authorization,
+                                             @PathVariable(name = "groupId") Long groupId,
+                                             @RequestParam(name = "date") LocalDate date,
+                                             @RequestParam(name = "todoId") Long todoId) {
+        // 유저 인증 & 그룹원(ACCEPT)인지 권한 확인
+        authExternalService.userAuthenticateAndGroupMatch(authorization, groupId);
+
+        return JsonResult.successOf(houseworkInfoService.updateHouseworkPage(todoId));
     }
 }
