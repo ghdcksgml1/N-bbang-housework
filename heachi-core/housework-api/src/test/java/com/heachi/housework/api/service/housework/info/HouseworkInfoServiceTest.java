@@ -9,6 +9,7 @@ import com.heachi.housework.TestConfig;
 import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoDeleteType;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoDeleteRequest;
+import com.heachi.housework.api.service.housework.info.response.HouseworkInfoUpdatePageResponse;
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
@@ -580,5 +581,80 @@ class HouseworkInfoServiceTest extends TestConfig {
 
         // 집안일이 조회되지 않아야 한다.
         assertThat(houseworkInfoRepository.findById(vacuum.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("수정 페이지에 내려줄 정보를 잘 불러온다. - 단건 집안일의 경우")
+    void updateHouseworkWithPeriodDay() {
+        /*
+            given
+        */
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkTodo todo = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(null) // 단건은 HouseworkInfo가 존재하지 않는다.
+                .groupInfo(groupInfo)
+                .houseworkMember(gA.getId() + "," + gB.getId())
+                .category(inWork.getName())
+                .title("title")
+                .detail("detail")
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(LocalDate.of(2023, 11, 18))
+                .endTime(LocalTime.of(16, 30))
+                .build());
+
+
+        // when
+        HouseworkInfoUpdatePageResponse response = houseworkInfoService.updateHouseworkPage(todo.getId());
+
+        // then
+        assertThat(response.getTitle()).isEqualTo("title");
+        assertThat(response.getHouseworkCategoryId()).isEqualTo(inWork.getId());
+        assertThat(response.getType()).isEqualTo(HouseworkPeriodType.HOUSEWORK_PERIOD_DAY);
+        assertThat(response.getLocalDate()).isEqualTo(todo.getDate());
+        assertThat(response.getWeekDate()).isNull();
+        assertThat(response.getMonthDate()).isNull();
+        assertThat(response.getEndTime()).isEqualTo(todo.getEndTime());
+    }
+
+    @Test
+    @DisplayName("수정 페이지에 내려줄 정보를 잘 불러온다. - 비단건 집안일의 경우")
+    void updateHouseworkWithPeriodNotDay() {
+        /*
+            given
+        */
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkInfo h = houseworkInfoRepository.save(generateCustom2HouseworkInfo(inWork, groupInfo, "test", HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK));
+        HouseworkTodo todo = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(h) // 단건은 HouseworkInfo가 존재하지 않는다.
+                .groupInfo(groupInfo)
+                .houseworkMember(gA.getId() + "," + gB.getId())
+                .category(h.getHouseworkCategory().getName())
+                .title(h.getTitle())
+                .detail(h.getDetail())
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(LocalDate.now())
+                .endTime(LocalTime.of(16, 30))
+                .build());
+
+
+        // when
+        HouseworkInfoUpdatePageResponse response = houseworkInfoService.updateHouseworkPage(todo.getId());
+
+        // then
+        assertThat(response.getTitle()).isEqualTo("test");
+        assertThat(response.getHouseworkCategoryId()).isEqualTo(h.getHouseworkCategory().getId());
+        assertThat(response.getType()).isEqualTo(h.getType());
+        assertThat(response.getLocalDate()).isEqualTo(h.getDayDate());
+        assertThat(response.getEndTime()).isEqualTo(h.getEndTime());
     }
 }
