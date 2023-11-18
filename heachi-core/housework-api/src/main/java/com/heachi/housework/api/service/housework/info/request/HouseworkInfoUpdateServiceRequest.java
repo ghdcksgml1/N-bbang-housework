@@ -2,10 +2,8 @@ package com.heachi.housework.api.service.housework.info.request;
 
 import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoCreateRequest;
 import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -13,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class HouseworkInfoCreateServiceRequest {
+public class HouseworkInfoUpdateServiceRequest {
     private List<Long> groupMemberIdList;
     private Long houseworkCategoryId;
     private String title;
@@ -25,12 +23,12 @@ public class HouseworkInfoCreateServiceRequest {
     private LocalTime endTime;
 
     private Long groupId;
+    private Long todoId;
+    private LocalDate date;
 
     @Builder
-    private HouseworkInfoCreateServiceRequest(List<Long> groupMemberIdList, Long houseworkCategoryId, String title,
-                                             String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate,
-                                             String monthDate, LocalTime endTime, Long groupId) {
-        this.groupMemberIdList = groupMemberIdList == null ? new ArrayList<>() : groupMemberIdList;
+    public HouseworkInfoUpdateServiceRequest(List<Long> groupMemberIdList, Long houseworkCategoryId, String title, String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate, String monthDate, LocalTime endTime, Long groupId, Long todoId, LocalDate date) {
+        this.groupMemberIdList = groupMemberIdList;
         this.houseworkCategoryId = houseworkCategoryId;
         this.title = title;
         this.detail = detail;
@@ -40,11 +38,13 @@ public class HouseworkInfoCreateServiceRequest {
         this.monthDate = monthDate;
         this.endTime = endTime;
         this.groupId = groupId;
+        this.todoId = todoId;
+        this.date = date;
     }
 
-    public static HouseworkInfoCreateServiceRequest of(HouseworkInfoCreateRequest request, Long groupId) {
+    public static HouseworkInfoUpdateServiceRequest of(HouseworkInfoCreateRequest request, Long groupId, Long todoId, LocalDate date) {
 
-        return HouseworkInfoCreateServiceRequest.builder()
+        return HouseworkInfoUpdateServiceRequest.builder()
                 .groupMemberIdList(request.getGroupMemberIdList())
                 .houseworkCategoryId(request.getHouseworkCategoryId())
                 .title(request.getTitle())
@@ -55,21 +55,8 @@ public class HouseworkInfoCreateServiceRequest {
                 .monthDate(request.getMonthDate())
                 .endTime(request.getEndTime())
                 .groupId(groupId)
-                .build();
-    }
-
-    public static HouseworkInfoCreateServiceRequest of(HouseworkInfoUpdateServiceRequest request) {
-        return HouseworkInfoCreateServiceRequest.builder()
-                .groupMemberIdList(request.getGroupMemberIdList())
-                .houseworkCategoryId(request.getHouseworkCategoryId())
-                .title(request.getTitle())
-                .detail(request.getDetail())
-                .type(request.getType())
-                .dayDate(request.getDayDate())
-                .weekDate(request.getWeekDate())
-                .monthDate(request.getMonthDate())
-                .endTime(request.getEndTime())
-                .groupId(request.getGroupId())
+                .todoId(todoId)
+                .date(date)
                 .build();
     }
 }
