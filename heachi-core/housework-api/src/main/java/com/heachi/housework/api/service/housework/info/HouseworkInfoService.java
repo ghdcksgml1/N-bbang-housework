@@ -292,8 +292,13 @@ public class HouseworkInfoService {
 
             // -> 비단건 집안일
             else {
-                // 기존의 담당자 리스트가 groupMemberIdList와 동일하지 않다면(담당자가 바뀌었다면) houseworkMember 전부 삭제
+                // hosueworkInfo의 담당자 리스트를 뽑은 후 groupMemberIdList와 동일하지 않다면 false 리턴
                 boolean isHMUpdate = houseworkMemberRepository.deleteHouseworkMemberIfGroupMemberIdIn(requestInfo, request.getGroupMemberIdList());
+
+                // 담당자가 바뀔 것이므로 이전 담당자 리스트 삭제
+                if (!isHMUpdate) {
+                    houseworkMemberRepository.deleteByHouseworkInfo(requestInfo);
+                }
 
                 // HouseworkInfo를 외래키로 가진 HouseworkTodo의 houseworkInfo 필드값 null로 변환해 관계 해제
                 houseworkTodoRepository.updateHouseworkTodoByHouseworkInfoId(requestInfo.getId());
