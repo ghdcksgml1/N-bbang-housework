@@ -1,13 +1,11 @@
 package com.heachi.housework.api.service.housework.info;
 
-import ch.qos.logback.core.joran.conditional.IfAction;
 import com.heachi.admin.common.exception.ExceptionMessage;
 import com.heachi.admin.common.exception.HeachiException;
 import com.heachi.admin.common.exception.group.info.GroupInfoException;
 import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.admin.common.exception.housework.HouseworkException;
 import com.heachi.admin.common.utils.DayOfWeekUtils;
-import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoCreateRequest;
 import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoDeleteType;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoDeleteRequest;
@@ -34,12 +32,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -186,7 +182,8 @@ public class HouseworkInfoService {
     public void updateHousework(HouseworkInfoUpdateServiceRequest request) {
         Long groupId = request.getGroupId();
         Long todoId = request.getTodoId();
-        LocalDate date = request.getDate();
+        LocalDate requestDate = request.getRequestDate();   // 요청 날짜
+        LocalDate updateDate = request.getDayDate();        // 수정할 날짜
 
         // HouseworkTodo 조회 -> HouseworkInfo도 fetch Join 함께 조회
         HouseworkTodo requestTodo = houseworkTodoRepository.findHouseworkTodoByIdJoinFetchHouseworkInfo(todoId).orElseThrow(() -> {
@@ -235,15 +232,15 @@ public class HouseworkInfoService {
                         request.getDetail(),
                         category.getName(),         // 수정하고 싶은 카테고리
                         groupMemberIdListString,      // 수정하고 싶은 담당자 리스트
-                        request.getDate(),
+                        updateDate,
                         request.getEndTime()
                 );
 
                 // 요청 날짜의 todoList dirtyBit 체킹
-                dirtyBitCheckWithDate(groupId, requestTodo.getDate());
+                dirtyBitCheckWithDate(groupId, requestDate);
 
                 // 수정 날짜의 todoList dirtyBit 체킹
-                dirtyBitCheckWithDate(groupId, request.getDayDate());
+                dirtyBitCheckWithDate(groupId, updateDate);
             }
 
             // -> 비단건 집안일
@@ -252,13 +249,13 @@ public class HouseworkInfoService {
                 requestTodo.deleteHouseworkTodo();
 
                 // 요청 날짜의 todoList를 조회 후 dirtyBit 체킹
-                dirtyBitCheckWithDate(groupId, requestTodo.getDate());
+                dirtyBitCheckWithDate(groupId, requestDate);
 
                 // HouseworkInfo 생성 & 담당자 지정 해주기 - HouseworkMember 생성
                 houseworkInfoCreateAndHouseworkMemberCreate(HouseworkInfoCreateServiceRequest.of(request), groupInfo, category, groupMemberList);
 
                 // findByGroupInfoId를 통해 해당 그룹의 캐싱된 객체 조회
-                dirtyBitCheckWithGroupIdAndRequest(request.getGroupId(), request.getType(), request.getWeekDate(), request.getMonthDate());
+                dirtyBitCheckWithGroupIdAndRequest(groupId, request.getType(), request.getWeekDate(), request.getMonthDate());
             }
         }
 
@@ -281,22 +278,22 @@ public class HouseworkInfoService {
                         .title(request.getTitle())
                         .detail(request.getDetail())
                         .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
-                        .date(request.getDayDate())
+                        .date(updateDate)
                         .endTime(request.getEndTime())
                         .build());
 
                 // 해당 HouseworkTodo에 맞는 groupInfoId와 Date가 캐싱되어있다면, dirtyBit를 true로 바꿔줘야함.
-                dirtyBitCheckWithDate(request.getGroupId(), request.getDayDate());
+                dirtyBitCheckWithDate(request.getGroupId(), updateDate);
 
             }
 
             // -> 비단건 집안일
             else {
                 // hosueworkInfo의 담당자 리스트를 뽑은 후 groupMemberIdList와 동일하지 않다면 false 리턴
-                boolean isHMUpdate = houseworkMemberRepository.deleteHouseworkMemberIfGroupMemberIdIn(requestInfo, request.getGroupMemberIdList());
+                boolean isUpdateHouseworkMember = houseworkMemberRepository.deleteHouseworkMemberIfGroupMemberIdIn(requestInfo, request.getGroupMemberIdList());
 
                 // 담당자가 바뀔 것이므로 이전 담당자 리스트 삭제
-                if (!isHMUpdate) {
+                if (!isUpdateHouseworkMember) {
                     houseworkMemberRepository.deleteByHouseworkInfo(requestInfo);
                 }
 
@@ -305,7 +302,7 @@ public class HouseworkInfoService {
 
                 // 호출 시점 이후의 HouseworkTodo를 HOUSEWORK_TODO_DELETE로 상태 변경
                 houseworkTodoRepository.findHouseworkTodoByHouseworkInfo(requestInfo.getId()).stream()
-                        .filter(todo -> todo.getDate().isAfter(LocalDate.now()))
+                        .filter(todo -> todo.getDate().isAfter(LocalDate.now())) // 호출 시점 날짜
                         .forEach(HouseworkTodo::deleteHouseworkTodo);
 
                 // findByGroupInfoId를 통해 해당 그룹의 캐싱된 객체 조회 -> 수정 전 날짜 기준
@@ -313,10 +310,10 @@ public class HouseworkInfoService {
 
                 // HouseworkInfo 수정 메서드 사용해 수정
                 requestInfo.updateHouseworkInfo(request.getTitle(), request.getDetail(),
-                        category, request.getType(), request.getDate(), request.getEndTime(), requestInfo.getWeekDate(), requestInfo.getMonthDate());
+                        category, request.getType(), updateDate, request.getEndTime(), requestInfo.getWeekDate(), requestInfo.getMonthDate());
 
                 // HouseworkMember 생성 - 담당자 지정
-                if (!isHMUpdate) {
+                if (!isUpdateHouseworkMember) {
                     // HOUSEWORK_MEMBER 저장 - 담당자 지정
                     groupMemberList.stream()
                             .map(gm -> HouseworkMember.builder()

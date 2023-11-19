@@ -7,7 +7,6 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -24,10 +23,10 @@ public class HouseworkInfoUpdateServiceRequest {
 
     private Long groupId;
     private Long todoId;
-    private LocalDate date;
+    private LocalDate requestDate;
 
     @Builder
-    public HouseworkInfoUpdateServiceRequest(List<Long> groupMemberIdList, Long houseworkCategoryId, String title, String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate, String monthDate, LocalTime endTime, Long groupId, Long todoId, LocalDate date) {
+    public HouseworkInfoUpdateServiceRequest(List<Long> groupMemberIdList, Long houseworkCategoryId, String title, String detail, HouseworkPeriodType type, LocalDate dayDate, String weekDate, String monthDate, LocalTime endTime, Long groupId, Long todoId, LocalDate requestDate) {
         this.groupMemberIdList = groupMemberIdList;
         this.houseworkCategoryId = houseworkCategoryId;
         this.title = title;
@@ -39,7 +38,7 @@ public class HouseworkInfoUpdateServiceRequest {
         this.endTime = endTime;
         this.groupId = groupId;
         this.todoId = todoId;
-        this.date = date;
+        this.requestDate = requestDate;
     }
 
     public static HouseworkInfoUpdateServiceRequest of(HouseworkInfoCreateRequest request, Long groupId, Long todoId, LocalDate date) {
@@ -56,7 +55,7 @@ public class HouseworkInfoUpdateServiceRequest {
                 .endTime(request.getEndTime())
                 .groupId(groupId)
                 .todoId(todoId)
-                .date(date)
+                .requestDate(date)
                 .build();
     }
 }

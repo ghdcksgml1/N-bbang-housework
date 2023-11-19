@@ -9,6 +9,7 @@ import com.heachi.housework.TestConfig;
 import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoDeleteType;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoDeleteRequest;
+import com.heachi.housework.api.service.housework.info.request.HouseworkInfoUpdateServiceRequest;
 import com.heachi.housework.api.service.housework.info.response.HouseworkInfoUpdatePageResponse;
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
@@ -635,7 +636,7 @@ class HouseworkInfoServiceTest extends TestConfig {
         HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
         HouseworkInfo h = houseworkInfoRepository.save(generateCustom2HouseworkInfo(inWork, groupInfo, "test", HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK));
         HouseworkTodo todo = houseworkTodoRepository.save(HouseworkTodo.builder()
-                .houseworkInfo(h) // 단건은 HouseworkInfo가 존재하지 않는다.
+                .houseworkInfo(h)
                 .groupInfo(groupInfo)
                 .houseworkMember(gA.getId() + "," + gB.getId())
                 .category(h.getHouseworkCategory().getName())
@@ -656,5 +657,70 @@ class HouseworkInfoServiceTest extends TestConfig {
         assertThat(response.getType()).isEqualTo(h.getType());
         assertThat(response.getLocalDate()).isEqualTo(h.getDayDate());
         assertThat(response.getEndTime()).isEqualTo(h.getEndTime());
+    }
+
+    @Test
+    @DisplayName("단건 집안일을 단건 집안일로 변경했을 경우 HouseworkTodo가 수정된다.")
+    void updateHouseworkWithDayToDay() {
+        // given
+        // 단건 집안일
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkCategory outWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집 밖의 일"));
+        HouseworkTodo todo = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(null) // 단건은 HouseworkInfo가 존재하지 않는다.
+                .groupInfo(groupInfo)
+                .houseworkMember(gA.getId() + "," + gB.getId())
+                .category(inWork.getName())
+                .title("title")
+                .detail("detail")
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(LocalDate.of(2023, 11, 18))
+                .endTime(LocalTime.of(16, 30))
+                .build());
+        List<Todo> todos = new ArrayList<>();
+        todos.add(Todo.builder().id(todo.getId()).build());
+        TodoList todoList = todoListRepository.save(generateTodoList(groupInfo.getId(), LocalDate.of(2023, 11, 18), todos));
+
+        // 수정 요청 DTO
+        HouseworkInfoUpdateServiceRequest request = HouseworkInfoUpdateServiceRequest.builder()
+                .groupMemberIdList(Arrays.asList(gA.getId()))       // 담당자 변경
+                .houseworkCategoryId(outWork.getId())               // 카테고리 변경
+                .title("updateTitle")                               // 제목 변경
+                .detail("updateDetail")                             // detail 변경
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_DAY)     // 단건 -> 단건
+                .dayDate(LocalDate.of(2023, 11, 19))    // 변경
+                .endTime(LocalTime.of(18, 30))          // 마감 시간 변경
+                .groupId(groupInfo.getId())
+                .todoId(todo.getId())
+                .requestDate(LocalDate.of(2023, 11, 18))
+                .build();
+
+        // when
+        houseworkInfoService.updateHousework(request);
+
+
+    }
+
+    @Test
+    @DisplayName("단건 집안일을 비단건 집안일로 변경했을 경우 HouseworkTodo가 삭제되고 HouseworkInfo가 생성된다.")
+    void updateHouseworkWithDayToNotDay() {
+
+    }
+
+    @Test
+    @DisplayName("비단건 집안일을 단건 집안일로 변경했을 경우 HouseworkInfo가 삭제되고 HouseworkTodo가 생성된다.")
+    void updateHouseworkWithNotDayToDay() {
+
+    }
+
+    @Test
+    @DisplayName("비단건 집안일을 비단건 집안일로 변경했을 경우 이전의 HouseworkTodo들이 삭제되고 HouseworkInfo가 수정된다.")
+    void updateHouseworkWithNotDayToNotDay() {
+
     }
 }
