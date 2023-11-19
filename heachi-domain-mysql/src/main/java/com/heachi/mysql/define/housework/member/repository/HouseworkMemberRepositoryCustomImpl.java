@@ -19,7 +19,7 @@ public class HouseworkMemberRepositoryCustomImpl implements HouseworkMemberRepos
 
 
     @Override
-    public boolean deleteHouseworkMemberIfGroupMemberIdIn(HouseworkInfo info, List<Long> groupIdList) {
+    public boolean isSameHouseworkMemberIdAndGroupMemberId(HouseworkInfo info, List<Long> groupIdList) {
         List<HouseworkMember> houseworkMemberList = queryFactory.selectFrom(houseworkMember)
                 .where(houseworkMember.houseworkInfo.eq(info)).fetch();
         List<Long> houseworkGroupMemberIdList = houseworkMemberList.stream()

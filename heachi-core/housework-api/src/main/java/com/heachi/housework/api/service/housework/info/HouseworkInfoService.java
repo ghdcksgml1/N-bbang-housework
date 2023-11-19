@@ -292,20 +292,21 @@ public class HouseworkInfoService {
             // -> 비단건 집안일
             else {
                 // hosueworkInfo의 담당자 리스트를 뽑은 후 groupMemberIdList와 동일하지 않다면 false 리턴
-                boolean isUpdateHouseworkMember = houseworkMemberRepository.deleteHouseworkMemberIfGroupMemberIdIn(requestInfo, request.getGroupMemberIdList());
+                boolean isUpdateHouseworkMember = houseworkMemberRepository.isSameHouseworkMemberIdAndGroupMemberId(requestInfo, request.getGroupMemberIdList());
 
                 // 담당자가 바뀔 것이므로 이전 담당자 리스트 삭제
                 if (!isUpdateHouseworkMember) {
                     houseworkMemberRepository.deleteByHouseworkInfo(requestInfo);
                 }
 
-                // HouseworkInfo를 외래키로 가진 HouseworkTodo의 houseworkInfo 필드값 null로 변환해 관계 해제
-                houseworkTodoRepository.updateHouseworkTodoByHouseworkInfoId(requestInfo.getId());
-
                 // 호출 시점 이후의 HouseworkTodo를 HOUSEWORK_TODO_DELETE로 상태 변경
                 houseworkTodoRepository.findHouseworkTodoByHouseworkInfo(requestInfo.getId()).stream()
-                        .filter(todo -> todo.getDate().isAfter(LocalDate.now().minusDays(1))) // 호출 시점 날짜
+                        .filter(todo -> todo.getDate().isAfter(LocalDate.now().minusDays(1)))
+                        .collect(Collectors.toList())
                         .forEach(HouseworkTodo::deleteHouseworkTodo);
+
+                // HouseworkInfo를 외래키로 가진 HouseworkTodo의 houseworkInfo 필드값 null로 변환해 관계 해제
+                houseworkTodoRepository.updateHouseworkTodoByHouseworkInfoId(requestInfo.getId());
 
                 // findByGroupInfoId를 통해 해당 그룹의 캐싱된 객체 조회 -> 수정 전 날짜 기준
                 dirtyBitCheckWithGroupIdAndRequest(groupId, requestInfo.getType(), requestInfo.getWeekDate(), requestInfo.getMonthDate());
