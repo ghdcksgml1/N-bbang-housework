@@ -304,7 +304,7 @@ public class HouseworkInfoService {
 
                 // 호출 시점 이후의 HouseworkTodo를 HOUSEWORK_TODO_DELETE로 상태 변경
                 houseworkTodoRepository.findHouseworkTodoByHouseworkInfo(requestInfo.getId()).stream()
-                        .filter(todo -> todo.getDate().isAfter(LocalDate.now())) // 호출 시점 날짜
+                        .filter(todo -> todo.getDate().isAfter(LocalDate.now().minusDays(1))) // 호출 시점 날짜
                         .forEach(HouseworkTodo::deleteHouseworkTodo);
 
                 // findByGroupInfoId를 통해 해당 그룹의 캐싱된 객체 조회 -> 수정 전 날짜 기준
@@ -340,6 +340,12 @@ public class HouseworkInfoService {
         // HouseworkInfo를 외래키로 가진 HouseworkMember 삭제
         houseworkMemberRepository.deleteByHouseworkInfo(requestInfo);
 
+        // 호출 시점 이후의 HouseworkTodo를 HOUSEWORK_TODO_DELETE로 상태 변경
+        houseworkTodoRepository.findHouseworkTodoByHouseworkInfo(requestInfo.getId()).stream()
+                .filter(todo -> todo.getDate().isAfter(LocalDate.now().minusDays(1)))
+                .collect(Collectors.toList())
+                .forEach(HouseworkTodo::deleteHouseworkTodo);
+
         // HouseworkInfo를 외래키로 가진 HouseworkTodo의 houseworkInfo 필드값 null로 변환해 관계 해제
         houseworkTodoRepository.updateHouseworkTodoByHouseworkInfoId(requestInfo.getId());
 
@@ -347,10 +353,6 @@ public class HouseworkInfoService {
         houseworkInfoRepository.deleteById(requestInfo.getId());
         log.info(">>>> HouseworkInfo Deleted: {}", requestInfo.getId());
 
-        // 호출 시점 이후의 HouseworkTodo를 HOUSEWORK_TODO_DELETE로 상태 변경
-        houseworkTodoRepository.findHouseworkTodoByHouseworkInfo(requestInfo.getId()).stream()
-                .filter(todo -> todo.getDate().isAfter(LocalDate.now()))
-                .forEach(HouseworkTodo::deleteHouseworkTodo);
     }
 
     // 해당 HouseworkTodo에 맞는 groupInfoId와 Date가 캐싱되어있다면, dirtyBit를 true로 바꿔줘야함.
