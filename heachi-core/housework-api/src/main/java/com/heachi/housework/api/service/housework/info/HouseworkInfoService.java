@@ -153,6 +153,7 @@ public class HouseworkInfoService {
         }
     }
 
+    @Transactional(readOnly = false)
     public HouseworkInfoUpdatePageResponse updateHouseworkPage(Long todoId) {
         // HouseworkTodo 조회 -> HouseworkInfo도 fetch Join 함께 조회
         HouseworkTodo requestTodo = houseworkTodoRepository.findHouseworkTodoByIdJoinFetchHouseworkInfo(todoId).orElseThrow(() -> {
@@ -179,6 +180,7 @@ public class HouseworkInfoService {
         }
     }
 
+    @Transactional(readOnly = false)
     public void updateHousework(HouseworkInfoUpdateServiceRequest request) {
         Long groupId = request.getGroupId();
         Long todoId = request.getTodoId();
