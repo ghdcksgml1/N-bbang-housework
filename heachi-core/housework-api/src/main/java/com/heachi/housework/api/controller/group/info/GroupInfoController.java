@@ -74,4 +74,15 @@ public class GroupInfoController {
 
         return JsonResult.successOf("그룹 가입 요청을 성공적으로 수행했습니다.");
     }
+
+    @GetMapping("/update/{groupId}")
+    public JsonResult<?> updateGroupInfo(@RequestHeader(name = "Authorization") String authorization,
+                                         @PathVariable(name = "groupId") Long groupId) {
+
+        // Auth 서버에서 사용자 인증
+        authExternalService.userAuthenticateAndGroupLeaderMatch(authorization, groupId);
+
+        return JsonResult.successOf(groupInfoService.updateGroupInfoPage(groupId));
+
+    }
 }

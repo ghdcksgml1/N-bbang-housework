@@ -6,6 +6,7 @@ import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.housework.TestConfig;
 import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequest;
 import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequestStatusEnum;
+import com.heachi.housework.api.service.group.info.response.GroupInfoUpdatePageResponse;
 import com.heachi.housework.api.service.group.info.response.GroupInfoUserGroupServiceResponse;
 import com.heachi.admin.common.exception.user.UserException;
 import com.heachi.housework.TestConfig;
@@ -437,4 +438,17 @@ class GroupInfoServiceTest extends TestConfig {
         assertThat(updateMember.getStatus()).isEqualTo(GroupMemberStatus.WITHDRAW);
     }
 
+    @Test
+    @DisplayName("그룹 수정 페이지를 성공적으로 불러온다.")
+    void GroupInfoUpdatePage() {
+        User user = userRepository.save(generateUser());
+        GroupInfo group = groupInfoRepository.save(generateGroupInfo(user));
+
+        // when
+        GroupInfoUpdatePageResponse response = groupInfoService.updateGroupInfoPage(group.getId());
+
+        // then
+        assertThat(response.getName()).isEqualTo("group");
+        assertThat(response.getInfo()).isEqualTo("hello world!");
+    }
 }
