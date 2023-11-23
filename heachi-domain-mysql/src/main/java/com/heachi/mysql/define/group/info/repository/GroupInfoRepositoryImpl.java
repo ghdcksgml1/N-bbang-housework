@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.heachi.mysql.define.group.info.QGroupInfo.groupInfo;
@@ -58,5 +59,14 @@ public class GroupInfoRepositoryImpl implements GroupInfoRepositoryCustom {
                                         .collect(Collectors.toList()))
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<GroupInfo> findGroupInfoByGroupIdJoinFetchUser(Long groupId) {
+        return Optional.ofNullable(queryFactory.selectFrom(groupInfo)
+                .innerJoin(groupMember.user, user).fetchJoin()
+                .where(groupInfo.id.eq(groupId))
+                .fetchOne());
+
     }
 }

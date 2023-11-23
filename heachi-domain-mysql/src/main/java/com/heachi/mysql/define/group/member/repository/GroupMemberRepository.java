@@ -6,6 +6,7 @@ import com.heachi.mysql.define.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -19,4 +20,7 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long>,
 
     @Query("select gm from GROUP_MEMBER gm where gm.id = :id and gm.groupInfo.id = :groupId")
     Optional<GroupMember> findByIdAndGroupInfoId(@Param("id")Long groupMemberId, @Param("groupId")Long groupId);
+
+    @Transactional
+    public void deleteByGroupInfo(GroupInfo groupInfo);
 }

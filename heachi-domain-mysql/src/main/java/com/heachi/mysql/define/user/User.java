@@ -76,6 +76,10 @@ public class User extends BaseEntity implements UserDetails {
         this.role = UserRole.WITHDRAW;
     }
 
+    public void deleteGroupInfo(GroupInfo groupInfo) {
+        this.groupInfoList.remove(groupInfo);
+    }
+
     @Builder
     private User(List<GroupInfo> groupInfoList, String platformId, UserPlatformType platformType, UserRole role,
                  String name, String email, String phoneNumber, String profileImageUrl, boolean pushAlarmYn) {
