@@ -19,7 +19,7 @@ public class HouseworkMemberRepositoryCustomImpl implements HouseworkMemberRepos
 
 
     @Override
-    public boolean isSameHouseworkMemberIdAndGroupMemberId(HouseworkInfo info, List<Long> groupIdList) {
+    public boolean isSameHouseworkMemberIdAndGroupMemberId(HouseworkInfo info, List<Long> groupMemberIdList) {
         List<HouseworkMember> houseworkMemberList = queryFactory.selectFrom(houseworkMember)
                 .where(houseworkMember.houseworkInfo.eq(info)).fetch();
         List<Long> houseworkGroupMemberIdList = houseworkMemberList.stream()
@@ -27,6 +27,6 @@ public class HouseworkMemberRepositoryCustomImpl implements HouseworkMemberRepos
                 .collect(Collectors.toList());
 
         // houseworkGroupMemberIdList의 요소들이 groupIdList의 요소들과 정확히 일치하면 true 리턴
-        return new HashSet<>(groupIdList).containsAll(houseworkGroupMemberIdList);
+        return new HashSet<>(groupMemberIdList).containsAll(houseworkGroupMemberIdList);
     }
 }
