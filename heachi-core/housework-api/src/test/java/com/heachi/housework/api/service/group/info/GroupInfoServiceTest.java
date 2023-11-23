@@ -6,6 +6,7 @@ import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.housework.TestConfig;
 import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequest;
 import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequestStatusEnum;
+import com.heachi.housework.api.service.group.info.request.GroupInfoUpdateServiceRequest;
 import com.heachi.housework.api.service.group.info.response.GroupInfoUpdatePageResponse;
 import com.heachi.housework.api.service.group.info.response.GroupInfoUserGroupServiceResponse;
 import com.heachi.admin.common.exception.user.UserException;
@@ -38,6 +39,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -440,7 +442,8 @@ class GroupInfoServiceTest extends TestConfig {
 
     @Test
     @DisplayName("그룹 수정 페이지를 성공적으로 불러온다.")
-    void GroupInfoUpdatePage() {
+    void groupInfoUpdatePageTest() {
+        // given
         User user = userRepository.save(generateUser());
         GroupInfo group = groupInfoRepository.save(generateGroupInfo(user));
 
@@ -450,5 +453,33 @@ class GroupInfoServiceTest extends TestConfig {
         // then
         assertThat(response.getName()).isEqualTo("group");
         assertThat(response.getInfo()).isEqualTo("hello world!");
+    }
+
+    @Test
+    @DisplayName("그룹 정보 수정을 요청했을 경우 성공적으로 수정된다.")
+    void groupInfoUpdateTest() {
+        // given
+        User user = userRepository.save(generateUser());
+        GroupInfo group = groupInfoRepository.save(generateGroupInfo(user));
+
+        GroupInfoUpdateServiceRequest request = GroupInfoUpdateServiceRequest.builder()
+                .groupId(group.getId())
+                .bgColor("updateBG")
+                .colorCode("updateColor")
+                .gradient("updateGradient")
+                .name("updateName")
+                .info("updateInfo")
+                .build();
+
+        // when
+        groupInfoService.updateGroupInfo(request);
+
+        // then
+        GroupInfo findGroup = groupInfoRepository.findById(group.getId()).get();
+        assertThat(findGroup.getBgColor()).isEqualTo("updateBG");
+        assertThat(findGroup.getColorCode()).isEqualTo("updateColor");
+        assertThat(findGroup.getGradient()).isEqualTo("updateGradient");
+        assertThat(findGroup.getName()).isEqualTo("updateName");
+        assertThat(findGroup.getInfo()).isEqualTo("updateInfo");
     }
 }

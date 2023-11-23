@@ -1,10 +1,12 @@
 package com.heachi.housework.api.controller.group.info;
 
+import com.heachi.admin.common.exception.HeachiException;
 import com.heachi.admin.common.response.JsonResult;
 import com.heachi.external.clients.auth.response.UserInfoResponse;
 import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequest;
 import com.heachi.housework.api.service.auth.AuthExternalService;
 import com.heachi.housework.api.service.group.info.GroupInfoService;
+import com.heachi.housework.api.service.group.info.request.GroupInfoUpdateServiceRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -79,10 +81,27 @@ public class GroupInfoController {
     public JsonResult<?> updateGroupInfo(@RequestHeader(name = "Authorization") String authorization,
                                          @PathVariable(name = "groupId") Long groupId) {
 
-        // Auth 서버에서 사용자 인증
+        // 유저 인증 & 그룹장인지 권한 확인
         authExternalService.userAuthenticateAndGroupLeaderMatch(authorization, groupId);
 
         return JsonResult.successOf(groupInfoService.updateGroupInfoPage(groupId));
+
+    }
+
+    @PostMapping("/update/{groupId}")
+    public JsonResult<?> updateGroupInfo(@RequestHeader(name = "Authorization") String authorization,
+                                         @PathVariable(name = "groupId") Long groupId,
+                                         @Valid @RequestBody GroupInfoCreateRequest request) {
+
+        try {
+            // 유저 인증 & 그룹장인지 권한 확인
+            authExternalService.userAuthenticateAndGroupLeaderMatch(authorization, groupId);
+            groupInfoService.updateGroupInfo(GroupInfoUpdateServiceRequest.of(request, groupId));
+
+            return JsonResult.successOf("GroupInfo Update Success.");
+        } catch (HeachiException e) {
+            return JsonResult.failOf(e.getMessage());
+        }
 
     }
 }
