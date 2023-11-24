@@ -121,4 +121,14 @@ public class HouseworkTodo extends BaseEntity {
                 .endTime(houseworkInfo.getEndTime())
                 .build();
     }
+
+
+    public void updateHouseworkTodo(String title, String detail, String category, String groupMemberIdList, LocalDate date, LocalTime endTime) {
+        this.title = title;
+        this.detail = detail;
+        this.category = category;
+        this.houseworkMember = groupMemberIdList;
+        this.date = date;
+        this.endTime = endTime;
+    }
 }
