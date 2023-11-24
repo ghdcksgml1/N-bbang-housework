@@ -64,7 +64,7 @@ public class GroupInfoRepositoryImpl implements GroupInfoRepositoryCustom {
     @Override
     public Optional<GroupInfo> findGroupInfoByGroupIdJoinFetchUser(Long groupId) {
         return Optional.ofNullable(queryFactory.selectFrom(groupInfo)
-                .innerJoin(groupMember.user, user).fetchJoin()
+                .innerJoin(groupInfo.user, user).fetchJoin()
                 .where(groupInfo.id.eq(groupId))
                 .fetchOne());
 
