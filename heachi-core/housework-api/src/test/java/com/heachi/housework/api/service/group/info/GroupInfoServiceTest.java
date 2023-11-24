@@ -14,6 +14,7 @@ import com.heachi.housework.TestConfig;
 import com.heachi.housework.api.service.group.info.request.GroupInfoCreateServiceRequest;
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
+import com.heachi.mysql.define.group.info.repository.response.GroupInfoUserGroupResponse;
 import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.group.member.constant.GroupMemberRole;
 import com.heachi.mysql.define.group.member.constant.GroupMemberStatus;
@@ -21,10 +22,12 @@ import com.heachi.mysql.define.group.member.repository.GroupMemberRepository;
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
 import com.heachi.mysql.define.housework.category.repository.HouseworkCategoryRepository;
 import com.heachi.mysql.define.housework.info.HouseworkInfo;
+import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
 import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
 import com.heachi.mysql.define.housework.member.HouseworkMember;
 import com.heachi.mysql.define.housework.member.repository.HouseworkMemberRepository;
 import com.heachi.mysql.define.housework.todo.HouseworkTodo;
+import com.heachi.mysql.define.housework.todo.constant.HouseworkTodoStatus;
 import com.heachi.mysql.define.housework.todo.repository.HouseworkTodoRepository;
 
 import com.heachi.mysql.define.user.User;
@@ -38,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -481,5 +485,94 @@ class GroupInfoServiceTest extends TestConfig {
         assertThat(findGroup.getGradient()).isEqualTo("updateGradient");
         assertThat(findGroup.getName()).isEqualTo("updateName");
         assertThat(findGroup.getInfo()).isEqualTo("updateInfo");
+    }
+
+    @Test
+    @DisplayName("그룹 정보 삭제를 요청했을 경우 성공적으로 수정된다.")
+    void groupInfoDeleteTest() {
+        // given
+        User user = userRepository.save(generateCustomUser("lee@naver.com", "010-1111-1111"));
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(user));
+        GroupMember gm1 = groupMemberRepository.save(generateGroupMember(user, groupInfo));
+
+        HouseworkCategory houseworkCategory = houseworkCategoryRepository.save(generateHouseworkCategory());
+        HouseworkInfo houseworkInfo = houseworkInfoRepository.save(HouseworkInfo.builder()
+                .groupInfo(groupInfo)
+                .houseworkCategory(houseworkCategory)
+                .title("빨래")
+                .detail("빨래하기")
+                .groupInfo(groupInfo)
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_DAY)
+                .dayDate(LocalDate.now())
+                .endTime(LocalTime.now())
+                .build());
+        HouseworkInfo houseworkInfo2 = houseworkInfoRepository.save(HouseworkInfo.builder()
+                .groupInfo(groupInfo)
+                .houseworkCategory(houseworkCategory)
+                .title("청소")
+                .detail("청소하기")
+                .groupInfo(groupInfo)
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_EVERYDAY)
+                .endTime(LocalTime.now())
+                .build());
+
+        HouseworkMember h1 = houseworkMemberRepository.save(generateHouseworkMember(gm1, houseworkInfo));
+        HouseworkMember h2 = houseworkMemberRepository.save(generateHouseworkMember(gm1, houseworkInfo2));
+
+        // 오늘 날짜의 단건 집안일 생성
+        HouseworkTodo saveTodo = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(null) // 단건은 HouseworkInfo가 존재하지 않는다.
+                .groupInfo(groupInfo)
+                .houseworkMember(h1.toString())
+                .category(houseworkCategory.getName())
+                .title("빨래")
+                .detail("빨래하기")
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .endTime(LocalTime.now())
+                .date(LocalDate.now())
+                .build());
+
+        // 오늘 날짜의 비단건 집안일 생성
+        HouseworkTodo saveTodo2 = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(houseworkInfo2)
+                .groupInfo(groupInfo)
+                .houseworkMember(h2.toString())
+                .category(houseworkCategory.getName())
+                .title("청소")
+                .detail("청소하기")
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_COMPLETE)
+                .endTime(LocalTime.now())
+                .date(LocalDate.now())
+                .build());
+
+        List<HouseworkTodo> houseworkTodos = houseworkTodoRepository.findByGroupInfoAndDate(groupInfo.getId(), LocalDate.now());
+        System.out.println("=======" + houseworkTodos.size());
+
+        // when
+        groupInfoService.deleteGroupInfo(groupInfo.getId());
+
+        // then
+        // user의 groupInfoList에서 삭제되었는지 확인
+        User findUser = userRepository.findByEmail(user.getEmail()).get();
+        List<GroupInfoUserGroupResponse> list = groupInfoRepository.findGroupInfoUserGroupResponseListByUserEmail(findUser.getEmail());
+        assertThat(list.contains(groupInfo)).isFalse();
+
+        // HouseworkTodo 삭제되었는지 확인
+        assertThat(houseworkTodoRepository.findById(saveTodo.getId()).orElse(null)).isNull();
+        assertThat(houseworkTodoRepository.findById(saveTodo2.getId()).orElse(null)).isNull();
+
+        // HouseworkMember 삭제되었는지 확인
+        assertThat(houseworkMemberRepository.findById(h1.getId()).orElse(null)).isNull();
+        assertThat(houseworkMemberRepository.findById(h2.getId()).orElse(null)).isNull();
+
+        // HouseworkInfo 삭제되었는지 확인
+        assertThat(houseworkInfoRepository.findById(houseworkInfo.getId()).orElse(null)).isNull();
+        assertThat(houseworkInfoRepository.findById(houseworkInfo2.getId()).orElse(null)).isNull();
+
+        // GroupMember 삭제되었는지 확인
+        assertThat(groupMemberRepository.findById(gm1.getId()).orElse(null)).isNull();
+
+        // GroupInfo 삭제되었는지 확인
+        assertThat(groupInfoRepository.findById(groupInfo.getId()).orElse(null)).isNull();
     }
 }
