@@ -219,4 +219,37 @@ class HouseworkTodoRepositoryTest extends TestConfig {
         assertThat(todoList.get(3).getHouseworkInfo()).isNull();
         assertThat(todoList.get(4).getHouseworkInfo()).isNotNull();
     }
+
+    @Test
+    @DisplayName("GroupInfo에 맞는 Todo가 삭제된다.")
+    void deleteHouseworkTodoByGroupInfo() {
+        // given
+        User user = userRepository.save(generateUser());
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(user));
+        GroupMember groupMember = groupMemberRepository.save(generateGroupMember(user, groupInfo));
+
+        HouseworkCategory houseworkCategory = houseworkCategoryRepository.save(generateHouseworkCategory());
+        HouseworkInfo houseworkInfo = houseworkInfoRepository.save(generateHouseworkInfo(houseworkCategory));
+        HouseworkInfo houseworkInfo2 = houseworkInfoRepository.save(generateHouseworkInfo(houseworkCategory));
+        HouseworkInfo houseworkInfo3 = houseworkInfoRepository.save(generateHouseworkInfo(houseworkCategory));
+
+        HouseworkMember houseworkMember = houseworkMemberRepository.save(generateHouseworkMember(groupMember, houseworkInfo));
+        HouseworkInfo findHouseworkInfo = houseworkInfoRepository.findHouseworkInfoByIdJoinFetchHouseworkMembers(houseworkInfo.getId()).get();
+        HouseworkInfo findHouseworkInfo2 = houseworkInfoRepository.findHouseworkInfoByIdJoinFetchHouseworkMembers(houseworkInfo2.getId()).get();
+        HouseworkInfo findHouseworkInfo3 = houseworkInfoRepository.findHouseworkInfoByIdJoinFetchHouseworkMembers(houseworkInfo3.getId()).get();
+
+        HouseworkTodo houseworkTodo = houseworkTodoRepository.save(generateHouseworkTodo(findHouseworkInfo, groupInfo, LocalDate.now()));
+        HouseworkTodo houseworkTodo2 = houseworkTodoRepository.save(generateHouseworkTodo(findHouseworkInfo2, groupInfo, LocalDate.now()));
+        HouseworkTodo houseworkTodo21 = houseworkTodoRepository.save(generateHouseworkTodo(findHouseworkInfo2, groupInfo, LocalDate.now()));
+        HouseworkTodo houseworkTodo22 = houseworkTodoRepository.save(generateHouseworkTodo(findHouseworkInfo2, groupInfo, LocalDate.now()));
+        HouseworkTodo houseworkTodo3 = houseworkTodoRepository.save(generateHouseworkTodo(findHouseworkInfo3, groupInfo, LocalDate.now()));
+
+        // when
+        houseworkTodoRepository.deleteByGroupInfo(groupInfo);
+
+        // then
+        List<HouseworkTodo> findTodos = houseworkTodoRepository.findByGroupInfoAndDate(groupInfo.getId(), LocalDate.now());
+
+        assertThat(findTodos).isEmpty();
+    }
 }

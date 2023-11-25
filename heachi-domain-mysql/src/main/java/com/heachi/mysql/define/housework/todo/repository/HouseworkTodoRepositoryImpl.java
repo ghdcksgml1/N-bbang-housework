@@ -93,4 +93,11 @@ public class HouseworkTodoRepositoryImpl implements HouseworkTodoRepositoryCusto
                 .where(houseworkTodo.houseworkInfo.id.eq(houseworkInfoId))
                 .fetch();
     }
+
+    @Override
+    public List<HouseworkTodo> findHouseworkTodoByHouseworkInfoList(List<HouseworkInfo> houseworkInfoList) {
+        return queryFactory.selectFrom(houseworkTodo)
+                .where(houseworkTodo.houseworkInfo.in(houseworkInfoList))
+                .fetch();
+    }
 }

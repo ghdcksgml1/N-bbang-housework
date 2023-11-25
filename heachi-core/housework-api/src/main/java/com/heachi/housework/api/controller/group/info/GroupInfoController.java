@@ -111,4 +111,18 @@ public class GroupInfoController {
         }
 
     }
+
+    @GetMapping("/delete/{groupId}")
+    public JsonResult<?> deleteGroupInfo(@RequestHeader(name = "Authorization") String authorization,
+                                         @PathVariable(name = "groupId") Long groupId) {
+        try {
+            // 유저 인증 & 그룹장인지 권한 확인
+            authExternalService.userAuthenticateAndGroupLeaderMatch(authorization, groupId);
+            groupInfoService.deleteGroupInfo(groupId);
+
+            return JsonResult.successOf("GroupInfo Delete Success.");
+        } catch (HeachiException e) {
+            return JsonResult.failOf(e.getMessage());
+        }
+    }
 }
