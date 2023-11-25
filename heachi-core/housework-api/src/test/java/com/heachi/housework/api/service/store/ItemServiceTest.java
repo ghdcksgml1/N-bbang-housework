@@ -51,7 +51,8 @@ class ItemServiceTest extends TestConfig {
         Item saveItem = itemService.addItem(request);
 
         // then
-        Item item = itemRepository.findByItemIdJoinFetchUser(saveItem.getId());
+        Item item = itemRepository.findByItemIdJoinFetchUser(saveItem.getId()).orElse(null);
+        assertThat(item).isNotNull();
         assertThat(item.getUser().getName()).isEqualTo(user.getName());
         assertThat(item.getUser().getEmail()).isEqualTo(user.getEmail());
         assertThat(item.getItemStatus()).isEqualTo(ItemStatus.ITEM_AVAILABLE);

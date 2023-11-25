@@ -5,6 +5,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 import static com.heachi.mysql.define.store.QItem.item;
 import static com.heachi.mysql.define.user.QUser.user;
 
@@ -14,10 +16,10 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
     @Override
-    public Item findByItemIdJoinFetchUser(Long itemId) {
-        return queryFactory.selectFrom(item)
+    public Optional<Item> findByItemIdJoinFetchUser(Long itemId) {
+        return Optional.ofNullable(queryFactory.selectFrom(item)
                 .innerJoin(item.user, user).fetchJoin()
                 .where(item.id.eq(itemId))
-                .fetchOne();
+                .fetchOne());
     }
 }
