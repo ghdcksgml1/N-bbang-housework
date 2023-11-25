@@ -9,6 +9,8 @@ import com.heachi.housework.TestConfig;
 import com.heachi.housework.api.controller.housework.info.request.HouseworkInfoDeleteType;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoCreateServiceRequest;
 import com.heachi.housework.api.service.housework.info.request.HouseworkInfoDeleteRequest;
+import com.heachi.housework.api.service.housework.info.request.HouseworkInfoUpdateServiceRequest;
+import com.heachi.housework.api.service.housework.info.response.HouseworkInfoUpdatePageResponse;
 import com.heachi.mysql.define.group.info.GroupInfo;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
@@ -580,5 +582,407 @@ class HouseworkInfoServiceTest extends TestConfig {
 
         // 집안일이 조회되지 않아야 한다.
         assertThat(houseworkInfoRepository.findById(vacuum.getId())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("수정 페이지에 내려줄 정보를 잘 불러온다. - 단건 집안일의 경우")
+    void updateHouseworkWithPeriodDay() {
+        /*
+            given
+        */
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkTodo todo = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(null) // 단건은 HouseworkInfo가 존재하지 않는다.
+                .groupInfo(groupInfo)
+                .houseworkMember(gA.getId() + "," + gB.getId())
+                .category(inWork.getName())
+                .title("title")
+                .detail("detail")
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(LocalDate.of(2023, 11, 18))
+                .endTime(LocalTime.of(16, 30))
+                .build());
+
+
+        // when
+        HouseworkInfoUpdatePageResponse response = houseworkInfoService.updateHouseworkPage(todo.getId());
+
+        // then
+        assertThat(response.getTitle()).isEqualTo("title");
+        assertThat(response.getHouseworkCategoryId()).isEqualTo(inWork.getId());
+        assertThat(response.getType()).isEqualTo(HouseworkPeriodType.HOUSEWORK_PERIOD_DAY);
+        assertThat(response.getLocalDate()).isEqualTo(todo.getDate());
+        assertThat(response.getWeekDate()).isNull();
+        assertThat(response.getMonthDate()).isNull();
+        assertThat(response.getEndTime()).isEqualTo(todo.getEndTime());
+    }
+
+    @Test
+    @DisplayName("수정 페이지에 내려줄 정보를 잘 불러온다. - 비단건 집안일의 경우")
+    void updateHouseworkWithPeriodNotDay() {
+        /*
+            given
+        */
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkInfo h = houseworkInfoRepository.save(generateCustom2HouseworkInfo(inWork, groupInfo, "test", HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK));
+        HouseworkTodo todo = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(h)
+                .groupInfo(groupInfo)
+                .houseworkMember(gA.getId() + "," + gB.getId())
+                .category(h.getHouseworkCategory().getName())
+                .title(h.getTitle())
+                .detail(h.getDetail())
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(LocalDate.now())
+                .endTime(LocalTime.of(16, 30))
+                .build());
+
+
+        // when
+        HouseworkInfoUpdatePageResponse response = houseworkInfoService.updateHouseworkPage(todo.getId());
+
+        // then
+        assertThat(response.getTitle()).isEqualTo("test");
+        assertThat(response.getHouseworkCategoryId()).isEqualTo(h.getHouseworkCategory().getId());
+        assertThat(response.getType()).isEqualTo(h.getType());
+        assertThat(response.getLocalDate()).isEqualTo(h.getDayDate());
+        assertThat(response.getEndTime()).isEqualTo(h.getEndTime());
+    }
+
+    @Test
+    @DisplayName("단건 집안일을 단건 집안일로 변경했을 경우 HouseworkTodo가 수정된다.")
+    void updateHouseworkWithDayToDay() {
+        // given
+        // 단건 집안일
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkCategory outWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집 밖의 일"));
+
+        LocalDate requestDate = LocalDate.of(2023, 11, 18);
+        LocalDate updateDate = LocalDate.of(2023, 11, 19);
+
+        HouseworkTodo todo = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(null) // 단건은 HouseworkInfo가 존재하지 않는다.
+                .groupInfo(groupInfo)
+                .houseworkMember(gA.getId() + "," + gB.getId())
+                .category(inWork.getName())
+                .title("title")
+                .detail("detail")
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(requestDate)
+                .endTime(LocalTime.of(16, 30))
+                .build());
+        List<Todo> todos = new ArrayList<>();
+        todos.add(Todo.builder().id(todo.getId()).build());
+        todoListRepository.save(generateTodoList(groupInfo.getId(), requestDate, todos));
+
+        // 수정 요청 DTO
+        HouseworkInfoUpdateServiceRequest request = HouseworkInfoUpdateServiceRequest.builder()
+                .groupMemberIdList(Arrays.asList(gA.getId()))       // 담당자 변경
+                .houseworkCategoryId(outWork.getId())               // 카테고리 변경
+                .title("updateTitle")                               // 제목 변경
+                .detail("updateDetail")                             // detail 변경
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_DAY)     // 단건 -> 단건
+                .dayDate(updateDate)    // 변경
+                .endTime(LocalTime.of(18, 30))          // 마감 시간 변경
+                .groupId(groupInfo.getId())
+                .todoId(todo.getId())
+                .requestDate(requestDate)
+                .build();
+
+        // when
+        houseworkInfoService.updateHousework(request);
+        HouseworkTodo findTodo = houseworkTodoRepository.findHouseworkTodoByIdAndGroupMemberId(todo.getId(), groupInfo.getId()).get();
+
+        // then
+        assertThat(findTodo).isNotNull();
+        assertThat(findTodo.getHouseworkInfo()).isNull();
+        assertThat(findTodo.getCategory()).isEqualTo(outWork.getName());
+        assertThat(findTodo.getHouseworkMember()).isEqualTo(gA.getId().toString());
+        assertThat(findTodo.getTitle()).isEqualTo("updateTitle");
+        assertThat(findTodo.getDetail()).isEqualTo("updateDetail");
+        assertThat(findTodo.getDate()).isEqualTo(updateDate);
+        assertThat(findTodo.getEndTime()).isEqualTo(LocalTime.of(18, 30));
+
+        TodoList todoList = todoListRepository.findByGroupInfoIdAndDate(groupInfo.getId(), requestDate).get();
+        assertThat(todoList.isDirtyBit()).isTrue();
+    }
+
+    @Test
+    @DisplayName("단건 집안일을 비단건 집안일로 변경했을 경우 HouseworkTodo가 삭제되고 HouseworkInfo가 생성된다.")
+    void updateHouseworkWithDayToNotDay() {
+        // given
+        // 단건 집안일
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkCategory outWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집 밖의 일"));
+
+        LocalDate requestDate = LocalDate.of(2023, 11, 18);
+        LocalDate updateDate = LocalDate.of(2023, 11, 19);
+
+        HouseworkTodo todo = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(null) // 단건은 HouseworkInfo가 존재하지 않는다.
+                .groupInfo(groupInfo)
+                .houseworkMember(gA.getId() + "," + gB.getId())
+                .category(inWork.getName())
+                .title("title")
+                .detail("detail")
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(requestDate)
+                .endTime(LocalTime.of(16, 30))
+                .build());
+        List<Todo> todos = new ArrayList<>();
+        todos.add(Todo.builder().id(todo.getId()).build());
+        todoListRepository.save(generateTodoList(groupInfo.getId(), requestDate, todos));
+
+        // 수정 요청 DTO
+        HouseworkInfoUpdateServiceRequest request = HouseworkInfoUpdateServiceRequest.builder()
+                .groupMemberIdList(Arrays.asList(gA.getId()))       // 담당자 변경
+                .houseworkCategoryId(outWork.getId())               // 카테고리 변경
+                .title("updateTitle")                               // 제목 변경
+                .detail("updateDetail")                             // detail 변경
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_WEEK)     // 단건 -> 비단건
+                .weekDate("3")
+                .dayDate(updateDate)    // 변경
+                .endTime(LocalTime.of(18, 30))          // 마감 시간 변경
+                .groupId(groupInfo.getId())
+                .todoId(todo.getId())
+                .requestDate(requestDate)
+                .build();
+
+        // when
+        houseworkInfoService.updateHousework(request);
+
+        // then
+        // 기존 TODO가 DELETE로 잘 변경되었는지 확인
+        HouseworkTodo findTodo = houseworkTodoRepository.findHouseworkTodoByIdAndGroupMemberId(todo.getId(), groupInfo.getId()).get();
+        assertThat(findTodo).isNotNull();
+        assertThat(findTodo.getStatus()).isEqualTo(HouseworkTodoStatus.HOUSEWORK_TODO_DELETE);
+
+        // 생성된 HouseworkInfo 확인
+        HouseworkInfo findInfo = houseworkInfoRepository.findHouseworkInfoByIdJoinFetchHouseworkMembers(1L).get();
+        assertThat(findInfo).isNotNull();
+        assertThat(findInfo.getHouseworkCategory().getId()).isEqualTo(outWork.getId());
+
+        // 요청 날짜 캐싱 확인
+        TodoList requestTodoList = todoListRepository.findByGroupInfoIdAndDate(groupInfo.getId(), requestDate).get();
+        assertThat(requestTodoList.isDirtyBit()).isTrue();
+
+
+    }
+
+    @Test
+    @DisplayName("비단건 집안일을 단건 집안일로 변경했을 경우 HouseworkInfo가 삭제되고 HouseworkTodo가 생성된다.")
+    void updateHouseworkWithNotDayToDay() {
+        // given
+        LocalDate requestDate = LocalDate.of(2023, 12, 19);
+        LocalTime requestTime = LocalTime.of(16, 30);
+        LocalTime updateTime = LocalTime.of(20, 0);
+
+        // 비단건 집안일
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkCategory outWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집 밖의 일"));
+        HouseworkInfo info = houseworkInfoRepository.save(HouseworkInfo.builder()
+                .groupInfo(groupInfo).houseworkCategory(inWork).title("빨래").detail("빨래하기")
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_MONTH)
+                .monthDate("19").endTime(requestTime).build());
+        houseworkMemberRepository.save(generateHouseworkMember(gA, info));
+        houseworkMemberRepository.save(generateHouseworkMember(gB, info));
+
+        // 12월 19일 날짜의 Todo
+        HouseworkTodo todo = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(info)
+                .groupInfo(info.getGroupInfo())
+                .houseworkMember(gA.getId() + "," + gB.getId())
+                .category(info.getHouseworkCategory().getName())
+                .title(info.getTitle())
+                .detail(info.getDetail())
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(requestDate)
+                .endTime(requestTime)
+                .build());
+
+        // 내년 1월 19일 날짜의 Todo
+        HouseworkTodo todo2 = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(info)
+                .groupInfo(info.getGroupInfo())
+                .houseworkMember(gA.getId() + "," + gB.getId())
+                .category(info.getHouseworkCategory().getName())
+                .title(info.getTitle())
+                .detail(info.getDetail())
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(LocalDate.of(2024, 1, 19))
+                .endTime(requestTime)
+                .build());
+
+
+        // 요청 날짜의 TodoList 생성
+        List<Todo> todos = new ArrayList<>();
+        todos.add(Todo.builder().id(todo.getId()).build());
+        todoListRepository.save(generateTodoList(groupInfo.getId(), requestDate, todos));
+
+        // 수정 요청 DTO
+        HouseworkInfoUpdateServiceRequest request = HouseworkInfoUpdateServiceRequest.builder()
+                .groupMemberIdList(Arrays.asList(gA.getId()))       // 담당자 변경
+                .houseworkCategoryId(outWork.getId())               // 카테고리 변경
+                .title("updateTitle")                               // 제목 변경
+                .detail("updateDetail")                             // detail 변경
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_DAY)     // 비단건 -> 단건
+                .dayDate(LocalDate.now())                           // 오늘 날짜의 단건 집안일로 변경
+                .endTime(updateTime)                                // 마감 시간 변경
+                .groupId(groupInfo.getId())
+                .todoId(todo.getId())
+                .requestDate(requestDate)
+                .build();
+
+        // when
+        houseworkInfoService.updateHousework(request);
+
+        // then
+        // 기존의 HouseworkInfo가 잘 삭제되었는지 확인
+        HouseworkInfo findInfo = houseworkInfoRepository.findHouseworkInfoByIdJoinFetchHouseworkMembers(info.getId()).orElse(null);
+        assertThat(findInfo).isNull();
+
+        // 기존의 HouseworkTodo의 상태가 DELETE로 변경되었는지 확인
+        HouseworkTodo findTodo = houseworkTodoRepository.findById(todo.getId()).get();
+        assertThat(findTodo.getStatus()).isEqualTo(HouseworkTodoStatus.HOUSEWORK_TODO_DELETE);
+
+        HouseworkTodo findTodo2 = houseworkTodoRepository.findById(todo2.getId()).get();
+        assertThat(findTodo.getStatus()).isEqualTo(HouseworkTodoStatus.HOUSEWORK_TODO_DELETE);
+
+        // 요청 날짜 캐싱 확인
+        TodoList requestTodoList = todoListRepository.findByGroupInfoIdAndDate(groupInfo.getId(), requestDate).get();
+        assertThat(requestTodoList.isDirtyBit()).isTrue();
+
+        // 생성된 단건 집안일 확인
+        HouseworkTodo saveTodo = houseworkTodoRepository.findByGroupInfoAndDate(groupInfo.getId(), LocalDate.now()).get(0);
+        assertThat(saveTodo).isNotNull();
+        assertThat(saveTodo.getHouseworkInfo()).isNull();
+        assertThat(saveTodo.getCategory()).isEqualTo(outWork.getName());
+        assertThat(saveTodo.getHouseworkMember()).isEqualTo(gA.getId().toString());
+        assertThat(saveTodo.getTitle()).isEqualTo("updateTitle");
+        assertThat(saveTodo.getDetail()).isEqualTo("updateDetail");
+        assertThat(saveTodo.getDate()).isEqualTo(LocalDate.now());
+        assertThat(saveTodo.getEndTime()).isEqualTo(updateTime);
+    }
+
+    @Test
+    @DisplayName("비단건 집안일을 비단건 집안일로 변경했을 경우 이전의 HouseworkTodo들이 삭제되고 HouseworkInfo가 수정된다.")
+    void updateHouseworkWithNotDayToNotDay() {
+        // given
+        LocalDate requestDate = LocalDate.of(2023, 12, 19);
+        LocalTime requestTime = LocalTime.of(16, 30);
+        LocalTime updateTime = LocalTime.of(20, 0);
+
+        // 비단건 집안일
+        User A = userRepository.save(generateCustomUser("aaa@naver.com", "010-0000-0000"));
+        User B = userRepository.save(generateCustomUser("bbb@naver.com", "010-1111-1111"));
+        GroupInfo groupInfo = groupInfoRepository.save(generateGroupInfo(A));
+        GroupMember gA = groupMemberRepository.save(generateGroupMember(A, groupInfo));
+        GroupMember gB = groupMemberRepository.save(generateGroupMember(B, groupInfo));
+        HouseworkCategory inWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집안일"));
+        HouseworkCategory outWork = houseworkCategoryRepository.save(generateCustomHouseworkCategory("집 밖의 일"));
+        HouseworkInfo info = houseworkInfoRepository.save(HouseworkInfo.builder()
+                .groupInfo(groupInfo).houseworkCategory(inWork).title("빨래").detail("빨래하기")
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_MONTH)
+                .monthDate("19").endTime(requestTime).build());
+        HouseworkMember hA = houseworkMemberRepository.save(generateHouseworkMember(gA, info));
+        HouseworkMember hB = houseworkMemberRepository.save(generateHouseworkMember(gB, info));
+
+        // 12월 19일 날짜의 Todo
+        HouseworkTodo todo = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(info)
+                .groupInfo(info.getGroupInfo())
+                .houseworkMember(gA.getId() + "," + gB.getId())
+                .category(info.getHouseworkCategory().getName())
+                .title(info.getTitle())
+                .detail(info.getDetail())
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(requestDate)
+                .endTime(requestTime)
+                .build());
+
+        // 내년 1월 19일 날짜의 Todo
+        HouseworkTodo todo2 = houseworkTodoRepository.save(HouseworkTodo.builder()
+                .houseworkInfo(info)
+                .groupInfo(info.getGroupInfo())
+                .houseworkMember(gA.getId() + "," + gB.getId())
+                .category(info.getHouseworkCategory().getName())
+                .title(info.getTitle())
+                .detail(info.getDetail())
+                .status(HouseworkTodoStatus.HOUSEWORK_TODO_INCOMPLETE)
+                .date(LocalDate.of(2024, 1, 19))
+                .endTime(requestTime)
+                .build());
+
+
+        // 요청 날짜의 TodoList 생성
+        List<Todo> todos = new ArrayList<>();
+        todos.add(Todo.builder().id(todo.getId()).build());
+        todoListRepository.save(generateTodoList(groupInfo.getId(), requestDate, todos));
+
+        // 수정 요청 DTO
+        HouseworkInfoUpdateServiceRequest request = HouseworkInfoUpdateServiceRequest.builder()
+                .groupMemberIdList(Arrays.asList(gA.getId()))       // 담당자 변경
+                .houseworkCategoryId(outWork.getId())               // 카테고리 변경
+                .title("updateTitle")                               // 제목 변경
+                .detail("updateDetail")                             // detail 변경
+                .type(HouseworkPeriodType.HOUSEWORK_PERIOD_EVERYDAY)     // 매달 하는 집안일  -> 매일 하는 집안일
+                .endTime(updateTime)                                // 마감 시간 변경
+                .groupId(groupInfo.getId())
+                .todoId(todo.getId())
+                .requestDate(requestDate)
+                .build();
+
+        // when
+        houseworkInfoService.updateHousework(request);
+
+        // then
+        // 이전 담당자 리스트 삭제되었는지 확인
+        assertThat(houseworkMemberRepository.findById(hA.getId())).isEmpty();
+        assertThat(houseworkMemberRepository.findById(hB.getId())).isEmpty();
+
+        // 기존의 HouseworkTodo의 상태가 DELETE로 변경되었는지 확인
+        HouseworkTodo findTodo = houseworkTodoRepository.findById(todo.getId()).get();
+        assertThat(findTodo.getStatus()).isEqualTo(HouseworkTodoStatus.HOUSEWORK_TODO_DELETE);
+
+        HouseworkTodo findTodo2 = houseworkTodoRepository.findById(todo2.getId()).get();
+        assertThat(findTodo.getStatus()).isEqualTo(HouseworkTodoStatus.HOUSEWORK_TODO_DELETE);
+
+        // 생성된 HouseworkInfo 확인
+        HouseworkInfo findInfo = houseworkInfoRepository.findHouseworkInfoByIdJoinFetchHouseworkMembers(1L).get();
+        assertThat(findInfo).isNotNull();
+        assertThat(findInfo.getHouseworkCategory().getId()).isEqualTo(outWork.getId());
+
+        // 생성된 HouseworkMember 확인
+        assertThat(houseworkMemberRepository.findByHouseworkInfo(findInfo).size()).isEqualTo(1);
+        
+        // 요청 날짜 캐싱 확인
+        TodoList requestTodoList = todoListRepository.findByGroupInfoIdAndDate(groupInfo.getId(), requestDate).get();
+        assertThat(requestTodoList.isDirtyBit()).isTrue();
+
     }
 }

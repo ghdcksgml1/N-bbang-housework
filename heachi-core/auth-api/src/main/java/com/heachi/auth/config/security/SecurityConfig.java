@@ -32,7 +32,7 @@ public class SecurityConfig {
                                 // register
                                 .requestMatchers("/auth/register").hasAnyAuthority("UNAUTH")
                                 // Others
-                                .anyRequest().hasAnyAuthority("USER", "CHEMIST", "CENTER")
+                                .anyRequest().hasAnyAuthority("USER")
                 )
                 .sessionManagement((sessionManagement) ->
                         sessionManagement
