@@ -29,6 +29,7 @@ public class HouseworkMemberRepositoryCustomImpl implements HouseworkMemberRepos
 
         // houseworkGroupMemberIdList의 요소들이 groupIdList의 요소들과 정확히 일치하면 true 리턴
         return new HashSet<>(groupMemberIdList).containsAll(houseworkGroupMemberIdList);
+    }
         
     @Transactional
     @Override
