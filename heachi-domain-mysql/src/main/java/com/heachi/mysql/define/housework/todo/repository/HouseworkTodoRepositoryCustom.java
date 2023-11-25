@@ -1,5 +1,6 @@
 package com.heachi.mysql.define.housework.todo.repository;
 
+import com.heachi.mysql.define.housework.info.HouseworkInfo;
 import com.heachi.mysql.define.housework.todo.HouseworkTodo;
 import com.heachi.mysql.define.housework.todo.repository.response.HouseworkTodoCount;
 
@@ -22,4 +23,6 @@ public interface HouseworkTodoRepositoryCustom {
 
     // houseworkInfoId와 일치하는 HouseworkTodo 리스트를 조회한다.
     public List<HouseworkTodo> findHouseworkTodoByHouseworkInfo(Long houseworkInfoId);
+
+    public List<HouseworkTodo> findHouseworkTodoByHouseworkInfoList(List<HouseworkInfo> houseworkInfoList);
 }

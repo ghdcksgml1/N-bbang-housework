@@ -8,6 +8,7 @@ import com.heachi.mysql.define.group.member.repository.GroupMemberRepository;
 import com.heachi.mysql.define.housework.category.HouseworkCategory;
 import com.heachi.mysql.define.housework.category.repository.HouseworkCategoryRepository;
 import com.heachi.mysql.define.housework.info.HouseworkInfo;
+import com.heachi.mysql.define.housework.info.constant.HouseworkPeriodType;
 import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
 import com.heachi.mysql.define.housework.member.HouseworkMember;
 import com.heachi.mysql.define.housework.todo.HouseworkTodo;
@@ -21,7 +22,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDate;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -91,6 +94,26 @@ class HouseworkMemberRepositoryTest extends TestConfig {
         houseworkMemberRepository.findAll().forEach(System.out::println);
 
         // then
+
+    }
+
+    @Test
+    @DisplayName("HouseworkInfoList에 속하는 HouseworkInfo들을 삭제한다.")
+    void deleteByHouseworkInfoListTest() {
+        User user = userRepository.save(generateUser());
+        GroupInfo group = groupInfoRepository.save(generateGroupInfo(user));
+        HouseworkCategory category = houseworkCategoryRepository.save(generateHouseworkCategory());
+        HouseworkInfo h1 = houseworkInfoRepository.save(generateCustomHouseworkInfo(category, "빨래", HouseworkPeriodType.HOUSEWORK_PERIOD_EVERYDAY));
+        HouseworkInfo h2 = houseworkInfoRepository.save(generateCustomHouseworkInfo(category, "청소", HouseworkPeriodType.HOUSEWORK_PERIOD_EVERYDAY));
+        HouseworkInfo h3 = houseworkInfoRepository.save(generateCustomHouseworkInfo(category, "분리수거", HouseworkPeriodType.HOUSEWORK_PERIOD_EVERYDAY));
+
+        // when
+        houseworkInfoRepository.deleteHouseworkInfoByHouseworkInfoList(List.of(h1, h2, h3));
+
+        // then
+        assertThat(houseworkInfoRepository.findById(h1.getId()).orElse(null)).isNull();
+        assertThat(houseworkInfoRepository.findById(h2.getId()).orElse(null)).isNull();
+        assertThat(houseworkInfoRepository.findById(h3.getId()).orElse(null)).isNull();
 
     }
 }

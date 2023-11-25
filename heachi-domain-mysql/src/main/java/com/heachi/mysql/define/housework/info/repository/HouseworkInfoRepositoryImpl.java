@@ -6,6 +6,7 @@ import com.heachi.mysql.define.housework.member.QHouseworkMember;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,4 +43,11 @@ public class HouseworkInfoRepositoryImpl implements HouseworkInfoRepositoryCusto
                 .fetch();
     }
 
+    @Transactional
+    @Override
+    public void deleteHouseworkInfoByHouseworkInfoList(List<HouseworkInfo> houseworkInfoList) {
+        queryFactory.delete(houseworkInfo)
+                .where(houseworkInfo.in(houseworkInfoList))
+                .execute();
+    }
 }

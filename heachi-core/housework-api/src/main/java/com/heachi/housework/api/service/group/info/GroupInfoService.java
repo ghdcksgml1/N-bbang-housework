@@ -10,6 +10,10 @@ import com.heachi.housework.api.service.group.info.response.GroupInfoUpdatePageR
 import com.heachi.housework.api.service.group.info.response.GroupInfoUserGroupServiceResponse;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.info.repository.response.GroupInfoUserGroupResponse;
+import com.heachi.mysql.define.housework.info.HouseworkInfo;
+import com.heachi.mysql.define.housework.info.repository.HouseworkInfoRepository;
+import com.heachi.mysql.define.housework.member.repository.HouseworkMemberRepository;
+import com.heachi.mysql.define.housework.todo.HouseworkTodo;
 import com.heachi.mysql.define.housework.todo.constant.HouseworkTodoStatus;
 import com.heachi.mysql.define.housework.todo.repository.HouseworkTodoRepository;
 import com.heachi.mysql.define.housework.todo.repository.response.HouseworkTodoCount;
@@ -27,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +42,8 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class GroupInfoService {
+    private final HouseworkMemberRepository houseworkMemberRepository;
+    private final HouseworkInfoRepository houseworkInfoRepository;
 
     private final UserRepository userRepository;
     private final GroupMemberRepository groupMemberRepository;
@@ -225,5 +232,36 @@ public class GroupInfoService {
                 request.getGradient(),
                 request.getName(),
                 request.getInfo());
+    }
+
+    @Transactional
+    public void deleteGroupInfo(Long groupId) {
+        GroupInfo group = groupInfoRepository.findGroupInfoByGroupIdJoinFetchUser(groupId).orElseThrow(() -> {
+            log.warn(">>>> 그룹 정보를 찾을 수 없습니다.");
+
+            throw new GroupInfoException(ExceptionMessage.GROUP_INFO_NOT_FOUND);
+        });
+
+        // User의 GroupInfoList에서 삭제
+        group.getUser().deleteGroupInfo(group);
+
+        // 연관된 HouseworkTodo들 삭제
+        houseworkTodoRepository.deleteByGroupInfo(group);
+
+        // 해당 그룹의 HouseworkInfo 리스트 조회
+        List<HouseworkInfo> houseworkInfoList = houseworkInfoRepository.findHouseworkInfoByGroupInfoId(groupId);
+
+        // 각 HouseworkInfo의 HouseworkMember 리스트 삭제
+        houseworkMemberRepository.deleteByHouseworkInfoList(houseworkInfoList);
+
+        // HouseworkInfo 리스트 삭제
+        houseworkInfoRepository.deleteHouseworkInfoByHouseworkInfoList(houseworkInfoList);
+
+        // 연관된 GroupMember들 삭제
+        groupMemberRepository.deleteByGroupInfo(group);
+
+        // GroupInfo 삭제
+        groupInfoRepository.deleteById(groupId);
+
     }
 }

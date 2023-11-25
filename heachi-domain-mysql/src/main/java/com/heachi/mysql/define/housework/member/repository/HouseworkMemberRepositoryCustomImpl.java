@@ -5,6 +5,7 @@ import com.heachi.mysql.define.housework.member.HouseworkMember;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -28,5 +29,13 @@ public class HouseworkMemberRepositoryCustomImpl implements HouseworkMemberRepos
 
         // houseworkGroupMemberIdList의 요소들이 groupIdList의 요소들과 정확히 일치하면 true 리턴
         return new HashSet<>(groupMemberIdList).containsAll(houseworkGroupMemberIdList);
+    }
+        
+    @Transactional
+    @Override
+    public void deleteByHouseworkInfoList(List<HouseworkInfo> houseworkInfoList) {
+        queryFactory.delete(houseworkMember)
+                .where(houseworkMember.houseworkInfo.in(houseworkInfoList))
+                .execute();
     }
 }

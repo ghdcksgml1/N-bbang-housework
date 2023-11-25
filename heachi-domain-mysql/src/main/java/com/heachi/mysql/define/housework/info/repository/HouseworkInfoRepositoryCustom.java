@@ -13,4 +13,7 @@ public interface HouseworkInfoRepositoryCustom {
     // HouseworkInfo 조회하는데 GroupInfoId로 조회한다.
     public List<HouseworkInfo> findHouseworkInfoByGroupInfoId(Long groupId);
 
+    // HouseworkInfo 리스트를 받아 삭제
+    public void deleteHouseworkInfoByHouseworkInfoList(List<HouseworkInfo> houseworkInfoList);
+
 }
