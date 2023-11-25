@@ -51,4 +51,25 @@ public class AuthExternalService {
 
         return jsonResult.getResObj();
     }
+
+    // Auth 서버에 인증 요청을 보낸 후 가져온 정보로 해당 그룹의 그룹장인지 판별한다.
+    public UserInfoResponse userAuthenticateAndGroupLeaderMatch(String authorization, Long groupId) {
+        JsonResult<UserInfoResponse> jsonResult = authClients.getUserInfo(authorization).block(); // Mono 객체이므로 Block
+
+        if (jsonResult.getResCode() != 200) {
+            log.warn(">>>> 유저 인증에 실패했습니다.");
+
+            throw new AuthException(ExceptionMessage.AUTH_SERVER_NOT_RESPOND);
+        }
+
+        // 그룹장인지 확인
+        if (!groupMemberRepository.isLeaderByUserEmailAndGroupInfoId(
+                jsonResult.getResObj().getEmail(), groupId)) {
+            log.warn(">>>> 해당 유저[{}]는 해당 그룹[{}]의 그룹장이 아닙니다.", jsonResult.getResObj().getEmail(), groupId);
+
+            throw new GroupMemberException(ExceptionMessage.GROUP_MEMBER_ROLE_NOT_ADMIN);
+        }
+
+        return jsonResult.getResObj();
+    }
 }

@@ -74,4 +74,18 @@ public class HouseworkInfo extends BaseEntity {
         this.monthDate = monthDate;
         this.endTime = endTime;
     }
+
+    public void updateHouseworkInfo(String title, String detail, HouseworkCategory category,
+                                    HouseworkPeriodType type, LocalDate date, LocalTime endTime,
+                                    String weekDate, String monthDate) {
+        this.title = title;
+        this.detail = detail;
+        this.houseworkCategory = category;
+        this.type = type;
+        this.dayDate = date;
+        this.weekDate = weekDate;
+        this.monthDate = monthDate;
+        this.endTime = endTime;
+
+    }
 }

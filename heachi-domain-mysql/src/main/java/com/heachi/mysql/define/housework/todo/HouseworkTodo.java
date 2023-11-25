@@ -100,6 +100,11 @@ public class HouseworkTodo extends BaseEntity {
         this.verificationTime = LocalDateTime.now();
     }
 
+    // 집안일 삭제
+    public void deleteHouseworkTodo() {
+        this.status = HouseworkTodoStatus.HOUSEWORK_TODO_DELETE;
+    }
+
     public static HouseworkTodo makeTodoReferInfo(HouseworkInfo houseworkInfo, GroupInfo groupInfo, LocalDate date) {
 
         return HouseworkTodo.builder()
@@ -115,5 +120,15 @@ public class HouseworkTodo extends BaseEntity {
                 .date(date)
                 .endTime(houseworkInfo.getEndTime())
                 .build();
+    }
+
+
+    public void updateHouseworkTodo(String title, String detail, String category, String groupMemberIdList, LocalDate date, LocalTime endTime) {
+        this.title = title;
+        this.detail = detail;
+        this.category = category;
+        this.houseworkMember = groupMemberIdList;
+        this.date = date;
+        this.endTime = endTime;
     }
 }

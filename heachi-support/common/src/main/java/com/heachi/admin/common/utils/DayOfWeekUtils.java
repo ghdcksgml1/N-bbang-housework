@@ -25,6 +25,9 @@ public class DayOfWeekUtils {
      * @return
      */
     public static boolean equals(String day, LocalDate target) {
+        if (day == null) {
+            return false;
+        }
 
         return Arrays.stream(day.split(","))
                 .mapToInt(Integer::parseInt)
