@@ -2,6 +2,7 @@ package com.heachi.mysql.define.group.member.repository;
 
 import com.heachi.mysql.define.group.info.QGroupInfo;
 import com.heachi.mysql.define.group.member.GroupMember;
+import com.heachi.mysql.define.group.member.constant.GroupMemberRole;
 import com.heachi.mysql.define.group.member.constant.GroupMemberStatus;
 import com.heachi.mysql.define.user.User;
 import com.querydsl.jpa.JPAExpressions;
@@ -35,6 +36,20 @@ public class GroupMemberRepositoryImpl implements GroupMemberRepositoryCustom {
                                         .from(user)
                                         .where(user.email.eq(email))))
                         .and(groupMember.status.eq(GroupMemberStatus.ACCEPT)))
+                .fetchFirst() != null;
+    }
+
+    @Override
+    public boolean isLeaderByUserEmailAndGroupInfoId(String email, Long groupId) {
+
+        return queryFactory.from(groupMember)
+                .where(groupMember.groupInfo.id.eq(groupId)
+                        .and(groupMember.user.id.eq(
+                                JPAExpressions
+                                        .select(user.id)
+                                        .from(user)
+                                        .where(user.email.eq(email))))
+                        .and(groupMember.role.eq(GroupMemberRole.GROUP_ADMIN)))
                 .fetchFirst() != null;
     }
 
@@ -73,7 +88,7 @@ public class GroupMemberRepositoryImpl implements GroupMemberRepositoryCustom {
                         .and(user.email.eq(email)))
                 .fetchOne());
     }
-                                   
+
     @Override
     public Optional<GroupMember> findGroupMemberByGroupMemberIdAndGroupInfoId(Long groupMemberId, Long groupId) {
         // select gm from groupMember gm where gm.id= :groupMemberId and gm.groupInfo.id= :groupId

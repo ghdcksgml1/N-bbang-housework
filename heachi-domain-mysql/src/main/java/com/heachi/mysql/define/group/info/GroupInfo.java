@@ -68,4 +68,12 @@ public class GroupInfo extends BaseEntity {
 
         return this.joinCode;
     }
+
+    public void updateGroupInfo(String bgColor, String colorCode, String gradient, String name, String info) {
+        this.bgColor = bgColor;
+        this.colorCode = colorCode;
+        this.gradient = gradient;
+        this.name = name;
+        this.info = info;
+    }
 }

@@ -5,6 +5,8 @@ import com.heachi.admin.common.exception.group.info.GroupInfoException;
 import com.heachi.admin.common.exception.group.member.GroupMemberException;
 import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequest;
 import com.heachi.housework.api.controller.group.info.request.GroupInfoRegisterRequestStatusEnum;
+import com.heachi.housework.api.service.group.info.request.GroupInfoUpdateServiceRequest;
+import com.heachi.housework.api.service.group.info.response.GroupInfoUpdatePageResponse;
 import com.heachi.housework.api.service.group.info.response.GroupInfoUserGroupServiceResponse;
 import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.info.repository.response.GroupInfoUserGroupResponse;
@@ -14,7 +16,6 @@ import com.heachi.mysql.define.housework.todo.repository.response.HouseworkTodoC
 import com.heachi.admin.common.exception.user.UserException;
 import com.heachi.housework.api.service.group.info.request.GroupInfoCreateServiceRequest;
 import com.heachi.mysql.define.group.info.GroupInfo;
-import com.heachi.mysql.define.group.info.repository.GroupInfoRepository;
 import com.heachi.mysql.define.group.member.GroupMember;
 import com.heachi.mysql.define.group.member.constant.GroupMemberRole;
 import com.heachi.mysql.define.group.member.constant.GroupMemberStatus;
@@ -30,9 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.heachi.mysql.define.group.info.QGroupInfo.groupInfo;
-import static com.heachi.mysql.define.user.QUser.user;
 
 @Slf4j
 @Service
@@ -199,5 +197,33 @@ public class GroupInfoService {
         } else {
             requestGroupMember.refuseJoin();
         }
+    }
+
+    public GroupInfoUpdatePageResponse updateGroupInfoPage(Long groupId) {
+        GroupInfo group = groupInfoRepository.findById(groupId).orElseThrow(() -> {
+            log.warn(">>>> 그룹 정보를 찾을 수 없습니다.");
+
+            throw new GroupInfoException(ExceptionMessage.GROUP_INFO_NOT_FOUND);
+        });
+
+        return GroupInfoUpdatePageResponse.of(group);
+
+    }
+
+    @Transactional
+    public void updateGroupInfo(GroupInfoUpdateServiceRequest request) {
+        Long groupId = request.getGroupId();
+
+        GroupInfo group = groupInfoRepository.findById(groupId).orElseThrow(() -> {
+            log.warn(">>>> 그룹 정보를 찾을 수 없습니다.");
+
+            throw new GroupInfoException(ExceptionMessage.GROUP_INFO_NOT_FOUND);
+        });
+
+        group.updateGroupInfo(request.getBgColor(),
+                request.getColorCode(),
+                request.getGradient(),
+                request.getName(),
+                request.getInfo());
     }
 }
